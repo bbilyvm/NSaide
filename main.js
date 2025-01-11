@@ -14,7 +14,7 @@
 // @grant        GM_unregisterMenuCommand
 // @grant        GM_info
 // @require      https://drstth.com/userCard/index.js
-// @require      https://drstth.com/commentShortcut/index.js
+// @require      https://drstth.com/editorEnhance/index.js
 // @run-at       document-start
 // ==/UserScript==
 
