@@ -377,13 +377,13 @@
         }
     };
 
-    if (typeof window.NSRegisterModule === 'function') {
-        window.NSRegisterModule(NSUserCard);
-    } else {
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof window.NSRegisterModule === 'function') {
-                window.NSRegisterModule(NSUserCard);
-            }
-        });
-    }
+    const waitForNS = () => {
+        if (typeof window.NSRegisterModule === 'function') {
+            window.NSRegisterModule(NSUserCard);
+        } else {
+            setTimeout(waitForNS, 100);
+        }
+    };
+
+    waitForNS();
 })();

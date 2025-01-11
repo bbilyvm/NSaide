@@ -20,29 +20,34 @@
 (function() {
     'use strict';
 
+    window.NSRegisterModule = (moduleDefinition) => {
+        if (!moduleDefinition || !moduleDefinition.id || !moduleDefinition.init) {
+            console.error('[NS助手] 模块注册失败: 无效的模块定义');
+            return;
+        }
+
+        if (!window.NS) {
+            window.NS = {
+                version: GM_info.script.version,
+                modules: new Map()
+            };
+        }
+
+        window.NS.modules.set(moduleDefinition.id, {
+            ...moduleDefinition,
+            enabled: GM_getValue(`module_${moduleDefinition.id}_enabled`, true)
+        });
+
+        console.log(`[NS助手] 模块已注册: ${moduleDefinition.name}`);
+    };
+
     const NS = {
         version: GM_info.script.version,
-        modules: new Map(),
+        modules: window.NS ? window.NS.modules : new Map(),
 
         init() {
-            this.initModuleSystem();
+            console.log('[NS助手] 开始初始化...');
             this.loadModules();
-        },
-
-        initModuleSystem() {
-            window.NSRegisterModule = (moduleDefinition) => {
-                if (!moduleDefinition || !moduleDefinition.id || !moduleDefinition.init) {
-                    console.error('[NS助手] 模块注册失败: 无效的模块定义');
-                    return;
-                }
-
-                this.modules.set(moduleDefinition.id, {
-                    ...moduleDefinition,
-                    enabled: GM_getValue(`module_${moduleDefinition.id}_enabled`, true)
-                });
-
-                console.log(`[NS助手] 模块已注册: ${moduleDefinition.name}`);
-            };
         },
 
         loadModules() {
@@ -71,8 +76,10 @@
     };
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => NS.init());
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => NS.init(), 0);
+        });
     } else {
-        NS.init();
+        setTimeout(() => NS.init(), 0);
     }
 })();
