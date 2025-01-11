@@ -1,7 +1,6 @@
 (function(window) {
     'use strict';
-    window.NSModules = window.NSModules || {};
-    
+
     const NSUserCard = {
         id: 'userCard',
         name: '用户卡片增强',
@@ -374,6 +373,9 @@
         }
     };
 
+    if (typeof window.NSModules === 'undefined') {
+        window.NSModules = {};
+    }
 
     window.NSModules.userCard = NSUserCard;
-})(window || {});
+})(window);
