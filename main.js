@@ -16,11 +16,11 @@
 // @require      https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/commentShortcut/index.js
 // ==/UserScript==
 
-window.NSModuleRegistry = {
+window._NS = window._NS || {
     modules: {},
-    register: function(moduleDefinition) {
-        this.modules[moduleDefinition.id] = moduleDefinition;
-        console.log(`[NS助手] 模块已注册: ${moduleDefinition.name}`);
+    registerModule(module) {
+        this.modules[module.id] = module;
+        console.log(`[NS助手] 模块已注册: ${module.name}`);
     }
 };
 
@@ -28,9 +28,9 @@ window.NSModuleRegistry = {
     'use strict';
  
     const initModules = () => {
-        console.log('[NS助手] 已注册的模块:', Object.keys(NSModuleRegistry.modules));
+        console.log('[NS助手] 已加载的模块:', Object.keys(window._NS.modules));
         
-        Object.values(NSModuleRegistry.modules).forEach(module => {
+        Object.values(window._NS.modules).forEach(module => {
             try {
                 const isEnabled = GM_getValue(`module_${module.id}_enabled`, true);
                 if (isEnabled) {

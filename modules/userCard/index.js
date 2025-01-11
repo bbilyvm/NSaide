@@ -1,7 +1,9 @@
 (function() {
     'use strict';
 
-    window.NSModuleRegistry.register({
+    if (!window._NS) return;
+
+    const NSUserCard = {
         id: 'userCard',
         name: '用户卡片增强',
         description: '增强用户信息卡片，添加等级进度和活跃度统计',
@@ -375,5 +377,7 @@
                 console.error('[NS助手] 数据处理错误:', error);
             }
         }
-    });
+    };
+
+    window._NS.registerModule(NSUserCard);
 })();
