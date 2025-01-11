@@ -245,12 +245,15 @@
                     }
                 });
 
-                await this.setupEditor();
-                console.log('[NS助手] 编辑器增强模块初始化完成');
-                this.utils.showToast('编辑器增强已启用', 'success');
+                const editorSetupResult = await this.setupEditor();
+                if (editorSetupResult) {
+                    console.log('[NS助手] 编辑器增强模块初始化完成');
+                    this.utils.showToast('编辑器增强已启用', 'success');
+                } else {
+                    console.log('[NS助手] 当前页面无编辑器，跳过增强');
+                }
             } catch (error) {
                 console.error('[NS助手] 编辑器增强模块初始化失败:', error);
-                this.utils.showToast('编辑器增强启用失败', 'error');
             }
         },
 
@@ -259,17 +262,20 @@
             
             const codeMirrorElement = await this.utils.waitForElement('.CodeMirror');
             if (!codeMirrorElement) {
-                throw new Error('编辑器加载超时');
+                console.log('[NS助手] 未找到编辑器，跳过增强');
+                return false;
             }
 
             const btnSubmit = await this.utils.waitForElement('.topic-select button.submit.btn.focus-visible');
             if (!btnSubmit) {
-                throw new Error('提交按钮加载超时');
+                console.log('[NS助手] 未找到提交按钮，跳过增强');
+                return false;
             }
 
             const codeMirrorInstance = codeMirrorElement.CodeMirror;
             if (!codeMirrorInstance) {
-                throw new Error('CodeMirror实例未找到');
+                console.log('[NS助手] 未找到CodeMirror实例，跳过增强');
+                return false;
             }
 
             const isMac = this.utils.isMac();
@@ -332,6 +338,7 @@
             codeMirrorInstance.addKeyMap(keyMap);
             
             console.log('[NS助手] 编辑器增强设置完成');
+            return true;
         }
     };
 
