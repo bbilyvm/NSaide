@@ -35,15 +35,30 @@
                         mac: 'Shift-Cmd-K',
                         format: '```\n{text}\n```'
                     },
+                    codeBlockWithLang: {
+                        windows: 'Alt-Ctrl-K',
+                        mac: 'Alt-Cmd-K',
+                        format: '```javascript\n{text}\n```'
+                    },
                     link: {
                         windows: 'Ctrl-L',
                         mac: 'Cmd-L',
                         format: '[{text}]()'
                     },
+                    image: {
+                        windows: 'Shift-Ctrl-I',
+                        mac: 'Shift-Cmd-I',
+                        format: '![{text}]()'
+                    },
                     quote: {
                         windows: 'Ctrl-Q',
                         mac: 'Cmd-Q',
                         format: '> {text}'
+                    },
+                    multiQuote: {
+                        windows: 'Shift-Ctrl-Q',
+                        mac: 'Shift-Cmd-Q',
+                        format: '>> {text}'
                     },
                     strikethrough: {
                         windows: 'Alt-S',
@@ -56,9 +71,94 @@
                         format: '- {text}'
                     },
                     orderedList: {
-                        windows: 'Shift-Ctrl-U',
-                        mac: 'Shift-Cmd-U',
+                        windows: 'Shift-Ctrl-O',
+                        mac: 'Shift-Cmd-O',
                         format: '1. {text}'
+                    },
+                    taskList: {
+                        windows: 'Ctrl-T',
+                        mac: 'Cmd-T',
+                        format: '- [ ] {text}'
+                    },
+                    taskListDone: {
+                        windows: 'Shift-Ctrl-D',
+                        mac: 'Shift-Cmd-D',
+                        format: '- [x] {text}'
+                    },
+                    heading1: {
+                        windows: 'Shift-Ctrl-1',
+                        mac: 'Shift-Cmd-1',
+                        format: '# {text}'
+                    },
+                    heading2: {
+                        windows: 'Shift-Ctrl-2',
+                        mac: 'Shift-Cmd-2',
+                        format: '## {text}'
+                    },
+                    heading3: {
+                        windows: 'Shift-Ctrl-3',
+                        mac: 'Shift-Cmd-3',
+                        format: '### {text}'
+                    },
+                    heading4: {
+                        windows: 'Shift-Ctrl-4',
+                        mac: 'Shift-Cmd-4',
+                        format: '#### {text}'
+                    },
+                    table: {
+                        windows: 'Shift-Ctrl-T',
+                        mac: 'Shift-Cmd-T',
+                        format: '| 表头 | 表头 |\n| --- | --- |\n| 内容 | 内容 |'
+                    },
+                    table3Cols: {
+                        windows: 'Alt-Ctrl-T',
+                        mac: 'Alt-Cmd-T',
+                        format: '| 表头 | 表头 | 表头 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |'
+                    },
+                    horizontalRule: {
+                        windows: 'Shift-Ctrl-H',
+                        mac: 'Shift-Cmd-H',
+                        format: '\n---\n'
+                    },
+                    superscript: {
+                        windows: 'Shift-Ctrl-Up',
+                        mac: 'Shift-Cmd-Up',
+                        format: '^{text}^'
+                    },
+                    subscript: {
+                        windows: 'Shift-Ctrl-Down',
+                        mac: 'Shift-Cmd-Down',
+                        format: '~{text}~'
+                    },
+                    details: {
+                        windows: 'Shift-Ctrl-/',
+                        mac: 'Shift-Cmd-/',
+                        format: '<details>\n<summary>{text}</summary>\n\n</details>'
+                    },
+                    keyboard: {
+                        windows: 'Alt-K',
+                        mac: 'Alt-K',
+                        format: '<kbd>{text}</kbd>'
+                    },
+                    highlight: {
+                        windows: 'Alt-H',
+                        mac: 'Alt-H',
+                        format: '=={text}=='
+                    },
+                    definition: {
+                        windows: 'Alt-D',
+                        mac: 'Alt-D',
+                        format: '{text}\n: 定义内容'
+                    },
+                    footnote: {
+                        windows: 'Alt-F',
+                        mac: 'Alt-F',
+                        format: '{text}[^1]\n\n[^1]: 脚注内容'
+                    },
+                    abbreviation: {
+                        windows: 'Alt-A',
+                        mac: 'Alt-A',
+                        format: '*[{text}]: 缩写说明'
                     }
                 }
             },
