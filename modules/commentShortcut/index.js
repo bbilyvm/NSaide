@@ -1,4 +1,6 @@
 (function(window) {
+    'use strict';
+
     const NSCommentShortcut = {
         id: 'commentShortcut',
         name: '评论快捷键',
@@ -20,9 +22,12 @@
         }
     };
 
-    if (typeof window.NSModules === 'undefined') {
-        window.NSModules = {};
-    }
 
-    window.NSModules.commentShortcut = NSCommentShortcut;
-})(window); 
+    if (typeof unsafeWindow === 'undefined') {
+        window.NSModules = window.NSModules || {};
+        window.NSModules.commentShortcut = NSCommentShortcut;
+    } else {
+        unsafeWindow.NSModules = unsafeWindow.NSModules || {};
+        unsafeWindow.NSModules.commentShortcut = NSCommentShortcut;
+    }
+})(typeof unsafeWindow !== 'undefined' ? unsafeWindow : window); 

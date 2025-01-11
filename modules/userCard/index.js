@@ -377,9 +377,11 @@
         }
     };
 
-    if (typeof window.NSModules === 'undefined') {
-        window.NSModules = {};
+    if (typeof unsafeWindow === 'undefined') {
+        window.NSModules = window.NSModules || {};
+        window.NSModules.userCard = NSUserCard;
+    } else {
+        unsafeWindow.NSModules = unsafeWindow.NSModules || {};
+        unsafeWindow.NSModules.userCard = NSUserCard;
     }
-
-    window.NSModules.userCard = NSUserCard;
-})(window);
+})(typeof unsafeWindow !== 'undefined' ? unsafeWindow : window);

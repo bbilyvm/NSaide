@@ -12,17 +12,19 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
 // @grant        GM_unregisterMenuCommand
+// @grant        unsafeWindow
 // @require      https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/userCard/index.js
 // @require      https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/commentShortcut/index.js
 // ==/UserScript==
 
-window.NSModules = window.NSModules || {};
+unsafeWindow.NSModules = unsafeWindow.NSModules || {};
 
 (function() {
     'use strict';
  
     const initModules = () => {
-        const modules = Object.values(window.NSModules);
+        const modules = Object.values(unsafeWindow.NSModules);
+        console.log('[NS助手] 已加载的模块:', Object.keys(unsafeWindow.NSModules));
         
         modules.forEach(module => {
             try {
