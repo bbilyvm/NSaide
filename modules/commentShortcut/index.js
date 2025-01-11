@@ -1,8 +1,6 @@
 (function() {
     'use strict';
 
-    if (!window._NS) return;
-
     const NSCommentShortcut = {
         id: 'commentShortcut',
         name: '评论快捷键',
@@ -24,5 +22,13 @@
         }
     };
 
-    window._NS.registerModule(NSCommentShortcut);
+    if (typeof window.NSRegisterModule === 'function') {
+        window.NSRegisterModule(NSCommentShortcut);
+    } else {
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof window.NSRegisterModule === 'function') {
+                window.NSRegisterModule(NSCommentShortcut);
+            }
+        });
+    }
 })(); 

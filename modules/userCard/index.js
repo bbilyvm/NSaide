@@ -1,8 +1,6 @@
 (function() {
     'use strict';
 
-    if (!window._NS) return;
-
     const NSUserCard = {
         id: 'userCard',
         name: '用户卡片增强',
@@ -379,5 +377,13 @@
         }
     };
 
-    window._NS.registerModule(NSUserCard);
+    if (typeof window.NSRegisterModule === 'function') {
+        window.NSRegisterModule(NSUserCard);
+    } else {
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof window.NSRegisterModule === 'function') {
+                window.NSRegisterModule(NSUserCard);
+            }
+        });
+    }
 })();
