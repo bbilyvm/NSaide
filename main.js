@@ -13,8 +13,8 @@
 // @grant        GM_registerMenuCommand
 // @grant        GM_unregisterMenuCommand
 // @grant        GM_info
-// @require      https://drstth.com/userCard/index.js
-// @require      https://drstth.com/editorEnhance/index.js
+// @require      https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/userCard/index.js
+// @require      https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/editorEnhance/index.js
 // @run-at       document-start
 // ==/UserScript==
 

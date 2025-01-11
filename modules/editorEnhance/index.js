@@ -24,6 +24,41 @@
                         windows: 'Ctrl-I',
                         mac: 'Cmd-I',
                         format: '*{text}*'
+                    },
+                    code: {
+                        windows: 'Ctrl-K',
+                        mac: 'Cmd-K',
+                        format: '`{text}`'
+                    },
+                    codeBlock: {
+                        windows: 'Shift-Ctrl-K',
+                        mac: 'Shift-Cmd-K',
+                        format: '```\n{text}\n```'
+                    },
+                    link: {
+                        windows: 'Ctrl-L',
+                        mac: 'Cmd-L',
+                        format: '[{text}]()'
+                    },
+                    quote: {
+                        windows: 'Ctrl-Q',
+                        mac: 'Cmd-Q',
+                        format: '> {text}'
+                    },
+                    strikethrough: {
+                        windows: 'Alt-S',
+                        mac: 'Alt-S',
+                        format: '~~{text}~~'
+                    },
+                    list: {
+                        windows: 'Ctrl-U',
+                        mac: 'Cmd-U',
+                        format: '- {text}'
+                    },
+                    orderedList: {
+                        windows: 'Shift-Ctrl-U',
+                        mac: 'Shift-Cmd-U',
+                        format: '1. {text}'
                     }
                 }
             },
@@ -135,7 +170,6 @@
             const keyMap = {
                 [submitKey]: (cm) => {
                     btnSubmit.click();
-                    this.utils.showToast('评论已发送', 'success');
                 }
             };
 
@@ -146,6 +180,28 @@
                     if (selection) {
                         const formatted = config.format.replace('{text}', selection);
                         cm.replaceSelection(formatted);
+                        if (name === 'link') {
+                            const cursor = cm.getCursor();
+                            cm.setCursor({line: cursor.line, ch: cursor.ch - 1});
+                        }
+                    } else {
+                        const cursor = cm.getCursor();
+                        const line = cm.getLine(cursor.line);
+                        if (['list', 'orderedList', 'quote'].includes(name)) {
+                            const formatted = config.format.replace('{text}', line);
+                            cm.replaceRange(formatted, {line: cursor.line, ch: 0}, {line: cursor.line, ch: line.length});
+                        } else {
+                            const placeholder = config.format.replace('{text}', '');
+                            cm.replaceRange(placeholder, cursor);
+                            if (name === 'link') {
+                                cm.setCursor({line: cursor.line, ch: cursor.ch + 1});
+                            } else if (name === 'codeBlock') {
+                                cm.setCursor({line: cursor.line + 1, ch: 0});
+                            } else {
+                                const newCursor = cm.getCursor();
+                                cm.setCursor({line: newCursor.line, ch: newCursor.ch - placeholder.length / 2});
+                            }
+                        }
                     }
                 };
             });
