@@ -16,31 +16,12 @@
 // @require      https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/commentShortcut/index.js
 // ==/UserScript==
 
+window.NSModules = window.NSModules || {};
+
 (function() {
     'use strict';
-    
-    window.NSModules = window.NSModules || {};
-    
-    const waitForModules = () => {
-        return new Promise((resolve) => {
-            const checkModules = () => {
-                const requiredModules = ['userCard', 'commentShortcut'];
-                const loadedModules = Object.keys(window.NSModules);
-                const allLoaded = requiredModules.every(module => loadedModules.includes(module));
-                
-                if (allLoaded) {
-                    resolve();
-                } else {
-                    setTimeout(checkModules, 100);
-                }
-            };
-            checkModules();
-        });
-    };
-
-    const initModules = async () => {
-        await waitForModules();
-        
+ 
+    const initModules = () => {
         const modules = Object.values(window.NSModules);
         
         modules.forEach(module => {
@@ -65,7 +46,9 @@
         });
     };
 
-    initModules().catch(error => {
-        console.error('[NS助手] 初始化失败:', error);
-    });
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initModules);
+    } else {
+        initModules();
+    }
 })();
