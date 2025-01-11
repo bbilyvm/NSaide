@@ -279,12 +279,12 @@
             const topicSelect = btnSubmit.parentElement;
             const shortcutBtn = document.createElement('button');
             shortcutBtn.className = 'ns-shortcut-btn';
-            shortcutBtn.textContent = '快捷键';
+            shortcutBtn.textContent = 'MD快捷键';
             shortcutBtn.onclick = () => {
                 const modal = this.utils.createShortcutGuide();
                 document.body.appendChild(modal);
             };
-            topicSelect.insertBefore(shortcutBtn, btnSubmit);
+            topicSelect.insertBefore(shortcutBtn, topicSelect.firstChild);
 
             if (!btnSubmit.textContent.includes(submitText)) {
                 btnSubmit.innerText = `发布评论 (${submitText})`;

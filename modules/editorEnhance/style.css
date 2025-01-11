@@ -102,16 +102,37 @@
     color: #666;
 }
 
+.topic-select {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+}
+
 .ns-shortcut-btn {
-    margin-right: 10px;
-    padding: 4px 8px;
+    order: -1;
+    margin-right: auto;
+    padding: 4px 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
     cursor: pointer;
     background: #fff;
     color: #666;
+    font-size: 13px;
+    line-height: 20px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .ns-shortcut-btn:hover {
     background: #f5f5f5;
+    border-color: #ccc;
+    color: #333;
+}
+
+.ns-shortcut-btn:active {
+    background: #eee;
+    border-color: #bbb;
 } 

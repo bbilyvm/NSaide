@@ -37,6 +37,12 @@
             GM_xmlhttpRequest({
                 method: 'GET',
                 url: `${moduleInfo.url}?t=${Date.now()}`,
+                nocache: true,
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                },
                 onload: (response) => {
                     if (response.status === 200) {
                         try {
@@ -108,7 +114,13 @@
                             () => {
                                 module.enabled = !module.enabled;
                                 GM_setValue(`module_${id}_enabled`, module.enabled);
-                                location.reload();
+                                if (module.enabled) {
+                                    console.log(`[NS助手] 正在重新加载模块: ${module.name}`);
+                                    window.location.reload();
+                                } else {
+                                    console.log(`[NS助手] 已禁用模块: ${module.name}`);
+                                    window.location.reload();
+                                }
                             }
                         );
                     } catch (error) {
