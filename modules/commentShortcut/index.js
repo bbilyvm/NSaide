@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    const NSCommentShortcut = {
+    window.NSModuleRegistry.register({
         id: 'commentShortcut',
         name: '评论快捷键',
         description: '添加评论框快捷键支持',
@@ -20,16 +20,5 @@
                 }
             });
         }
-    };
-
-
-    const registerModule = () => {
-        if (window.NSModuleRegistry) {
-            window.NSModuleRegistry.register(NSCommentShortcut);
-        } else {
-            setTimeout(registerModule, 10);
-        }
-    };
-
-    registerModule();
+    });
 })(); 

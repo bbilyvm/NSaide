@@ -16,18 +16,16 @@
 // @require      https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/commentShortcut/index.js
 // ==/UserScript==
 
+window.NSModuleRegistry = {
+    modules: {},
+    register: function(moduleDefinition) {
+        this.modules[moduleDefinition.id] = moduleDefinition;
+        console.log(`[NS助手] 模块已注册: ${moduleDefinition.name}`);
+    }
+};
+
 (function() {
     'use strict';
-
-    const NSModuleRegistry = {
-        modules: {},
-        register: function(moduleDefinition) {
-            this.modules[moduleDefinition.id] = moduleDefinition;
-            console.log(`[NS助手] 模块已注册: ${moduleDefinition.name}`);
-        }
-    };
-
-    window.NSModuleRegistry = NSModuleRegistry;
  
     const initModules = () => {
         console.log('[NS助手] 已注册的模块:', Object.keys(NSModuleRegistry.modules));
@@ -54,5 +52,9 @@
         });
     };
 
-    setTimeout(initModules, 0);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initModules);
+    } else {
+        initModules();
+    }
 })();
