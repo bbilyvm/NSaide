@@ -13,6 +13,7 @@
 // @grant        GM_registerMenuCommand
 // @grant        GM_unregisterMenuCommand
 // @require      https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/userCard/index.js
+// @require      https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/commentShortcut/index.js
 // ==/UserScript==
 
 (function() {
@@ -20,7 +21,8 @@
     
     // 模块列表
     const modules = [
-        NSUserCard
+        NSUserCard,
+        NSCommentShortcut
     ];
     
     // 初始化所有模块
