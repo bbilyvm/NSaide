@@ -19,16 +19,14 @@
 (function() {
     'use strict';
     
-    // 模块列表
-    const modules = [
-        NSUserCard,
-        NSCommentShortcut
-    ];
+    if (typeof window.NSModules === 'undefined') {
+        window.NSModules = {};
+    }
     
-    // 初始化所有模块
+    const modules = Object.values(window.NSModules);
+    
     modules.forEach(module => {
         try {
-            // 检查模块是否启用
             const isEnabled = GM_getValue(`module_${module.id}_enabled`, true);
             if (isEnabled) {
                 console.log(`[NS助手] 正在初始化模块: ${module.name}`);
@@ -40,7 +38,6 @@
                 () => {
                     const newState = !isEnabled;
                     GM_setValue(`module_${module.id}_enabled`, newState);
-
                     location.reload();
                 }
             );
