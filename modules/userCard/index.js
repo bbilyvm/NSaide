@@ -131,18 +131,22 @@
 
         init() {
             console.log('[NS助手] 初始化用户卡片增强功能');
+            
+            this.waitAndEnhance = this.waitAndEnhance.bind(this);
+            this.enhance = this.enhance.bind(this);
+            this.enableDragging = this.enableDragging.bind(this);
 
             GM_xmlhttpRequest({
                 method: 'GET',
                 url: 'https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/userCard/style.css',
-                onload: function(response) {
+                onload: (response) => {
                     if (response.status === 200) {
                         GM_addStyle(response.responseText);
                     } else {
                         console.error('[NS助手] 加载用户卡片样式失败');
                     }
                 },
-                onerror: function(error) {
+                onerror: (error) => {
                     console.error('[NS助手] 加载用户卡片样式出错:', error);
                 }
             });
