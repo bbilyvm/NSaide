@@ -5,7 +5,7 @@
 // @description  NodeSeek论坛增强脚本
 // @author       stardeep
 // @match        https://www.nodeseek.com/*
-// @icon         https://www.nodeseek.com/favicon.ico
+// @icon         https://drstth.com/download/favicon.ico
 // @grant        GM_addStyle
 // @grant        GM_setValue
 // @grant        GM_getValue
