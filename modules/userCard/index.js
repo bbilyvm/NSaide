@@ -1,6 +1,8 @@
 (function() {
     'use strict';
 
+    console.log('[NS助手] userCard 模块开始加载');
+
     const NSUserCard = {
         id: 'userCard',
         name: '用户卡片增强',
@@ -136,14 +138,16 @@
             this.enhance = this.enhance.bind(this);
             this.enableDragging = this.enableDragging.bind(this);
 
+            console.log('[NS助手] 开始加载用户卡片样式');
             GM_xmlhttpRequest({
                 method: 'GET',
                 url: 'https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/userCard/style.css',
                 onload: (response) => {
                     if (response.status === 200) {
+                        console.log('[NS助手] 用户卡片样式加载成功');
                         GM_addStyle(response.responseText);
                     } else {
-                        console.error('[NS助手] 加载用户卡片样式失败');
+                        console.error('[NS助手] 加载用户卡片样式失败:', response.status);
                     }
                 },
                 onerror: (error) => {
@@ -151,6 +155,7 @@
                 }
             });
 
+            console.log('[NS助手] 注册头像点击监听器');
             document.addEventListener('click', (e) => {
                 const avatarLink = e.target.closest('a[href^="/space/"]');
                 if (avatarLink && avatarLink.querySelector('img.avatar-normal')) {
@@ -158,6 +163,8 @@
                     this.waitAndEnhance();
                 }
             });
+
+            console.log('[NS助手] 用户卡片模块初始化完成');
         },
 
         enableDragging(cardElement) {
@@ -377,13 +384,28 @@
         }
     };
 
+    console.log('[NS助手] 等待模块系统就绪');
+    let retryCount = 0;
+    const maxRetries = 50;
+
     const waitForNS = () => {
+        retryCount++;
+        console.log(`[NS助手] 第 ${retryCount} 次尝试注册 userCard 模块`);
+        
         if (typeof window.NSRegisterModule === 'function') {
+            console.log('[NS助手] 模块系统就绪，开始注册 userCard');
             window.NSRegisterModule(NSUserCard);
+            console.log('[NS助手] userCard 模块注册请求已发送');
         } else {
-            setTimeout(waitForNS, 100);
+            console.log('[NS助手] 模块系统未就绪');
+            if (retryCount < maxRetries) {
+                setTimeout(waitForNS, 100);
+            } else {
+                console.error('[NS助手] 模块系统等待超时，userCard 模块注册失败');
+            }
         }
     };
 
     waitForNS();
+    console.log('[NS助手] userCard 模块加载完成');
 })();
