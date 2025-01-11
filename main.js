@@ -12,21 +12,27 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
 // @grant        GM_unregisterMenuCommand
-// @grant        unsafeWindow
 // @require      https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/userCard/index.js
 // @require      https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/commentShortcut/index.js
 // ==/UserScript==
 
-unsafeWindow.NSModules = unsafeWindow.NSModules || {};
-
 (function() {
     'use strict';
+
+    const NSModuleRegistry = {
+        modules: {},
+        register: function(moduleDefinition) {
+            this.modules[moduleDefinition.id] = moduleDefinition;
+            console.log(`[NS助手] 模块已注册: ${moduleDefinition.name}`);
+        }
+    };
+
+    window.NSModuleRegistry = NSModuleRegistry;
  
     const initModules = () => {
-        const modules = Object.values(unsafeWindow.NSModules);
-        console.log('[NS助手] 已加载的模块:', Object.keys(unsafeWindow.NSModules));
+        console.log('[NS助手] 已注册的模块:', Object.keys(NSModuleRegistry.modules));
         
-        modules.forEach(module => {
+        Object.values(NSModuleRegistry.modules).forEach(module => {
             try {
                 const isEnabled = GM_getValue(`module_${module.id}_enabled`, true);
                 if (isEnabled) {
@@ -48,9 +54,5 @@ unsafeWindow.NSModules = unsafeWindow.NSModules || {};
         });
     };
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initModules);
-    } else {
-        initModules();
-    }
+    setTimeout(initModules, 0);
 })();

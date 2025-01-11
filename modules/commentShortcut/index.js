@@ -1,4 +1,4 @@
-(function(window) {
+(function() {
     'use strict';
 
     const NSCommentShortcut = {
@@ -23,11 +23,13 @@
     };
 
 
-    if (typeof unsafeWindow === 'undefined') {
-        window.NSModules = window.NSModules || {};
-        window.NSModules.commentShortcut = NSCommentShortcut;
-    } else {
-        unsafeWindow.NSModules = unsafeWindow.NSModules || {};
-        unsafeWindow.NSModules.commentShortcut = NSCommentShortcut;
-    }
-})(typeof unsafeWindow !== 'undefined' ? unsafeWindow : window); 
+    const registerModule = () => {
+        if (window.NSModuleRegistry) {
+            window.NSModuleRegistry.register(NSCommentShortcut);
+        } else {
+            setTimeout(registerModule, 10);
+        }
+    };
+
+    registerModule();
+})(); 

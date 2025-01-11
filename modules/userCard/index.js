@@ -1,4 +1,4 @@
-(function(window) {
+(function() {
     'use strict';
 
     const NSUserCard = {
@@ -377,11 +377,14 @@
         }
     };
 
-    if (typeof unsafeWindow === 'undefined') {
-        window.NSModules = window.NSModules || {};
-        window.NSModules.userCard = NSUserCard;
-    } else {
-        unsafeWindow.NSModules = unsafeWindow.NSModules || {};
-        unsafeWindow.NSModules.userCard = NSUserCard;
-    }
-})(typeof unsafeWindow !== 'undefined' ? unsafeWindow : window);
+
+    const registerModule = () => {
+        if (window.NSModuleRegistry) {
+            window.NSModuleRegistry.register(NSUserCard);
+        } else {
+            setTimeout(registerModule, 10);
+        }
+    };
+
+    registerModule();
+})();
