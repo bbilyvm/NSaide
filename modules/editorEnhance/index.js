@@ -18,147 +18,116 @@
                     bold: {
                         windows: 'Ctrl-B',
                         mac: 'Cmd-B',
-                        format: '**{text}**'
+                        format: '**{text}**',
+                        description: '粗体'
                     },
                     italic: {
                         windows: 'Ctrl-I',
                         mac: 'Cmd-I',
-                        format: '*{text}*'
+                        format: '*{text}*',
+                        description: '斜体'
                     },
                     code: {
                         windows: 'Ctrl-K',
                         mac: 'Cmd-K',
-                        format: '`{text}`'
+                        format: '`{text}`',
+                        description: '行内代码'
                     },
                     codeBlock: {
                         windows: 'Shift-Ctrl-K',
                         mac: 'Shift-Cmd-K',
-                        format: '```\n{text}\n```'
+                        format: '```\n{text}\n```',
+                        description: '代码块'
                     },
                     codeBlockWithLang: {
                         windows: 'Alt-Ctrl-K',
                         mac: 'Alt-Cmd-K',
-                        format: '```javascript\n{text}\n```'
+                        format: '```javascript\n{text}\n```',
+                        description: 'JS代码块'
                     },
                     link: {
                         windows: 'Ctrl-L',
                         mac: 'Cmd-L',
-                        format: '[{text}]()'
+                        format: '[{text}]()',
+                        description: '链接'
                     },
                     image: {
                         windows: 'Shift-Ctrl-I',
                         mac: 'Shift-Cmd-I',
-                        format: '![{text}]()'
+                        format: '![{text}]()',
+                        description: '图片'
                     },
                     quote: {
                         windows: 'Ctrl-Q',
                         mac: 'Cmd-Q',
-                        format: '> {text}'
+                        format: '> {text}',
+                        description: '引用'
                     },
                     multiQuote: {
                         windows: 'Shift-Ctrl-Q',
                         mac: 'Shift-Cmd-Q',
-                        format: '>> {text}'
+                        format: '>> {text}',
+                        description: '多级引用'
                     },
                     strikethrough: {
                         windows: 'Alt-S',
                         mac: 'Alt-S',
-                        format: '~~{text}~~'
+                        format: '~~{text}~~',
+                        description: '删除线'
                     },
                     list: {
                         windows: 'Ctrl-U',
                         mac: 'Cmd-U',
-                        format: '- {text}'
+                        format: '- {text}',
+                        description: '无序列表'
                     },
                     orderedList: {
                         windows: 'Shift-Ctrl-O',
                         mac: 'Shift-Cmd-O',
-                        format: '1. {text}'
-                    },
-                    taskList: {
-                        windows: 'Ctrl-T',
-                        mac: 'Cmd-T',
-                        format: '- [ ] {text}'
-                    },
-                    taskListDone: {
-                        windows: 'Shift-Ctrl-D',
-                        mac: 'Shift-Cmd-D',
-                        format: '- [x] {text}'
+                        format: '1. {text}',
+                        description: '有序列表'
                     },
                     heading1: {
                         windows: 'Shift-Ctrl-1',
                         mac: 'Shift-Cmd-1',
-                        format: '# {text}'
+                        format: '# {text}',
+                        description: '一级标题'
                     },
                     heading2: {
                         windows: 'Shift-Ctrl-2',
                         mac: 'Shift-Cmd-2',
-                        format: '## {text}'
+                        format: '## {text}',
+                        description: '二级标题'
                     },
                     heading3: {
                         windows: 'Shift-Ctrl-3',
                         mac: 'Shift-Cmd-3',
-                        format: '### {text}'
+                        format: '### {text}',
+                        description: '三级标题'
                     },
                     heading4: {
                         windows: 'Shift-Ctrl-4',
                         mac: 'Shift-Cmd-4',
-                        format: '#### {text}'
+                        format: '#### {text}',
+                        description: '四级标题'
                     },
                     table: {
                         windows: 'Shift-Ctrl-T',
                         mac: 'Shift-Cmd-T',
-                        format: '| 表头 | 表头 |\n| --- | --- |\n| 内容 | 内容 |'
+                        format: '| 表头 | 表头 |\n| --- | --- |\n| 内容 | 内容 |',
+                        description: '表格'
                     },
                     table3Cols: {
                         windows: 'Alt-Ctrl-T',
                         mac: 'Alt-Cmd-T',
-                        format: '| 表头 | 表头 | 表头 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |'
+                        format: '| 表头 | 表头 | 表头 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |',
+                        description: '三列表格'
                     },
                     horizontalRule: {
                         windows: 'Shift-Ctrl-H',
                         mac: 'Shift-Cmd-H',
-                        format: '\n---\n'
-                    },
-                    superscript: {
-                        windows: 'Shift-Ctrl-Up',
-                        mac: 'Shift-Cmd-Up',
-                        format: '^{text}^'
-                    },
-                    subscript: {
-                        windows: 'Shift-Ctrl-Down',
-                        mac: 'Shift-Cmd-Down',
-                        format: '~{text}~'
-                    },
-                    details: {
-                        windows: 'Shift-Ctrl-/',
-                        mac: 'Shift-Cmd-/',
-                        format: '<details>\n<summary>{text}</summary>\n\n</details>'
-                    },
-                    keyboard: {
-                        windows: 'Alt-K',
-                        mac: 'Alt-K',
-                        format: '<kbd>{text}</kbd>'
-                    },
-                    highlight: {
-                        windows: 'Alt-H',
-                        mac: 'Alt-H',
-                        format: '=={text}=='
-                    },
-                    definition: {
-                        windows: 'Alt-D',
-                        mac: 'Alt-D',
-                        format: '{text}\n: 定义内容'
-                    },
-                    footnote: {
-                        windows: 'Alt-F',
-                        mac: 'Alt-F',
-                        format: '{text}[^1]\n\n[^1]: 脚注内容'
-                    },
-                    abbreviation: {
-                        windows: 'Alt-A',
-                        mac: 'Alt-A',
-                        format: '*[{text}]: 缩写说明'
+                        format: '\n---\n',
+                        description: '分割线'
                     }
                 }
             },
@@ -208,6 +177,50 @@
                         setTimeout(() => toast.remove(), 300);
                     }, 3000);
                 }, 100);
+            },
+
+            createShortcutGuide() {
+                const isMac = this.isMac();
+                const modal = document.createElement('div');
+                modal.className = 'ns-modal';
+                
+                const content = document.createElement('div');
+                content.className = 'ns-modal-content';
+                
+                const title = document.createElement('div');
+                title.className = 'ns-modal-title';
+                title.textContent = 'Markdown快捷键';
+                
+                const closeBtn = document.createElement('div');
+                closeBtn.className = 'ns-modal-close';
+                closeBtn.textContent = '×';
+                closeBtn.onclick = () => modal.remove();
+                
+                const shortcuts = document.createElement('div');
+                shortcuts.className = 'ns-shortcuts-list';
+                
+                Object.entries(NSEditorEnhance.config.shortcuts.format).forEach(([key, config]) => {
+                    const shortcut = document.createElement('div');
+                    shortcut.className = 'ns-shortcut-item';
+                    shortcut.innerHTML = `
+                        <span class="ns-shortcut-desc">${config.description}</span>
+                        <span class="ns-shortcut-key">${isMac ? config.mac.replace('Cmd', '⌘').replace('Shift', '⇧').replace('Alt', '⌥').replace('-', ' + ') : config.windows.replace('-', ' + ')}</span>
+                    `;
+                    shortcuts.appendChild(shortcut);
+                });
+                
+                content.appendChild(title);
+                content.appendChild(closeBtn);
+                content.appendChild(shortcuts);
+                modal.appendChild(content);
+                
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                    }
+                });
+                
+                return modal;
             }
         },
 
@@ -263,6 +276,16 @@
             const submitKey = isMac ? this.config.shortcuts.submit.mac : this.config.shortcuts.submit.windows;
             const submitText = isMac ? '⌘+Enter' : 'Ctrl+Enter';
 
+            const topicSelect = btnSubmit.parentElement;
+            const shortcutBtn = document.createElement('button');
+            shortcutBtn.className = 'ns-shortcut-btn';
+            shortcutBtn.textContent = '快捷键';
+            shortcutBtn.onclick = () => {
+                const modal = this.utils.createShortcutGuide();
+                document.body.appendChild(modal);
+            };
+            topicSelect.insertBefore(shortcutBtn, btnSubmit);
+
             if (!btnSubmit.textContent.includes(submitText)) {
                 btnSubmit.innerText = `发布评论 (${submitText})`;
             }
@@ -287,7 +310,7 @@
                     } else {
                         const cursor = cm.getCursor();
                         const line = cm.getLine(cursor.line);
-                        if (['list', 'orderedList', 'quote'].includes(name)) {
+                        if (['list', 'orderedList', 'quote', 'multiQuote'].includes(name)) {
                             const formatted = config.format.replace('{text}', line);
                             cm.replaceRange(formatted, {line: cursor.line, ch: 0}, {line: cursor.line, ch: line.length});
                         } else {
@@ -295,7 +318,7 @@
                             cm.replaceRange(placeholder, cursor);
                             if (name === 'link') {
                                 cm.setCursor({line: cursor.line, ch: cursor.ch + 1});
-                            } else if (name === 'codeBlock') {
+                            } else if (name === 'codeBlock' || name === 'codeBlockWithLang') {
                                 cm.setCursor({line: cursor.line + 1, ch: 0});
                             } else {
                                 const newCursor = cm.getCursor();
