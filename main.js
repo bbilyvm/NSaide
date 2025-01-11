@@ -13,8 +13,6 @@
 // @grant        GM_registerMenuCommand
 // @grant        GM_unregisterMenuCommand
 // @grant        GM_info
-// @require      https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/userCard/index.js
-// @require      https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/editorEnhance/index.js
 // @run-at       document-start
 // ==/UserScript==
 
@@ -22,6 +20,45 @@
     'use strict';
     
     console.log('[NS助手] 脚本开始加载');
+
+    const MODULES = [
+        {
+            name: 'userCard',
+            url: 'https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/userCard/index.js'
+        },
+        {
+            name: 'editorEnhance',
+            url: 'https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/editorEnhance/index.js'
+        }
+    ];
+
+    const loadModule = (moduleInfo) => {
+        return new Promise((resolve, reject) => {
+            GM_xmlhttpRequest({
+                method: 'GET',
+                url: `${moduleInfo.url}?t=${Date.now()}`,
+                onload: (response) => {
+                    if (response.status === 200) {
+                        try {
+                            console.log(`[NS助手] 模块 ${moduleInfo.name} 加载成功`);
+                            eval(response.responseText);
+                            resolve();
+                        } catch (error) {
+                            console.error(`[NS助手] 模块 ${moduleInfo.name} 执行失败:`, error);
+                            reject(error);
+                        }
+                    } else {
+                        console.error(`[NS助手] 模块 ${moduleInfo.name} 加载失败:`, response.status);
+                        reject(new Error(`模块加载失败: ${response.status}`));
+                    }
+                },
+                onerror: (error) => {
+                    console.error(`[NS助手] 模块 ${moduleInfo.name} 请求失败:`, error);
+                    reject(error);
+                }
+            });
+        });
+    };
 
     const createNS = () => {
         window.NS = {
@@ -91,34 +128,28 @@
 
     createNS();
 
-    const waitForModules = () => {
-        console.log('[NS助手] 等待模块加载...');
-        let attempts = 0;
-        const maxAttempts = 50; 
-        
-        const checkModules = () => {
-            attempts++;
-            console.log(`[NS助手] 第 ${attempts} 次检查模块加载状态`);
+    const initializeModules = async () => {
+        try {
+            console.log('[NS助手] 开始加载模块...');
+            await Promise.all(MODULES.map(loadModule));
+            console.log('[NS助手] 所有模块加载完成');
             
             if (window.NS.modules.size > 0) {
-                console.log('[NS助手] 检测到模块已加载，准备初始化');
+                console.log('[NS助手] 开始初始化模块');
                 window.NS.init();
-            } else if (attempts < maxAttempts) {
-                console.log('[NS助手] 未检测到模块，继续等待...');
-                setTimeout(checkModules, 100);
             } else {
-                console.error('[NS助手] 等待模块加载超时');
+                console.error('[NS助手] 未检测到已注册的模块');
             }
-        };
-
-        setTimeout(checkModules, 100);
+        } catch (error) {
+            console.error('[NS助手] 模块加载失败:', error);
+        }
     };
 
     if (document.readyState === 'loading') {
         console.log('[NS助手] 文档加载中，等待 DOMContentLoaded');
-        document.addEventListener('DOMContentLoaded', waitForModules);
+        document.addEventListener('DOMContentLoaded', initializeModules);
     } else {
-        console.log('[NS助手] 文档已加载，开始等待模块');
-        waitForModules();
+        console.log('[NS助手] 文档已加载，开始加载模块');
+        initializeModules();
     }
 })();
