@@ -131,6 +131,11 @@
                 if (!modulesContainer) return;
 
                 modulesContainer.innerHTML = '';
+                if (!window.NSModules) {
+                    console.error('[NS助手] 未找到模块列表');
+                    return;
+                }
+                
                 Object.values(window.NSModules).forEach((module) => {
                     const moduleCard = document.createElement('div');
                     moduleCard.className = 'ns-settings-module';
@@ -209,16 +214,25 @@
                 }
             });
 
-            const boundCreateSettingsPanel = this.utils.createSettingsPanel.bind(this.utils);
-            const boundRenderModuleSettings = this.utils.renderModuleSettings.bind(this.utils);
+            // 等待模块系统就绪后再注册菜单命令
+            const waitForModules = () => {
+                if (window.NSModules) {
+                    const boundCreateSettingsPanel = this.utils.createSettingsPanel.bind(this.utils);
+                    const boundRenderModuleSettings = this.utils.renderModuleSettings.bind(this.utils);
 
-            GM_registerMenuCommand('⚙️ 打开设置面板', () => {
-                const panel = boundCreateSettingsPanel();
-                document.body.appendChild(panel);
-                boundRenderModuleSettings();
-            });
+                    GM_registerMenuCommand('⚙️ 打开设置面板', () => {
+                        const panel = boundCreateSettingsPanel();
+                        document.body.appendChild(panel);
+                        boundRenderModuleSettings();
+                    });
 
-            console.log('[NS助手] 设置面板模块初始化完成');
+                    console.log('[NS助手] 设置面板模块初始化完成');
+                } else {
+                    setTimeout(waitForModules, 100);
+                }
+            };
+
+            waitForModules();
         }
     };
 
