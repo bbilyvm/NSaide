@@ -130,8 +130,15 @@
                 GM_xmlhttpRequest({
                     method: 'POST',
                     url: 'https://www.nodeseek.com/api/attendance?random=' + isRandom,
-                    headers: {'Content-Type': 'application/json'},
-                    data: JSON.stringify({}),
+                    headers: {
+                        'accept': '*/*',
+                        'accept-language': 'zh-CN,zh;q=0.9',
+                        'content-type': 'application/json',
+                        'sec-fetch-dest': 'empty',
+                        'sec-fetch-mode': 'cors',
+                        'sec-fetch-site': 'same-origin'
+                    },
+                    data: null,
                     onload: response => {
                         try {
                             resolve(JSON.parse(response.responseText));
