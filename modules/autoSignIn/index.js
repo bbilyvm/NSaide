@@ -48,19 +48,43 @@
             },
 
             checkLoginStatus() {
+                console.log('[NS助手] 开始检查登录状态');
+                
                 const userCard = document.querySelector('.user-card');
-                if (!userCard) return false;
+                if (!userCard) {
+                    console.log('[NS助手] 未找到用户卡片元素');
+                    return false;
+                }
 
                 const username = userCard.querySelector('.Username');
-                if (!username) return false;
+                if (!username) {
+                    console.log('[NS助手] 未找到用户名元素');
+                    return false;
+                }
+                console.log('[NS助手] 当前用户:', username.textContent);
 
                 const statBlock = userCard.querySelector('.stat-block');
-                if (!statBlock) return false;
+                if (!statBlock) {
+                    console.log('[NS助手] 未找到用户状态栏');
+                    return false;
+                }
 
                 const levelInfo = statBlock.querySelector('span[data-v-0f04b1f4]');
-                if (!levelInfo || !levelInfo.textContent.includes('等级')) return false;
+                if (!levelInfo || !levelInfo.textContent.includes('等级')) {
+                    console.log('[NS助手] 未找到等级信息');
+                    return false;
+                }
+                console.log('[NS助手] 用户等级:', levelInfo.textContent);
 
+                console.log('[NS助手] 登录状态检查通过');
                 return true;
+            },
+
+            getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+                return null;
             }
         },
 
@@ -108,10 +132,15 @@
             const today = new Date().toLocaleDateString();
             const lastSignDate = GM_getValue(this.config.storage.LAST_DATE);
 
+            console.log('[NS助手] 上次签到日期:', lastSignDate);
+            console.log('[NS助手] 当前日期:', today);
+
             if (lastSignDate !== today) {
                 console.log('[NS助手] 开始执行今日签到');
                 await this.performSignIn(status === this.config.modes.RANDOM);
                 GM_setValue(this.config.storage.LAST_DATE, today);
+            } else {
+                console.log('[NS助手] 今日已签到，跳过');
             }
         },
 
@@ -119,6 +148,7 @@
             const status = GM_getValue(this.config.storage.STATUS, this.config.modes.DISABLED);
             if (status === this.config.modes.DISABLED) return;
 
+            console.log('[NS助手] 执行重新签到');
             GM_setValue(this.config.storage.LAST_DATE, '');
             await this.executeAutoSignIn();
         },
@@ -126,38 +156,76 @@
         async performSignIn(isRandom) {
             try {
                 console.log(`[NS助手] 执行${isRandom ? '随机' : '固定'}签到`);
+                console.log('[NS助手] 当前页面URL:', window.location.href);
+                
+                const session = this.utils.getCookie('session');
+                if (!session) {
+                    console.log('[NS助手] 未找到session cookie');
+                    return;
+                }
+                console.log('[NS助手] 已获取session');
+
                 const response = await this.sendSignInRequest(isRandom);
+                console.log('[NS助手] 签到响应:', response);
                 
                 if (response.success) {
                     console.log(`[NS助手] 签到成功！获得${response.gain}个鸡腿，当前共有${response.current}个鸡腿`);
+                } else {
+                    console.log('[NS助手] 签到失败:', response.message);
                 }
             } catch (error) {
                 console.error('[NS助手] 签到请求出错:', error);
+                console.log('[NS助手] 错误详情:', error.message);
+                if (error.response) {
+                    console.log('[NS助手] 响应状态:', error.response.status);
+                    console.log('[NS助手] 响应内容:', error.response.responseText);
+                }
             }
         },
 
         sendSignInRequest(isRandom) {
             return new Promise((resolve, reject) => {
+                const url = 'https://www.nodeseek.com/api/attendance?random=' + isRandom;
+                console.log('[NS助手] 发送签到请求:', url);
+
                 GM_xmlhttpRequest({
                     method: 'POST',
-                    url: 'https://www.nodeseek.com/api/attendance?random=' + isRandom,
+                    url: url,
                     headers: {
                         'accept': '*/*',
                         'accept-language': 'zh-CN,zh;q=0.9',
                         'content-type': 'application/json',
                         'sec-fetch-dest': 'empty',
                         'sec-fetch-mode': 'cors',
-                        'sec-fetch-site': 'same-origin'
+                        'sec-fetch-site': 'same-origin',
+                        'x-requested-with': 'XMLHttpRequest'
                     },
                     data: null,
+                    withCredentials: true,
                     onload: response => {
+                        console.log('[NS助手] 收到响应:', {
+                            status: response.status,
+                            headers: response.headers,
+                            text: response.responseText
+                        });
+
                         try {
-                            resolve(JSON.parse(response.responseText));
+                            if (response.status === 200) {
+                                const data = JSON.parse(response.responseText);
+                                resolve(data);
+                            } else {
+                                reject(new Error(`请求失败: ${response.status}`));
+                            }
                         } catch (error) {
+                            console.error('[NS助手] 解析响应失败:', error);
+                            console.log('[NS助手] 原始响应:', response.responseText);
                             reject(error);
                         }
                     },
-                    onerror: reject
+                    onerror: error => {
+                        console.error('[NS助手] 请求错误:', error);
+                        reject(error);
+                    }
                 });
             });
         }
