@@ -131,7 +131,7 @@
                 if (!modulesContainer) return;
 
                 modulesContainer.innerHTML = '';
-                window.NS.modules.forEach((module) => {
+                Object.values(window.NSModules).forEach((module) => {
                     const moduleCard = document.createElement('div');
                     moduleCard.className = 'ns-settings-module';
                     
