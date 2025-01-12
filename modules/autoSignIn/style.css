@@ -1,0 +1,31 @@
+.nsplus-tip {
+    position: relative;
+    margin: 10px 0;
+    padding: 8px 15px;
+    background-color: #f8f8f8;
+    border-radius: 4px;
+    border-left: 4px solid #409eff;
+    transition: background-color .3s ease;
+}
+
+.nsplus-tip:hover {
+    background-color: #f0f0f0;
+}
+
+.nsplus-tip p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.nsplus-tip a {
+    color: #409eff;
+    text-decoration: none;
+    transition: color .3s ease;
+}
+
+.nsplus-tip a:hover {
+    color: #66b1ff;
+    text-decoration: underline;
+} 

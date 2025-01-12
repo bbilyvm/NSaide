@@ -10,6 +10,11 @@
             "name": "editorEnhance",
             "id": "editorEnhance",
             "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/editorEnhance/index.js"
+        },
+        {
+            "name": "自动签到",
+            "id": "autoSignIn",
+            "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/autoSignIn/index.js"
         }
     ]
 } 
