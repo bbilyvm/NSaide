@@ -45,50 +45,13 @@
                         resolve(null);
                     }, timeout);
                 });
-            },
-
-            showToast(message, type = 'info') {
-                const toast = document.createElement('div');
-                toast.className = `ns-toast ns-toast-${type}`;
-                toast.textContent = message;
-                document.body.appendChild(toast);
-
-                setTimeout(() => {
-                    toast.classList.add('ns-toast-show');
-                    setTimeout(() => {
-                        toast.classList.remove('ns-toast-show');
-                        setTimeout(() => toast.remove(), 300);
-                    }, 3000);
-                }, 100);
             }
         },
 
         async init() {
             console.log('[NS助手] 初始化自动签到模块');
-            
-            try {
-                console.log('[NS助手] 开始加载签到模块样式');
-                GM_xmlhttpRequest({
-                    method: 'GET',
-                    url: 'https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/autoSignIn/style.css',
-                    onload: (response) => {
-                        if (response.status === 200) {
-                            console.log('[NS助手] 签到模块样式加载成功');
-                            GM_addStyle(response.responseText);
-                        } else {
-                            console.error('[NS助手] 加载签到模块样式失败:', response.status);
-                        }
-                    },
-                    onerror: (error) => {
-                        console.error('[NS助手] 加载签到模块样式出错:', error);
-                    }
-                });
-
-                await this.setupSignIn();
-                console.log('[NS助手] 自动签到模块初始化完成');
-            } catch (error) {
-                console.error('[NS助手] 自动签到模块初始化失败:', error);
-            }
+            await this.setupSignIn();
+            console.log('[NS助手] 自动签到模块初始化完成');
         },
 
         async setupSignIn() {
@@ -118,7 +81,6 @@
             GM_registerMenuCommand(`${modes[status]} - ${descriptions[status]}`, () => {
                 const nextStatus = (status + 1) % modes.length;
                 GM_setValue(this.config.storage.STATUS, nextStatus);
-                this.utils.showToast(`已切换为${descriptions[nextStatus]}`, 'success');
                 location.reload();
             });
 
@@ -139,21 +101,14 @@
                 console.log('[NS助手] 开始执行今日签到');
                 await this.performSignIn(status === this.config.modes.RANDOM);
                 GM_setValue(this.config.storage.LAST_DATE, today);
-            } else {
-                console.log('[NS助手] 今日已签到');
-                this.utils.showToast('今日已完成签到', 'info');
             }
         },
 
         async retrySignIn() {
             const status = GM_getValue(this.config.storage.STATUS, this.config.modes.DISABLED);
-            if (status === this.config.modes.DISABLED) {
-                this.utils.showToast('请先启用自动签到功能', 'error');
-                return;
-            }
+            if (status === this.config.modes.DISABLED) return;
 
             GM_setValue(this.config.storage.LAST_DATE, '');
-            this.utils.showToast('正在重新签到...', 'info');
             await this.executeAutoSignIn();
         },
 
@@ -163,16 +118,10 @@
                 const response = await this.sendSignInRequest(isRandom);
                 
                 if (response.success) {
-                    const message = `签到成功！获得${response.gain}个鸡腿，当前共有${response.current}个鸡腿`;
-                    console.log('[NS助手]', message);
-                    this.utils.showToast(message, 'success');
-                } else {
-                    console.error('[NS助手] 签到失败:', response.message);
-                    this.utils.showToast(response.message || '签到失败', 'error');
+                    console.log(`[NS助手] 签到成功！获得${response.gain}个鸡腿，当前共有${response.current}个鸡腿`);
                 }
             } catch (error) {
                 console.error('[NS助手] 签到请求出错:', error);
-                this.utils.showToast('签到过程中发生错误', 'error');
             }
         },
 
@@ -180,7 +129,7 @@
             return new Promise((resolve, reject) => {
                 GM_xmlhttpRequest({
                     method: 'POST',
-                    url: '/api/attendance?random=' + isRandom,
+                    url: 'https://www.nodeseek.com/api/attendance?random=' + isRandom,
                     headers: {'Content-Type': 'application/json'},
                     data: JSON.stringify({}),
                     onload: response => {
