@@ -162,55 +162,34 @@
             } catch (error) {
                 console.error('[NS助手] 签到请求出错:', error);
                 console.log('[NS助手] 错误详情:', error.message);
-                if (error.response) {
-                    console.log('[NS助手] 响应状态:', error.response.status);
-                    console.log('[NS助手] 响应内容:', error.response.responseText);
-                }
             }
         },
 
-        sendSignInRequest(isRandom) {
-            return new Promise((resolve, reject) => {
-                const url = '/api/attendance?random=' + isRandom;
-                console.log('[NS助手] 发送签到请求:', url);
+        async sendSignInRequest(isRandom) {
+            const url = `/api/attendance?random=${isRandom}`;
+            console.log('[NS助手] 发送签到请求:', url);
 
-                GM_xmlhttpRequest({
+            try {
+                const response = await fetch(url, {
                     method: 'POST',
-                    url: url,
                     headers: {
                         'accept': 'application/json, text/plain, */*',
-                        'accept-language': 'zh-CN,zh;q=0.9',
                         'content-type': 'application/json',
                         'x-requested-with': 'XMLHttpRequest'
                     },
-                    anonymous: false,
-                    withCredentials: true,
-                    onload: response => {
-                        console.log('[NS助手] 收到响应:', {
-                            status: response.status,
-                            headers: response.headers,
-                            text: response.responseText
-                        });
-
-                        try {
-                            if (response.status === 200) {
-                                const data = JSON.parse(response.responseText);
-                                resolve(data);
-                            } else {
-                                reject(new Error(`请求失败: ${response.status}`));
-                            }
-                        } catch (error) {
-                            console.error('[NS助手] 解析响应失败:', error);
-                            console.log('[NS助手] 原始响应:', response.responseText);
-                            reject(error);
-                        }
-                    },
-                    onerror: error => {
-                        console.error('[NS助手] 请求错误:', error);
-                        reject(error);
-                    }
+                    credentials: 'same-origin'
                 });
-            });
+
+                if (!response.ok) {
+                    throw new Error(`请求失败: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('[NS助手] 请求失败:', error);
+                throw error;
+            }
         }
     };
 
