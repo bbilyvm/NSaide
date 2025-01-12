@@ -46,10 +46,10 @@
                 panel.className = 'ns-settings-panel';
                 panel.innerHTML = `
                     <div class="ns-settings-header">
-                        <h2 class="ns-settings-title">NS助手设置</h2>
+                        <h2>NS助手设置</h2>
                         <span class="ns-settings-close">×</span>
                     </div>
-                    <div class="ns-settings-content ns-settings-scrollbar">
+                    <div class="ns-settings-content">
                         <div class="ns-settings-modules"></div>
                     </div>
                 `;
@@ -133,43 +133,41 @@
                 modulesContainer.innerHTML = '';
                 window.NS.modules.forEach((module) => {
                     const moduleCard = document.createElement('div');
-                    moduleCard.className = 'ns-settings-module';
+                    moduleCard.className = 'ns-module-card';
                     
                     const moduleHeader = document.createElement('div');
-                    moduleHeader.className = 'ns-settings-module-header';
-                    
-                    const moduleInfo = document.createElement('div');
-                    moduleInfo.className = 'ns-settings-module-info';
+                    moduleHeader.className = 'ns-module-header';
                     
                     const moduleTitle = document.createElement('h3');
-                    moduleTitle.className = 'ns-settings-module-title';
                     moduleTitle.textContent = module.name;
                     
+                    const moduleSwitch = document.createElement('label');
+                    moduleSwitch.className = 'ns-switch';
+                    moduleSwitch.innerHTML = `
+                        <input type="checkbox" ${module.enabled ? 'checked' : ''}>
+                        <span class="ns-slider"></span>
+                    `;
+                    
+                    moduleHeader.appendChild(moduleTitle);
+                    moduleHeader.appendChild(moduleSwitch);
+                    
                     const moduleDesc = document.createElement('p');
-                    moduleDesc.className = 'ns-settings-module-desc';
+                    moduleDesc.className = 'ns-module-desc';
                     moduleDesc.textContent = module.description;
                     
-                    const moduleToggle = document.createElement('div');
-                    moduleToggle.className = `ns-settings-module-toggle ${module.enabled ? 'ns-settings-enabled' : ''}`;
-                    
-                    moduleInfo.appendChild(moduleTitle);
-                    moduleInfo.appendChild(moduleDesc);
-                    
-                    moduleHeader.appendChild(moduleInfo);
-                    moduleHeader.appendChild(moduleToggle);
-                    
                     moduleCard.appendChild(moduleHeader);
+                    moduleCard.appendChild(moduleDesc);
                     
                     if (module.renderSettings) {
                         const moduleSettings = document.createElement('div');
-                        moduleSettings.className = 'ns-settings-module-content';
+                        moduleSettings.className = 'ns-module-settings';
                         module.renderSettings(moduleSettings);
                         moduleCard.appendChild(moduleSettings);
                     }
                     
-                    moduleToggle.addEventListener('click', () => {
-                        const isEnabled = moduleToggle.classList.contains('ns-settings-enabled');
-                        GM_setValue(`module_${module.id}_enabled`, !isEnabled);
+                    const checkbox = moduleSwitch.querySelector('input');
+                    checkbox.addEventListener('change', () => {
+                        GM_setValue(`module_${module.id}_enabled`, checkbox.checked);
                         location.reload();
                     });
                     

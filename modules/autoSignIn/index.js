@@ -85,12 +85,12 @@
 
             showToast(message, type = 'info') {
                 const toast = document.createElement('div');
-                toast.className = `ns-autosignin-toast ns-autosignin-toast-${type}`;
+                toast.className = `ns-toast ns-toast-${type}`;
                 toast.textContent = message;
                 document.body.appendChild(toast);
                 
                 setTimeout(() => {
-                    toast.classList.add('ns-autosignin-toast-fade-out');
+                    toast.classList.add('ns-toast-fade-out');
                     setTimeout(() => toast.remove(), 300);
                 }, 3000);
             }
@@ -118,8 +118,8 @@
         renderSettings(container) {
             const status = GM_getValue(this.config.storage.STATUS, this.config.modes.DISABLED);
             const settingsHtml = `
-                <div class="ns-autosignin-settings">
-                    <div class="ns-autosignin-mode">
+                <div class="ns-signin-settings">
+                    <div class="ns-signin-mode">
                         <label>
                             <input type="radio" name="signin_mode" value="${this.config.modes.DISABLED}" ${status === this.config.modes.DISABLED ? 'checked' : ''}>
                             <span>禁用自动签到</span>
@@ -133,7 +133,7 @@
                             <span>固定签到模式</span>
                         </label>
                     </div>
-                    <button class="ns-autosignin-retry">立即签到</button>
+                    <button class="ns-signin-retry">立即签到</button>
                 </div>
             `;
             
@@ -147,7 +147,7 @@
                 });
             });
             
-            const retryButton = container.querySelector('.ns-autosignin-retry');
+            const retryButton = container.querySelector('.ns-signin-retry');
             retryButton.addEventListener('click', () => this.retrySignIn());
         },
 

@@ -1,32 +1,32 @@
-.ns-autosignin-settings {
+.ns-signin-settings {
     padding: 12px 0;
 }
 
-.ns-autosignin-mode {
+.ns-signin-mode {
     display: flex;
     flex-direction: column;
     gap: 12px;
     margin-bottom: 16px;
 }
 
-.ns-autosignin-mode label {
+.ns-signin-mode label {
     display: flex;
     align-items: center;
     gap: 8px;
     cursor: pointer;
 }
 
-.ns-autosignin-mode input[type="radio"] {
+.ns-signin-mode input[type="radio"] {
     margin: 0;
     cursor: pointer;
 }
 
-.ns-autosignin-mode span {
+.ns-signin-mode span {
     font-size: 14px;
     color: #666;
 }
 
-.ns-autosignin-retry {
+.ns-signin-retry {
     background: #1890ff;
     color: white;
     border: none;
@@ -37,16 +37,16 @@
     transition: all 0.3s;
 }
 
-.ns-autosignin-retry:hover {
+.ns-signin-retry:hover {
     background: #40a9ff;
     box-shadow: 0 2px 4px rgba(24,144,255,0.2);
 }
 
-.ns-autosignin-retry:active {
+.ns-signin-retry:active {
     background: #096dd9;
 }
 
-.ns-autosignin-toast {
+.ns-toast {
     position: fixed;
     top: 16px;
     left: 50%;
@@ -60,18 +60,18 @@
     transition: opacity 0.3s;
 }
 
-.ns-autosignin-toast-info {
+.ns-toast-info {
     background: #1890ff;
 }
 
-.ns-autosignin-toast-success {
+.ns-toast-success {
     background: #52c41a;
 }
 
-.ns-autosignin-toast-error {
+.ns-toast-error {
     background: #f5222d;
 }
 
-.ns-autosignin-toast-fade-out {
+.ns-toast-fade-out {
     opacity: 0;
 } 

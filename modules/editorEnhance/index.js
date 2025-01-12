@@ -153,82 +153,58 @@
 
             showToast(message, type = 'info') {
                 const toast = document.createElement('div');
-                toast.className = `ns-editor-toast ns-editor-${type}`;
+                toast.className = `ns-toast ns-toast-${type}`;
                 toast.textContent = message;
                 document.body.appendChild(toast);
                 
                 setTimeout(() => {
-                    toast.classList.add('ns-editor-show');
-                }, 100);
-
-                setTimeout(() => {
-                    toast.classList.remove('ns-editor-show');
+                    toast.classList.add('ns-toast-fade-out');
                     setTimeout(() => toast.remove(), 300);
                 }, 3000);
             },
 
             createShortcutGuide() {
                 const isMac = this.isMac();
-                const overlay = document.createElement('div');
-                overlay.className = 'ns-editor-shortcut-overlay';
-                
                 const modal = document.createElement('div');
-                modal.className = 'ns-editor-shortcut-list';
+                modal.className = 'ns-modal';
                 
-                const header = document.createElement('div');
-                header.className = 'ns-editor-shortcut-header';
+                const content = document.createElement('div');
+                content.className = 'ns-modal-content';
                 
                 const title = document.createElement('div');
-                title.className = 'ns-editor-shortcut-title';
+                title.className = 'ns-modal-title';
                 title.textContent = 'Markdown快捷键';
                 
                 const closeBtn = document.createElement('div');
-                closeBtn.className = 'ns-editor-shortcut-close';
+                closeBtn.className = 'ns-modal-close';
                 closeBtn.textContent = '×';
-                closeBtn.onclick = () => {
-                    overlay.classList.remove('ns-editor-show');
-                    modal.classList.remove('ns-editor-show');
-                    setTimeout(() => overlay.remove(), 300);
-                };
+                closeBtn.onclick = () => modal.remove();
                 
-                header.appendChild(title);
-                header.appendChild(closeBtn);
-                
-                const content = document.createElement('div');
-                content.className = 'ns-editor-shortcut-content';
-                
-                const grid = document.createElement('div');
-                grid.className = 'ns-editor-shortcut-grid';
+                const shortcuts = document.createElement('div');
+                shortcuts.className = 'ns-shortcuts-list';
                 
                 Object.entries(NSEditorEnhance.config.shortcuts.format).forEach(([key, config]) => {
-                    const item = document.createElement('div');
-                    item.className = 'ns-editor-shortcut-item';
-                    
-                    const desc = document.createElement('div');
-                    desc.className = 'ns-editor-shortcut-desc';
-                    desc.textContent = config.description;
-                    
-                    const keySpan = document.createElement('div');
-                    keySpan.className = 'ns-editor-shortcut-key';
-                    keySpan.textContent = isMac ? config.mac.replace('Cmd', '⌘').replace('Shift', '⇧').replace('Alt', '⌥').replace('-', ' + ') : config.windows.replace('-', ' + ');
-                    
-                    item.appendChild(desc);
-                    item.appendChild(keySpan);
-                    grid.appendChild(item);
+                    const shortcut = document.createElement('div');
+                    shortcut.className = 'ns-shortcut-item';
+                    shortcut.innerHTML = `
+                        <span class="ns-shortcut-desc">${config.description}</span>
+                        <span class="ns-shortcut-key">${isMac ? config.mac.replace('Cmd', '⌘').replace('Shift', '⇧').replace('Alt', '⌥').replace('-', ' + ') : config.windows.replace('-', ' + ')}</span>
+                    `;
+                    shortcuts.appendChild(shortcut);
                 });
 
-                content.appendChild(grid);
-                modal.appendChild(header);
+                content.appendChild(title);
+                content.appendChild(closeBtn);
+                content.appendChild(shortcuts);
                 modal.appendChild(content);
-                overlay.appendChild(modal);
-                document.body.appendChild(overlay);
                 
-                setTimeout(() => {
-                    overlay.classList.add('ns-editor-show');
-                    modal.classList.add('ns-editor-show');
-                }, 100);
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                    }
+                });
                 
-                return overlay;
+                return modal;
             }
         },
 
@@ -236,16 +212,17 @@
             const settingsHtml = `
                 <div class="ns-editor-settings">
                     <div class="ns-editor-shortcuts">
-                        <button class="ns-editor-shortcut-btn">查看快捷键列表</button>
+                        <button class="ns-view-shortcuts">查看快捷键列表</button>
                     </div>
                 </div>
             `;
             
             container.innerHTML = settingsHtml;
             
-            const viewShortcutsBtn = container.querySelector('.ns-editor-shortcut-btn');
+            const viewShortcutsBtn = container.querySelector('.ns-view-shortcuts');
             viewShortcutsBtn.addEventListener('click', () => {
-                this.utils.createShortcutGuide();
+                const modal = this.utils.createShortcutGuide();
+                document.body.appendChild(modal);
             });
         },
 
@@ -309,10 +286,11 @@
 
             const topicSelect = btnSubmit.parentElement;
             const shortcutBtn = document.createElement('button');
-            shortcutBtn.className = 'ns-editor-shortcut-btn';
+            shortcutBtn.className = 'ns-shortcut-btn';
             shortcutBtn.textContent = 'MD快捷键';
             shortcutBtn.onclick = () => {
-                this.utils.createShortcutGuide();
+                const modal = this.utils.createShortcutGuide();
+                document.body.appendChild(modal);
             };
             topicSelect.insertBefore(shortcutBtn, topicSelect.firstChild);
 

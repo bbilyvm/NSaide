@@ -1,4 +1,4 @@
-.ns-usercard-enhanced {
+.enhanced-user-card {
     position: fixed;
     width: 260px !important;
     background: #fff;
@@ -11,16 +11,16 @@
     user-select: none;
 }
 
-.ns-usercard-enhanced.ns-usercard-dragging {
+.enhanced-user-card.dragging {
     opacity: 0.95;
     box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 
-.ns-usercard-enhanced:hover {
+.enhanced-user-card:hover {
     box-shadow: 0 6px 16px rgba(0,0,0,0.2);
 }
 
-.ns-usercard-extension {
+.user-card-extension {
     background: #fff;
     border-top: 1px solid rgba(0,0,0,0.06);
     padding: 12px;
@@ -30,7 +30,7 @@
     border-radius: 0 0 8px 8px;
 }
 
-.ns-usercard-next-level {
+.next-level-info {
     padding: 12px;
     background: linear-gradient(135deg, #f6f8ff 0%, #f0f4ff 100%);
     border-radius: 6px;
@@ -40,24 +40,24 @@
     overflow: hidden;
 }
 
-.ns-usercard-next-level.ns-usercard-max-level {
+.next-level-info.max-level {
     background: linear-gradient(135deg, #fff9f0 0%, #fff4e6 100%);
     border: 1px solid rgba(255,171,0,0.1);
 }
 
-.ns-usercard-next-level-title {
+.next-level-title {
     font-weight: 600;
     color: #333;
     margin-bottom: 8px;
     font-size: 14px;
 }
 
-.ns-usercard-next-level-detail {
+.next-level-detail {
     color: #666;
     font-size: 12px;
 }
 
-.ns-usercard-activity {
+.activity-info {
     padding: 12px;
     background: #fafafa;
     border-radius: 6px;
@@ -66,7 +66,7 @@
     transition: all 0.3s ease;
 }
 
-.ns-usercard-activity-title {
+.activity-title {
     font-weight: 600;
     color: #333;
     margin-bottom: 8px;
@@ -76,50 +76,50 @@
     align-items: center;
 }
 
-.ns-usercard-activity-score {
+.activity-score {
     font-size: 12px;
     padding: 2px 8px;
     border-radius: 10px;
     font-weight: normal;
 }
 
-.ns-usercard-activity-detail {
+.activity-detail {
     font-size: 12px;
     color: #666;
     line-height: 1.8;
 }
 
-.ns-usercard-activity-high {
+.activity-high {
     background: linear-gradient(135deg, #f0f9eb 0%, #e7f6df 100%);
     border: 1px solid rgba(103,194,58,0.1);
 }
 
-.ns-usercard-activity-high .ns-usercard-activity-score {
+.activity-high .activity-score {
     background: rgba(103,194,58,0.1);
     color: #67C23A;
 }
 
-.ns-usercard-activity-medium {
+.activity-medium {
     background: linear-gradient(135deg, #fdf6ec 0%, #faf0e6 100%);
     border: 1px solid rgba(230,162,60,0.1);
 }
 
-.ns-usercard-activity-medium .ns-usercard-activity-score {
+.activity-medium .activity-score {
     background: rgba(230,162,60,0.1);
     color: #E6A23C;
 }
 
-.ns-usercard-activity-low {
+.activity-low {
     background: linear-gradient(135deg, #f4f4f5 0%, #f0f0f2 100%);
     border: 1px solid rgba(144,147,153,0.1);
 }
 
-.ns-usercard-activity-low .ns-usercard-activity-score {
+.activity-low .activity-score {
     background: rgba(144,147,153,0.1);
     color: #909399;
 }
 
-.ns-usercard-progress {
+.next-level-progress {
     margin-top: 8px;
     height: 6px;
     background: rgba(0,157,255,0.1);
@@ -128,14 +128,14 @@
     position: relative;
 }
 
-.ns-usercard-progress-bar {
+.next-level-progress-bar {
     height: 100%;
     background: linear-gradient(90deg, #009dff 0%, #33b1ff 100%);
     transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
 }
 
-.ns-usercard-progress-bar::after {
+.next-level-progress-bar::after {
     content: '';
     position: absolute;
     top: 0;
@@ -148,10 +148,10 @@
         rgba(255,255,255,0.3) 50%,
         rgba(255,255,255,0) 100%
     );
-    animation: ns-usercard-shimmer 1.5s infinite;
+    animation: shimmer 1.5s infinite;
 }
 
-@keyframes ns-usercard-shimmer {
+@keyframes shimmer {
     0% {
         transform: translateX(-100%);
     }

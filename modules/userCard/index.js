@@ -191,14 +191,14 @@
 
                 if (e.target === cardElement || cardElement.contains(e.target)) {
                     isDragging = true;
-                    cardElement.classList.add('ns-usercard-dragging');
+                    cardElement.classList.add('dragging');
                 }
             };
 
             const dragEnd = () => {
                 if (!isDragging) return;
                 isDragging = false;
-                cardElement.classList.remove('ns-usercard-dragging');
+                cardElement.classList.remove('dragging');
             };
 
             const drag = (e) => {
@@ -228,10 +228,10 @@
                 console.log('[NS助手] 等待卡片出现...');
 
                 document.querySelectorAll('.hover-user-card').forEach(card => {
-                    card.classList.remove('ns-usercard-enhanced');
-                    card.classList.remove('ns-usercard-dragging');
+                    card.classList.remove('enhanced');
+                    card.classList.remove('enhanced-user-card');
 
-                    const extension = card.querySelector('.ns-usercard-extension');
+                    const extension = card.querySelector('.user-card-extension');
                     if (extension) {
                         extension.remove();
                     }
@@ -262,13 +262,14 @@
         },
 
         enhance(cardElement) {
-            if (cardElement.classList.contains('ns-usercard-enhanced')) {
+            if (cardElement.classList.contains('enhanced')) {
                 console.log('[NS助手] 卡片已增强，跳过');
                 return;
             }
 
             console.log('[NS助手] 开始增强卡片');
-            cardElement.classList.add('ns-usercard-enhanced');
+            cardElement.classList.add('enhanced');
+            cardElement.classList.add('enhanced-user-card');
 
             try {
                 const userData = {
@@ -315,42 +316,42 @@
                 );
 
                 const extensionDiv = document.createElement('div');
-                extensionDiv.className = 'ns-usercard-extension';
+                extensionDiv.className = 'user-card-extension';
 
                 const nextLevelDiv = document.createElement('div');
                 nextLevelDiv.className = nextLevelInfo.isMaxLevel ?
-                    'ns-usercard-next-level ns-usercard-max-level' :
-                    'ns-usercard-next-level';
+                    'next-level-info max-level' :
+                    'next-level-info';
 
                 if (nextLevelInfo.isMaxLevel) {
                     nextLevelDiv.innerHTML = `
-                        <div class="ns-usercard-next-level-title">🌟 最高等级</div>
-                        <div class="ns-usercard-next-level-detail">
+                        <div class="next-level-title">🌟 最高等级</div>
+                        <div class="next-level-detail">
                             此用户已达到最高等级 Lv.6
                         </div>
                     `;
                 } else {
                     nextLevelDiv.innerHTML = `
-                        <div class="ns-usercard-next-level-title">⭐ 等级进度</div>
-                        <div class="ns-usercard-next-level-detail">
+                        <div class="next-level-title">⭐ 等级进度</div>
+                        <div class="next-level-detail">
                             距离 Lv.${nextLevelInfo.nextLevel} 还需 ${nextLevelInfo.remaining} 鸡腿
                         </div>
-                        <div class="ns-usercard-progress">
-                            <div class="ns-usercard-progress-bar" style="width: ${nextLevelInfo.progress}%"></div>
+                        <div class="next-level-progress">
+                            <div class="next-level-progress-bar" style="width: ${nextLevelInfo.progress}%"></div>
                         </div>
                     `;
                 }
 
                 const activityDiv = document.createElement('div');
-                activityDiv.className = `ns-usercard-activity ns-usercard-activity-${activity.level}`;
+                activityDiv.className = `activity-info activity-${activity.level}`;
 
                 let activityHtml = `
-                    <div class="ns-usercard-activity-title">
+                    <div class="activity-title">
                         ${activity.level === 'high' ? '🔥' : activity.level === 'medium' ? '⭐' : '💫'}
                         活跃指数
-                        <span class="ns-usercard-activity-score">${activity.score}分</span>
+                        <span class="activity-score">${activity.score}分</span>
                     </div>
-                    <div class="ns-usercard-activity-detail">
+                    <div class="activity-detail">
                 `;
 
                 if (activity.details.hasJoinDays) {

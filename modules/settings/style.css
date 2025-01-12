@@ -3,43 +3,37 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 800px;
+    width: 600px;
+    max-width: 90vw;
     max-height: 80vh;
     background: #fff;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 1000;
-    display: none;
-    overflow: hidden;
-}
-
-.ns-settings-panel.ns-settings-show {
-    display: block;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 .ns-settings-header {
-    padding: 16px;
-    border-bottom: 1px solid #eee;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    background: #fff;
-    position: sticky;
-    top: 0;
-    z-index: 2;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: move;
+    user-select: none;
 }
 
-.ns-settings-title {
+.ns-settings-header h2 {
+    margin: 0;
     font-size: 18px;
-    font-weight: 600;
-    color: #333;
+    color: #1890ff;
 }
 
 .ns-settings-close {
-    cursor: pointer;
     font-size: 24px;
     color: #999;
-    transition: color 0.3s ease;
+    cursor: pointer;
+    transition: color 0.3s;
 }
 
 .ns-settings-close:hover {
@@ -47,116 +41,116 @@
 }
 
 .ns-settings-content {
-    padding: 16px;
+    padding: 24px;
     overflow-y: auto;
     max-height: calc(80vh - 60px);
 }
 
-.ns-settings-module {
-    background: #fff;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    margin-bottom: 16px;
-    transition: all 0.3s ease;
-}
-
-.ns-settings-module:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.ns-settings-module-header {
-    padding: 12px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #eee;
-}
-
-.ns-settings-module-info {
-    flex: 1;
-}
-
-.ns-settings-module-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 4px;
-}
-
-.ns-settings-module-desc {
-    font-size: 12px;
-    color: #666;
-}
-
-.ns-settings-module-toggle {
-    position: relative;
-    width: 40px;
-    height: 20px;
-    border-radius: 10px;
-    background: #dcdfe6;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.ns-settings-module-toggle.ns-settings-enabled {
-    background: #409eff;
-}
-
-.ns-settings-module-toggle::after {
-    content: '';
-    position: absolute;
-    left: 2px;
-    top: 2px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #fff;
-    transition: all 0.3s ease;
-}
-
-.ns-settings-module-toggle.ns-settings-enabled::after {
-    left: 22px;
-}
-
-.ns-settings-module-content {
+.ns-module-card {
+    background: #fafafa;
+    border-radius: 6px;
     padding: 16px;
-    display: none;
+    margin-bottom: 16px;
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s;
 }
 
-.ns-settings-module-content.ns-settings-show {
-    display: block;
+.ns-module-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+    border-color: #e6f7ff;
 }
 
-.ns-settings-overlay {
-    position: fixed;
+.ns-module-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.ns-module-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.ns-module-desc {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.ns-module-settings {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed #e8e8e8;
+}
+
+.ns-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 22px;
+}
+
+.ns-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.ns-slider {
+    position: absolute;
+    cursor: pointer;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 999;
-    display: none;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 22px;
 }
 
-.ns-settings-overlay.ns-settings-show {
-    display: block;
+.ns-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
 }
 
-.ns-settings-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+input:checked + .ns-slider {
+    background-color: #1890ff;
 }
 
-.ns-settings-scrollbar::-webkit-scrollbar-track {
+input:focus + .ns-slider {
+    box-shadow: 0 0 1px #1890ff;
+}
+
+input:checked + .ns-slider:before {
+    transform: translateX(22px);
+}
+
+
+.ns-settings-content::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.ns-settings-content::-webkit-scrollbar-track {
     background: #f5f5f5;
-    border-radius: 3px;
+    border-radius: 4px;
 }
 
-.ns-settings-scrollbar::-webkit-scrollbar-thumb {
-    background: #ddd;
-    border-radius: 3px;
-}
-
-.ns-settings-scrollbar::-webkit-scrollbar-thumb:hover {
+.ns-settings-content::-webkit-scrollbar-thumb {
     background: #ccc;
+    border-radius: 4px;
+}
+
+.ns-settings-content::-webkit-scrollbar-thumb:hover {
+    background: #999;
 } 
