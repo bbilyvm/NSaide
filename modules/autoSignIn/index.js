@@ -94,12 +94,17 @@
         async setupSignIn() {
             console.log('[NS助手] 检查登录状态...');
             
-            const userInfo = await this.utils.waitForElement('.user-info');
-            if (!userInfo) {
+            const loginCheck = await Promise.race([
+                this.utils.waitForElement('.user-card'),
+                this.utils.waitForElement('.nsk-panel')
+            ]);
+
+            if (!loginCheck || loginCheck.querySelector('h4')?.textContent.includes('陌生人')) {
                 console.log('[NS助手] 用户未登录，跳过签到');
                 return false;
             }
 
+            console.log('[NS助手] 用户已登录，继续执行签到');
             this.registerMenuItems();
             await this.executeAutoSignIn();
             return true;
