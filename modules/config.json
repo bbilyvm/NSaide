@@ -2,6 +2,11 @@
     "version": "0.1.0",
     "modules": [
         {
+            "name": "settings",
+            "id": "settings",
+            "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/settings/index.js"
+        },
+        {
             "name": "userCard",
             "id": "userCard",
             "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/userCard/index.js"

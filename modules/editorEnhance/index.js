@@ -116,29 +116,12 @@
                         mac: 'Shift-Cmd-T',
                         format: '| 表头 | 表头 |\n| --- | --- |\n| 内容 | 内容 |',
                         description: '表格'
-                    },
-                    table3Cols: {
-                        windows: 'Alt-Ctrl-T',
-                        mac: 'Alt-Cmd-T',
-                        format: '| 表头 | 表头 | 表头 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |',
-                        description: '三列表格'
-                    },
-                    horizontalRule: {
-                        windows: 'Shift-Ctrl-H',
-                        mac: 'Shift-Cmd-H',
-                        format: '\n---\n',
-                        description: '分割线'
                     }
                 }
-            },
-            timeout: 10000
+            }
         },
 
         utils: {
-            isMac() {
-                return navigator.platform.toLowerCase().includes('mac');
-            },
-
             async waitForElement(selector, parent = document, timeout = 10000) {
                 const element = parent.querySelector(selector);
                 if (element) return element;
@@ -164,19 +147,20 @@
                 });
             },
 
+            isMac() {
+                return /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+            },
+
             showToast(message, type = 'info') {
                 const toast = document.createElement('div');
                 toast.className = `ns-toast ns-toast-${type}`;
                 toast.textContent = message;
                 document.body.appendChild(toast);
-
+                
                 setTimeout(() => {
-                    toast.classList.add('ns-toast-show');
-                    setTimeout(() => {
-                        toast.classList.remove('ns-toast-show');
-                        setTimeout(() => toast.remove(), 300);
-                    }, 3000);
-                }, 100);
+                    toast.classList.add('ns-toast-fade-out');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
             },
 
             createShortcutGuide() {
@@ -208,7 +192,7 @@
                     `;
                     shortcuts.appendChild(shortcut);
                 });
-                
+
                 content.appendChild(title);
                 content.appendChild(closeBtn);
                 content.appendChild(shortcuts);
@@ -222,6 +206,24 @@
                 
                 return modal;
             }
+        },
+
+        renderSettings(container) {
+            const settingsHtml = `
+                <div class="ns-editor-settings">
+                    <div class="ns-editor-shortcuts">
+                        <button class="ns-view-shortcuts">查看快捷键列表</button>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = settingsHtml;
+            
+            const viewShortcutsBtn = container.querySelector('.ns-view-shortcuts');
+            viewShortcutsBtn.addEventListener('click', () => {
+                const modal = this.utils.createShortcutGuide();
+                document.body.appendChild(modal);
+            });
         },
 
         async init() {
@@ -302,42 +304,22 @@
                 }
             };
 
-            Object.entries(this.config.shortcuts.format).forEach(([name, config]) => {
-                const key = isMac ? config.mac : config.windows;
-                keyMap[key] = (cm) => {
-                    const selection = cm.getSelection();
-                    if (selection) {
-                        const formatted = config.format.replace('{text}', selection);
-                        cm.replaceSelection(formatted);
-                        if (name === 'link') {
-                            const cursor = cm.getCursor();
-                            cm.setCursor({line: cursor.line, ch: cursor.ch - 1});
-                        }
-                    } else {
-                        const cursor = cm.getCursor();
-                        const line = cm.getLine(cursor.line);
-                        if (['list', 'orderedList', 'quote', 'multiQuote'].includes(name)) {
-                            const formatted = config.format.replace('{text}', line);
-                            cm.replaceRange(formatted, {line: cursor.line, ch: 0}, {line: cursor.line, ch: line.length});
-                        } else {
-                            const placeholder = config.format.replace('{text}', '');
-                            cm.replaceRange(placeholder, cursor);
-                            if (name === 'link') {
-                                cm.setCursor({line: cursor.line, ch: cursor.ch + 1});
-                            } else if (name === 'codeBlock' || name === 'codeBlockWithLang') {
-                                cm.setCursor({line: cursor.line + 1, ch: 0});
-                            } else {
-                                const newCursor = cm.getCursor();
-                                cm.setCursor({line: newCursor.line, ch: newCursor.ch - placeholder.length / 2});
-                            }
-                        }
+            Object.entries(this.config.shortcuts.format).forEach(([key, config]) => {
+                const shortcutKey = isMac ? config.mac : config.windows;
+                keyMap[shortcutKey] = (cm) => {
+                    const selectedText = cm.getSelection() || '';
+                    const cursor = cm.getCursor();
+                    const formatted = config.format.replace('{text}', selectedText);
+                    cm.replaceSelection(formatted);
+                    
+                    if (!selectedText) {
+                        const cursorPos = cursor.ch + formatted.indexOf('{text}');
+                        cm.setCursor({ line: cursor.line, ch: cursorPos });
                     }
                 };
             });
 
-            codeMirrorInstance.addKeyMap(keyMap);
-            
-            console.log('[NS助手] 编辑器增强设置完成');
+            codeMirrorInstance.setOption('extraKeys', keyMap);
             return true;
         }
     };

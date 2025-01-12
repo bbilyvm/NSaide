@@ -48,36 +48,19 @@
             },
 
             checkLoginStatus() {
-                console.log('[NS助手] 开始检查登录状态');
+                return document.querySelector('.avatar-normal') !== null;
+            },
+
+            showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `ns-toast ns-toast-${type}`;
+                toast.textContent = message;
+                document.body.appendChild(toast);
                 
-                const userCard = document.querySelector('.user-card');
-                if (!userCard) {
-                    console.log('[NS助手] 未找到用户卡片元素');
-                    return false;
-                }
-
-                const username = userCard.querySelector('.Username');
-                if (!username) {
-                    console.log('[NS助手] 未找到用户名元素');
-                    return false;
-                }
-                console.log('[NS助手] 当前用户:', username.textContent);
-
-                const statBlock = userCard.querySelector('.stat-block');
-                if (!statBlock) {
-                    console.log('[NS助手] 未找到用户状态栏');
-                    return false;
-                }
-
-                const levelInfo = statBlock.querySelector('span[data-v-0f04b1f4]');
-                if (!levelInfo || !levelInfo.textContent.includes('等级')) {
-                    console.log('[NS助手] 未找到等级信息');
-                    return false;
-                }
-                console.log('[NS助手] 用户等级:', levelInfo.textContent);
-
-                console.log('[NS助手] 登录状态检查通过');
-                return true;
+                setTimeout(() => {
+                    toast.classList.add('ns-toast-fade-out');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
             }
         },
 
@@ -96,100 +79,93 @@
             }
 
             console.log('[NS助手] 用户已登录，继续执行签到');
-            this.registerMenuItems();
             await this.executeAutoSignIn();
             return true;
         },
 
-        registerMenuItems() {
+        renderSettings(container) {
             const status = GM_getValue(this.config.storage.STATUS, this.config.modes.DISABLED);
-            const modes = ['🔴 签到已禁用', '🟢 随机签到模式', '🟡 固定签到模式'];
-            const descriptions = ['自动签到已关闭', '每日随机获取鸡腿', '每日固定5个鸡腿'];
+            const settingsHtml = `
+                <div class="ns-signin-settings">
+                    <div class="ns-signin-mode">
+                        <label>
+                            <input type="radio" name="signin_mode" value="${this.config.modes.DISABLED}" ${status === this.config.modes.DISABLED ? 'checked' : ''}>
+                            <span>禁用自动签到</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="signin_mode" value="${this.config.modes.RANDOM}" ${status === this.config.modes.RANDOM ? 'checked' : ''}>
+                            <span>随机签到模式</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="signin_mode" value="${this.config.modes.FIXED}" ${status === this.config.modes.FIXED ? 'checked' : ''}>
+                            <span>固定签到模式</span>
+                        </label>
+                    </div>
+                    <button class="ns-signin-retry">立即签到</button>
+                </div>
+            `;
             
-            GM_registerMenuCommand(`${modes[status]} - ${descriptions[status]}`, () => {
-                const nextStatus = (status + 1) % modes.length;
-                GM_setValue(this.config.storage.STATUS, nextStatus);
-                location.reload();
+            container.innerHTML = settingsHtml;
+            
+            const radios = container.querySelectorAll('input[type="radio"]');
+            radios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    GM_setValue(this.config.storage.STATUS, parseInt(radio.value));
+                    location.reload();
+                });
             });
-
-            GM_registerMenuCommand('🔄 重新签到', () => this.retrySignIn());
+            
+            const retryButton = container.querySelector('.ns-signin-retry');
+            retryButton.addEventListener('click', () => this.retrySignIn());
         },
 
         async executeAutoSignIn() {
             const status = GM_getValue(this.config.storage.STATUS, this.config.modes.DISABLED);
-            if (status === this.config.modes.DISABLED) {
-                console.log('[NS助手] 自动签到已禁用');
+            const lastDate = GM_getValue(this.config.storage.LAST_DATE, '');
+            const today = new Date().toDateString();
+
+            if (status === this.config.modes.DISABLED || lastDate === today) {
+                console.log('[NS助手] 跳过签到');
                 return;
             }
 
-            const today = new Date().toLocaleDateString();
-            const lastSignDate = GM_getValue(this.config.storage.LAST_DATE);
+            try {
+                const signInBtn = await this.utils.waitForElement('.checkin-btn');
+                if (!signInBtn) {
+                    console.log('[NS助手] 未找到签到按钮');
+                    return;
+                }
 
-            console.log('[NS助手] 上次签到日期:', lastSignDate);
-            console.log('[NS助手] 当前日期:', today);
+                if (signInBtn.classList.contains('checked')) {
+                    console.log('[NS助手] 今日已签到');
+                    GM_setValue(this.config.storage.LAST_DATE, today);
+                    return;
+                }
 
-            if (lastSignDate !== today) {
-                console.log('[NS助手] 开始执行今日签到');
-                await this.performSignIn(status === this.config.modes.RANDOM);
+                const chickens = status === this.config.modes.RANDOM ? 
+                    Math.floor(Math.random() * 5) + 1 : 
+                    5;
+
+                const input = await this.utils.waitForElement('input[placeholder="1-5个鸡腿"]');
+                if (!input) {
+                    console.log('[NS助手] 未找到鸡腿输入框');
+                    return;
+                }
+
+                input.value = chickens;
+                signInBtn.click();
+
                 GM_setValue(this.config.storage.LAST_DATE, today);
-            } else {
-                console.log('[NS助手] 今日已签到，跳过');
+                this.utils.showToast('自动签到成功', 'success');
+                console.log('[NS助手] 自动签到成功');
+            } catch (error) {
+                console.error('[NS助手] 自动签到失败:', error);
             }
         },
 
         async retrySignIn() {
-            const status = GM_getValue(this.config.storage.STATUS, this.config.modes.DISABLED);
-            if (status === this.config.modes.DISABLED) return;
-
-            console.log('[NS助手] 执行重新签到');
             GM_setValue(this.config.storage.LAST_DATE, '');
             await this.executeAutoSignIn();
-        },
-
-        async performSignIn(isRandom) {
-            try {
-                console.log(`[NS助手] 执行${isRandom ? '随机' : '固定'}签到`);
-                console.log('[NS助手] 当前页面URL:', window.location.href);
-
-                const response = await this.sendSignInRequest(isRandom);
-                console.log('[NS助手] 签到响应:', response);
-                
-                if (response.success) {
-                    console.log(`[NS助手] 签到成功！获得${response.gain}个鸡腿，当前共有${response.current}个鸡腿`);
-                } else {
-                    console.log('[NS助手] 签到失败:', response.message);
-                }
-            } catch (error) {
-                console.error('[NS助手] 签到请求出错:', error);
-                console.log('[NS助手] 错误详情:', error.message);
-            }
-        },
-
-        async sendSignInRequest(isRandom) {
-            const url = `/api/attendance?random=${isRandom}`;
-            console.log('[NS助手] 发送签到请求:', url);
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'accept': 'application/json, text/plain, */*',
-                        'content-type': 'application/json',
-                        'x-requested-with': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin'
-                });
-
-                if (!response.ok) {
-                    throw new Error(`请求失败: ${response.status}`);
-                }
-
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                console.error('[NS助手] 请求失败:', error);
-                throw error;
-            }
         }
     };
 

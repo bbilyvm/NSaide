@@ -108,15 +108,6 @@
                         if (module.enabled) {
                             module.init();
                         }
-
-                        GM_registerMenuCommand(
-                            `${module.enabled ? '✅' : '❌'} ${module.name}`,
-                            () => {
-                                module.enabled = !module.enabled;
-                                GM_setValue(`module_${id}_enabled`, module.enabled);
-                                window.location.reload();
-                            }
-                        );
                     } catch (error) {
                         console.error(`[NS助手] 模块 ${module.name} (${id}) 初始化失败:`, error);
                     }
