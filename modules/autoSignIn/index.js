@@ -18,7 +18,10 @@
                 RANDOM: 1,
                 FIXED: 2
             },
-            timeout: 10000
+            timeout: 10000,
+            errors: {
+                ALREADY_SIGNED: '今天已完成签到，请勿重复操作'
+            }
         },
 
         utils: {
@@ -190,6 +193,11 @@
                 if (response.success) {
                     console.log(`[NS助手] 签到成功！获得${response.gain}个鸡腿，当前共有${response.current}个鸡腿`);
                     this.utils.showToast(`签到成功！获得${response.gain}个鸡腿`, 'success');
+                    GM_setValue(this.config.storage.LAST_DATE, new Date().toLocaleDateString());
+                } else if (response.message === this.config.errors.ALREADY_SIGNED) {
+                    console.log('[NS助手] 今日已签到');
+                    this.utils.showToast('今日已签到', 'info');
+                    GM_setValue(this.config.storage.LAST_DATE, new Date().toLocaleDateString());
                 } else {
                     console.log('[NS助手] 签到失败:', response.message);
                     this.utils.showToast(`签到失败: ${response.message}`, 'error');
@@ -216,11 +224,12 @@
                     credentials: 'same-origin'
                 });
 
-                if (!response.ok) {
+                const data = await response.json();
+                
+                if (!response.ok && !data.message) {
                     throw new Error(`请求失败: ${response.status}`);
                 }
 
-                const data = await response.json();
                 return data;
             } catch (error) {
                 console.error('[NS助手] 请求失败:', error);
