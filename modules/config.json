@@ -1,0 +1,15 @@
+{
+    "version": "0.1.0",
+    "modules": [
+        {
+            "name": "userCard",
+            "id": "userCard",
+            "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/userCard/index.js"
+        },
+        {
+            "name": "editorEnhance",
+            "id": "editorEnhance",
+            "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/editorEnhance/index.js"
+        }
+    ]
+} 

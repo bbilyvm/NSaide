@@ -21,16 +21,35 @@
     
     console.log('[NS助手] 脚本开始加载');
 
-    const MODULES = [
-        {
-            name: 'userCard',
-            url: 'https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/userCard/index.js'
-        },
-        {
-            name: 'editorEnhance',
-            url: 'https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/editorEnhance/index.js'
-        }
-    ];
+    const CONFIG_URL = 'https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/config.json';
+
+    const loadConfig = () => {
+        return new Promise((resolve, reject) => {
+            GM_xmlhttpRequest({
+                method: 'GET',
+                url: `${CONFIG_URL}?t=${Date.now()}`,
+                nocache: true,
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                },
+                onload: (response) => {
+                    if (response.status === 200) {
+                        try {
+                            const config = JSON.parse(response.responseText);
+                            resolve(config);
+                        } catch (error) {
+                            reject(error);
+                        }
+                    } else {
+                        reject(new Error(`配置加载失败: ${response.status}`));
+                    }
+                },
+                onerror: reject
+            });
+        });
+    };
 
     const loadModule = (moduleInfo) => {
         return new Promise((resolve, reject) => {
@@ -46,22 +65,16 @@
                 onload: (response) => {
                     if (response.status === 200) {
                         try {
-                            console.log(`[NS助手] 模块 ${moduleInfo.name} 加载成功`);
                             eval(response.responseText);
                             resolve();
                         } catch (error) {
-                            console.error(`[NS助手] 模块 ${moduleInfo.name} 执行失败:`, error);
                             reject(error);
                         }
                     } else {
-                        console.error(`[NS助手] 模块 ${moduleInfo.name} 加载失败:`, response.status);
                         reject(new Error(`模块加载失败: ${response.status}`));
                     }
                 },
-                onerror: (error) => {
-                    console.error(`[NS助手] 模块 ${moduleInfo.name} 请求失败:`, error);
-                    reject(error);
-                }
+                onerror: reject
             });
         });
     };
@@ -73,10 +86,7 @@
             isReady: false,
             
             registerModule(moduleDefinition) {
-                console.log(`[NS助手] 尝试注册模块: ${moduleDefinition.id}`);
-                
                 if (!moduleDefinition || !moduleDefinition.id || !moduleDefinition.init) {
-                    console.error('[NS助手] 模块注册失败: 无效的模块定义', moduleDefinition);
                     return;
                 }
 
@@ -86,27 +96,17 @@
                 };
 
                 this.modules.set(moduleDefinition.id, module);
-                console.log(`[NS助手] 模块注册成功: ${module.name} (${module.id})`);
-                console.log('[NS助手] 当前已注册模块列表:', Array.from(this.modules.keys()));
             },
 
             init() {
                 if (this.isReady) {
-                    console.log('[NS助手] 已经初始化过，跳过');
                     return;
                 }
 
-                console.log('[NS助手] 开始初始化...');
-                console.log('[NS助手] 当前模块数量:', this.modules.size);
-                
                 this.modules.forEach((module, id) => {
                     try {
                         if (module.enabled) {
-                            console.log(`[NS助手] 正在初始化模块: ${module.name} (${id})`);
                             module.init();
-                            console.log(`[NS助手] 模块初始化成功: ${module.name} (${id})`);
-                        } else {
-                            console.log(`[NS助手] 模块已禁用: ${module.name} (${id})`);
                         }
 
                         GM_registerMenuCommand(
@@ -114,13 +114,7 @@
                             () => {
                                 module.enabled = !module.enabled;
                                 GM_setValue(`module_${id}_enabled`, module.enabled);
-                                if (module.enabled) {
-                                    console.log(`[NS助手] 正在重新加载模块: ${module.name}`);
-                                    window.location.reload();
-                                } else {
-                                    console.log(`[NS助手] 已禁用模块: ${module.name}`);
-                                    window.location.reload();
-                                }
+                                window.location.reload();
                             }
                         );
                     } catch (error) {
@@ -133,7 +127,6 @@
         };
 
         window.NSRegisterModule = (moduleDefinition) => {
-            console.log('[NS助手] 收到模块注册请求:', moduleDefinition.id);
             window.NS.registerModule(moduleDefinition);
         };
     };
@@ -142,26 +135,20 @@
 
     const initializeModules = async () => {
         try {
-            console.log('[NS助手] 开始加载模块...');
-            await Promise.all(MODULES.map(loadModule));
-            console.log('[NS助手] 所有模块加载完成');
+            const config = await loadConfig();
+            await Promise.all(config.modules.map(loadModule));
             
             if (window.NS.modules.size > 0) {
-                console.log('[NS助手] 开始初始化模块');
                 window.NS.init();
-            } else {
-                console.error('[NS助手] 未检测到已注册的模块');
             }
         } catch (error) {
-            console.error('[NS助手] 模块加载失败:', error);
+            console.error('[NS助手] 初始化失败:', error);
         }
     };
 
     if (document.readyState === 'loading') {
-        console.log('[NS助手] 文档加载中，等待 DOMContentLoaded');
         document.addEventListener('DOMContentLoaded', initializeModules);
     } else {
-        console.log('[NS助手] 文档已加载，开始加载模块');
         initializeModules();
     }
 })();
