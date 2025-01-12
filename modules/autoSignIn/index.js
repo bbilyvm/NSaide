@@ -78,13 +78,6 @@
 
                 console.log('[NS助手] 登录状态检查通过');
                 return true;
-            },
-
-            getCookie(name) {
-                const value = `; ${document.cookie}`;
-                const parts = value.split(`; ${name}=`);
-                if (parts.length === 2) return parts.pop().split(';').shift();
-                return null;
             }
         },
 
@@ -157,13 +150,6 @@
             try {
                 console.log(`[NS助手] 执行${isRandom ? '随机' : '固定'}签到`);
                 console.log('[NS助手] 当前页面URL:', window.location.href);
-                
-                const session = this.utils.getCookie('session');
-                if (!session) {
-                    console.log('[NS助手] 未找到session cookie');
-                    return;
-                }
-                console.log('[NS助手] 已获取session');
 
                 const response = await this.sendSignInRequest(isRandom);
                 console.log('[NS助手] 签到响应:', response);
@@ -185,22 +171,19 @@
 
         sendSignInRequest(isRandom) {
             return new Promise((resolve, reject) => {
-                const url = 'https://www.nodeseek.com/api/attendance?random=' + isRandom;
+                const url = '/api/attendance?random=' + isRandom;
                 console.log('[NS助手] 发送签到请求:', url);
 
                 GM_xmlhttpRequest({
                     method: 'POST',
                     url: url,
                     headers: {
-                        'accept': '*/*',
+                        'accept': 'application/json, text/plain, */*',
                         'accept-language': 'zh-CN,zh;q=0.9',
                         'content-type': 'application/json',
-                        'sec-fetch-dest': 'empty',
-                        'sec-fetch-mode': 'cors',
-                        'sec-fetch-site': 'same-origin',
                         'x-requested-with': 'XMLHttpRequest'
                     },
-                    data: null,
+                    anonymous: false,
                     withCredentials: true,
                     onload: response => {
                         console.log('[NS助手] 收到响应:', {
