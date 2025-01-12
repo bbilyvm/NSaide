@@ -41,6 +41,7 @@
             },
 
             createSettingsPanel() {
+                const self = this;
                 const panel = document.createElement('div');
                 panel.className = 'ns-settings-panel';
                 panel.innerHTML = `
@@ -84,7 +85,7 @@
                     initialY = currentY;
                     isDragging = false;
                     
-                    GM_setValue(this.config.storage.PANEL_POSITION, {
+                    GM_setValue(NSSettings.config.storage.PANEL_POSITION, {
                         x: xOffset,
                         y: yOffset
                     });
@@ -115,7 +116,7 @@
                 document.addEventListener("mouseup", dragEnd, false);
                 document.addEventListener("mousemove", drag, false);
 
-                const lastPosition = GM_getValue(this.config.storage.PANEL_POSITION, null);
+                const lastPosition = GM_getValue(NSSettings.config.storage.PANEL_POSITION, null);
                 if (lastPosition) {
                     xOffset = lastPosition.x;
                     yOffset = lastPosition.y;
@@ -194,10 +195,13 @@
                 }
             });
 
+            const boundCreateSettingsPanel = this.utils.createSettingsPanel.bind(this.utils);
+            const boundRenderModuleSettings = this.utils.renderModuleSettings.bind(this.utils);
+
             GM_registerMenuCommand('⚙️ 打开设置面板', () => {
-                const panel = this.utils.createSettingsPanel();
+                const panel = boundCreateSettingsPanel();
                 document.body.appendChild(panel);
-                this.utils.renderModuleSettings();
+                boundRenderModuleSettings();
             });
 
             console.log('[NS助手] 设置面板模块初始化完成');
