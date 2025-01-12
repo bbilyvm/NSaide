@@ -46,10 +46,10 @@
                 panel.className = 'ns-settings-panel';
                 panel.innerHTML = `
                     <div class="ns-settings-header">
-                        <h2>NS助手设置</h2>
+                        <h2 class="ns-settings-title">NS助手设置</h2>
                         <span class="ns-settings-close">×</span>
                     </div>
-                    <div class="ns-settings-content">
+                    <div class="ns-settings-content ns-settings-scrollbar">
                         <div class="ns-settings-modules"></div>
                     </div>
                 `;
@@ -131,12 +131,7 @@
                 if (!modulesContainer) return;
 
                 modulesContainer.innerHTML = '';
-                if (!window.NSModules) {
-                    console.error('[NS助手] 未找到模块列表');
-                    return;
-                }
-                
-                Object.values(window.NSModules).forEach((module) => {
+                window.NS.modules.forEach((module) => {
                     const moduleCard = document.createElement('div');
                     moduleCard.className = 'ns-settings-module';
                     
@@ -146,22 +141,19 @@
                     const moduleInfo = document.createElement('div');
                     moduleInfo.className = 'ns-settings-module-info';
                     
-                    const moduleTitle = document.createElement('div');
+                    const moduleTitle = document.createElement('h3');
                     moduleTitle.className = 'ns-settings-module-title';
                     moduleTitle.textContent = module.name;
                     
-                    const moduleDesc = document.createElement('div');
+                    const moduleDesc = document.createElement('p');
                     moduleDesc.className = 'ns-settings-module-desc';
                     moduleDesc.textContent = module.description;
                     
+                    const moduleToggle = document.createElement('div');
+                    moduleToggle.className = `ns-settings-module-toggle ${module.enabled ? 'ns-settings-enabled' : ''}`;
+                    
                     moduleInfo.appendChild(moduleTitle);
                     moduleInfo.appendChild(moduleDesc);
-                    
-                    const moduleToggle = document.createElement('div');
-                    moduleToggle.className = 'ns-settings-module-toggle';
-                    if (module.enabled) {
-                        moduleToggle.classList.add('ns-settings-enabled');
-                    }
                     
                     moduleHeader.appendChild(moduleInfo);
                     moduleHeader.appendChild(moduleToggle);
@@ -169,24 +161,15 @@
                     moduleCard.appendChild(moduleHeader);
                     
                     if (module.renderSettings) {
-                        const moduleContent = document.createElement('div');
-                        moduleContent.className = 'ns-settings-module-content';
-                        module.renderSettings(moduleContent);
-                        if (moduleContent.hasChildNodes()) {
-                            moduleContent.classList.add('ns-settings-show');
-                            moduleCard.appendChild(moduleContent);
-                        }
+                        const moduleSettings = document.createElement('div');
+                        moduleSettings.className = 'ns-settings-module-content';
+                        module.renderSettings(moduleSettings);
+                        moduleCard.appendChild(moduleSettings);
                     }
                     
                     moduleToggle.addEventListener('click', () => {
                         const isEnabled = moduleToggle.classList.contains('ns-settings-enabled');
-                        if (isEnabled) {
-                            moduleToggle.classList.remove('ns-settings-enabled');
-                            GM_setValue(`module_${module.id}_enabled`, false);
-                        } else {
-                            moduleToggle.classList.add('ns-settings-enabled');
-                            GM_setValue(`module_${module.id}_enabled`, true);
-                        }
+                        GM_setValue(`module_${module.id}_enabled`, !isEnabled);
                         location.reload();
                     });
                     
@@ -214,25 +197,16 @@
                 }
             });
 
-            // 等待模块系统就绪后再注册菜单命令
-            const waitForModules = () => {
-                if (window.NSModules) {
-                    const boundCreateSettingsPanel = this.utils.createSettingsPanel.bind(this.utils);
-                    const boundRenderModuleSettings = this.utils.renderModuleSettings.bind(this.utils);
+            const boundCreateSettingsPanel = this.utils.createSettingsPanel.bind(this.utils);
+            const boundRenderModuleSettings = this.utils.renderModuleSettings.bind(this.utils);
 
-                    GM_registerMenuCommand('⚙️ 打开设置面板', () => {
-                        const panel = boundCreateSettingsPanel();
-                        document.body.appendChild(panel);
-                        boundRenderModuleSettings();
-                    });
+            GM_registerMenuCommand('⚙️ 打开设置面板', () => {
+                const panel = boundCreateSettingsPanel();
+                document.body.appendChild(panel);
+                boundRenderModuleSettings();
+            });
 
-                    console.log('[NS助手] 设置面板模块初始化完成');
-                } else {
-                    setTimeout(waitForModules, 100);
-                }
-            };
-
-            waitForModules();
+            console.log('[NS助手] 设置面板模块初始化完成');
         }
     };
 
