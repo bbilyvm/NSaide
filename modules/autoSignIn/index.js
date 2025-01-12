@@ -45,6 +45,22 @@
                         resolve(null);
                     }, timeout);
                 });
+            },
+
+            checkLoginStatus() {
+                const userCard = document.querySelector('.user-card');
+                if (!userCard) return false;
+
+                const username = userCard.querySelector('.Username');
+                if (!username) return false;
+
+                const statBlock = userCard.querySelector('.stat-block');
+                if (!statBlock) return false;
+
+                const levelInfo = statBlock.querySelector('span[data-v-0f04b1f4]');
+                if (!levelInfo || !levelInfo.textContent.includes('等级')) return false;
+
+                return true;
             }
         },
 
@@ -57,13 +73,8 @@
         async setupSignIn() {
             console.log('[NS助手] 检查登录状态...');
             
-            const loginCheck = await Promise.race([
-                this.utils.waitForElement('.user-card'),
-                this.utils.waitForElement('.nsk-panel')
-            ]);
-
-            if (!loginCheck || loginCheck.querySelector('h4')?.textContent.includes('陌生人')) {
-                console.log('[NS助手] 用户未登录，跳过签到');
+            if (!this.utils.checkLoginStatus()) {
+                console.log('[NS助手] 未检测到完整的用户信息，跳过签到');
                 return false;
             }
 
