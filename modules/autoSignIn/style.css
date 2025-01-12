@@ -1,31 +1,30 @@
-.nsplus-tip {
-    position: relative;
-    margin: 10px 0;
-    padding: 8px 15px;
-    background-color: #f8f8f8;
+.ns-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 24px;
+    background: #fff;
     border-radius: 4px;
-    border-left: 4px solid #409eff;
-    transition: background-color .3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
 }
 
-.nsplus-tip:hover {
-    background-color: #f0f0f0;
+.ns-toast-show {
+    opacity: 1;
+    transform: translateY(0);
 }
 
-.nsplus-tip p {
-    margin: 0;
-    color: #666;
-    font-size: 14px;
-    line-height: 1.6;
+.ns-toast-success {
+    border-left: 4px solid #52c41a;
 }
 
-.nsplus-tip a {
-    color: #409eff;
-    text-decoration: none;
-    transition: color .3s ease;
+.ns-toast-error {
+    border-left: 4px solid #ff4d4f;
 }
 
-.nsplus-tip a:hover {
-    color: #66b1ff;
-    text-decoration: underline;
+.ns-toast-info {
+    border-left: 4px solid #1890ff;
 } 
