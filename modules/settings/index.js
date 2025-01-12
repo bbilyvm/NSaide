@@ -46,10 +46,10 @@
                 panel.className = 'ns-settings-panel';
                 panel.innerHTML = `
                     <div class="ns-settings-header">
-                        <div class="ns-settings-title">NS助手设置</div>
-                        <div class="ns-settings-close">×</div>
+                        <h2>NS助手设置</h2>
+                        <span class="ns-settings-close">×</span>
                     </div>
-                    <div class="ns-settings-content ns-settings-scrollbar">
+                    <div class="ns-settings-content">
                         <div class="ns-settings-modules"></div>
                     </div>
                 `;
