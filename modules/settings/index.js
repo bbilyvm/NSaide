@@ -10,7 +10,7 @@
 
         config: {
             storage: {
-                PANEL_POSITION: 'settings.panelPosition'
+                PANEL_POSITION: 'ns_settings_position'
             }
         },
 
@@ -38,124 +38,161 @@
                         resolve(null);
                     }, timeout);
                 });
-            }
-        },
+            },
 
-        createSettingsPanel() {
-            const overlay = document.createElement('div');
-            overlay.className = 'ns-settings-overlay';
+            createSettingsPanel() {
+                const self = this;
+                const panel = document.createElement('div');
+                panel.className = 'ns-settings-panel';
+                panel.innerHTML = `
+                    <div class="ns-settings-header">
+                        <div class="ns-settings-title">NS助手设置</div>
+                        <div class="ns-settings-close">×</div>
+                    </div>
+                    <div class="ns-settings-content ns-settings-scrollbar">
+                        <div class="ns-settings-modules"></div>
+                    </div>
+                `;
 
-            const panel = document.createElement('div');
-            panel.className = 'ns-settings-panel';
+                const closeBtn = panel.querySelector('.ns-settings-close');
+                closeBtn.onclick = () => panel.remove();
 
-            const header = document.createElement('div');
-            header.className = 'ns-settings-header';
+                const header = panel.querySelector('.ns-settings-header');
+                let isDragging = false;
+                let currentX;
+                let currentY;
+                let initialX;
+                let initialY;
+                let xOffset = 0;
+                let yOffset = 0;
 
-            const title = document.createElement('div');
-            title.className = 'ns-settings-title';
-            title.textContent = 'NS助手设置';
-
-            const closeBtn = document.createElement('div');
-            closeBtn.className = 'ns-settings-close';
-            closeBtn.textContent = '×';
-            closeBtn.onclick = () => {
-                overlay.classList.remove('ns-settings-show');
-                panel.classList.remove('ns-settings-show');
-                setTimeout(() => overlay.remove(), 300);
-            };
-
-            header.appendChild(title);
-            header.appendChild(closeBtn);
-
-            const content = document.createElement('div');
-            content.className = 'ns-settings-content ns-settings-scrollbar';
-
-            panel.appendChild(header);
-            panel.appendChild(content);
-            overlay.appendChild(panel);
-            document.body.appendChild(overlay);
-
-            setTimeout(() => {
-                overlay.classList.add('ns-settings-show');
-                panel.classList.add('ns-settings-show');
-            }, 100);
-
-            this.renderModuleSettings(content);
-        },
-
-        renderModuleSettings(container) {
-            if (!window.NSModules) {
-                console.error('[NS助手] 未找到模块列表');
-                return;
-            }
-
-            Object.values(window.NSModules).forEach(module => {
-                if (module.id === this.id) return;
-
-                const moduleCard = document.createElement('div');
-                moduleCard.className = 'ns-settings-module';
-
-                const header = document.createElement('div');
-                header.className = 'ns-settings-module-header';
-
-                const info = document.createElement('div');
-                info.className = 'ns-settings-module-info';
-
-                const title = document.createElement('div');
-                title.className = 'ns-settings-module-title';
-                title.textContent = module.name;
-
-                const desc = document.createElement('div');
-                desc.className = 'ns-settings-module-desc';
-                desc.textContent = module.description;
-
-                info.appendChild(title);
-                info.appendChild(desc);
-
-                const toggle = document.createElement('div');
-                toggle.className = 'ns-settings-module-toggle';
-                if (module.enabled) {
-                    toggle.classList.add('ns-settings-enabled');
-                }
-
-                toggle.onclick = () => {
-                    const isEnabled = toggle.classList.contains('ns-settings-enabled');
-                    if (isEnabled) {
-                        toggle.classList.remove('ns-settings-enabled');
-                        window.NSDisableModule(module.id);
+                const dragStart = (e) => {
+                    if (e.type === "touchstart") {
+                        initialX = e.touches[0].clientX - xOffset;
+                        initialY = e.touches[0].clientY - yOffset;
                     } else {
-                        toggle.classList.add('ns-settings-enabled');
-                        window.NSEnableModule(module.id);
+                        initialX = e.clientX - xOffset;
+                        initialY = e.clientY - yOffset;
+                    }
+                    
+                    if (e.target === header) {
+                        isDragging = true;
                     }
                 };
 
-                header.appendChild(info);
-                header.appendChild(toggle);
+                const dragEnd = () => {
+                    initialX = currentX;
+                    initialY = currentY;
+                    isDragging = false;
+                    
+                    GM_setValue(NSSettings.config.storage.PANEL_POSITION, {
+                        x: xOffset,
+                        y: yOffset
+                    });
+                };
 
-                const moduleContent = document.createElement('div');
-                moduleContent.className = 'ns-settings-module-content';
+                const drag = (e) => {
+                    if (isDragging) {
+                        e.preventDefault();
+                        
+                        if (e.type === "touchmove") {
+                            currentX = e.touches[0].clientX - initialX;
+                            currentY = e.touches[0].clientY - initialY;
+                        } else {
+                            currentX = e.clientX - initialX;
+                            currentY = e.clientY - initialY;
+                        }
 
-                if (typeof module.renderSettings === 'function') {
-                    const settings = module.renderSettings();
-                    if (settings) {
-                        moduleContent.appendChild(settings);
-                        moduleContent.classList.add('ns-settings-show');
+                        xOffset = currentX;
+                        yOffset = currentY;
+                        panel.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
                     }
+                };
+
+                header.addEventListener("touchstart", dragStart, false);
+                header.addEventListener("touchend", dragEnd, false);
+                header.addEventListener("touchmove", drag, false);
+                header.addEventListener("mousedown", dragStart, false);
+                document.addEventListener("mouseup", dragEnd, false);
+                document.addEventListener("mousemove", drag, false);
+
+                const lastPosition = GM_getValue(NSSettings.config.storage.PANEL_POSITION, null);
+                if (lastPosition) {
+                    xOffset = lastPosition.x;
+                    yOffset = lastPosition.y;
+                    panel.style.transform = `translate3d(${xOffset}px, ${yOffset}px, 0)`;
                 }
 
-                moduleCard.appendChild(header);
-                if (moduleContent.hasChildNodes()) {
-                    moduleCard.appendChild(moduleContent);
-                }
+                return panel;
+            },
 
-                container.appendChild(moduleCard);
-            });
+            renderModuleSettings() {
+                const modulesContainer = document.querySelector('.ns-settings-modules');
+                if (!modulesContainer) return;
+
+                modulesContainer.innerHTML = '';
+                window.NS.modules.forEach((module) => {
+                    const moduleCard = document.createElement('div');
+                    moduleCard.className = 'ns-settings-module';
+                    
+                    const moduleHeader = document.createElement('div');
+                    moduleHeader.className = 'ns-settings-module-header';
+                    
+                    const moduleInfo = document.createElement('div');
+                    moduleInfo.className = 'ns-settings-module-info';
+                    
+                    const moduleTitle = document.createElement('div');
+                    moduleTitle.className = 'ns-settings-module-title';
+                    moduleTitle.textContent = module.name;
+                    
+                    const moduleDesc = document.createElement('div');
+                    moduleDesc.className = 'ns-settings-module-desc';
+                    moduleDesc.textContent = module.description;
+                    
+                    moduleInfo.appendChild(moduleTitle);
+                    moduleInfo.appendChild(moduleDesc);
+                    
+                    const moduleToggle = document.createElement('div');
+                    moduleToggle.className = 'ns-settings-module-toggle';
+                    if (module.enabled) {
+                        moduleToggle.classList.add('ns-settings-enabled');
+                    }
+                    
+                    moduleHeader.appendChild(moduleInfo);
+                    moduleHeader.appendChild(moduleToggle);
+                    
+                    moduleCard.appendChild(moduleHeader);
+                    
+                    if (module.renderSettings) {
+                        const moduleContent = document.createElement('div');
+                        moduleContent.className = 'ns-settings-module-content';
+                        module.renderSettings(moduleContent);
+                        if (moduleContent.hasChildNodes()) {
+                            moduleContent.classList.add('ns-settings-show');
+                            moduleCard.appendChild(moduleContent);
+                        }
+                    }
+                    
+                    moduleToggle.addEventListener('click', () => {
+                        const isEnabled = moduleToggle.classList.contains('ns-settings-enabled');
+                        if (isEnabled) {
+                            moduleToggle.classList.remove('ns-settings-enabled');
+                            GM_setValue(`module_${module.id}_enabled`, false);
+                        } else {
+                            moduleToggle.classList.add('ns-settings-enabled');
+                            GM_setValue(`module_${module.id}_enabled`, true);
+                        }
+                        location.reload();
+                    });
+                    
+                    modulesContainer.appendChild(moduleCard);
+                });
+            }
         },
 
         init() {
-            console.log('[NS助手] 初始化设置面板');
-
-            console.log('[NS助手] 开始加载设置面板样式');
+            console.log('[NS助手] 初始化设置面板模块');
+            
             GM_xmlhttpRequest({
                 method: 'GET',
                 url: 'https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/settings/style.css',
@@ -172,11 +209,16 @@
                 }
             });
 
-            GM_registerMenuCommand('NS助手设置', () => {
-                this.createSettingsPanel();
+            const boundCreateSettingsPanel = this.utils.createSettingsPanel.bind(this.utils);
+            const boundRenderModuleSettings = this.utils.renderModuleSettings.bind(this.utils);
+
+            GM_registerMenuCommand('⚙️ 打开设置面板', () => {
+                const panel = boundCreateSettingsPanel();
+                document.body.appendChild(panel);
+                boundRenderModuleSettings();
             });
 
-            console.log('[NS助手] 设置面板初始化完成');
+            console.log('[NS助手] 设置面板模块初始化完成');
         }
     };
 
