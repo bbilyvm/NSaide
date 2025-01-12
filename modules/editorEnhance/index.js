@@ -6,122 +6,35 @@
     const NSEditorEnhance = {
         id: 'editorEnhance',
         name: '编辑器增强',
-        description: '为编辑器添加快捷键等增强功能',
+        description: '为编辑器添加快捷键和格式化功能',
 
         config: {
-            shortcuts: {
-                submit: {
-                    windows: 'Ctrl-Enter',
-                    mac: 'Cmd-Enter'
-                },
-                format: {
-                    bold: {
-                        windows: 'Ctrl-B',
-                        mac: 'Cmd-B',
-                        format: '**{text}**',
-                        description: '粗体'
-                    },
-                    italic: {
-                        windows: 'Ctrl-I',
-                        mac: 'Cmd-I',
-                        format: '*{text}*',
-                        description: '斜体'
-                    },
-                    code: {
-                        windows: 'Ctrl-K',
-                        mac: 'Cmd-K',
-                        format: '`{text}`',
-                        description: '行内代码'
-                    },
-                    codeBlock: {
-                        windows: 'Shift-Ctrl-K',
-                        mac: 'Shift-Cmd-K',
-                        format: '```\n{text}\n```',
-                        description: '代码块'
-                    },
-                    codeBlockWithLang: {
-                        windows: 'Alt-Ctrl-K',
-                        mac: 'Alt-Cmd-K',
-                        format: '```javascript\n{text}\n```',
-                        description: 'JS代码块'
-                    },
-                    link: {
-                        windows: 'Ctrl-L',
-                        mac: 'Cmd-L',
-                        format: '[{text}]()',
-                        description: '链接'
-                    },
-                    image: {
-                        windows: 'Shift-Ctrl-I',
-                        mac: 'Shift-Cmd-I',
-                        format: '![{text}]()',
-                        description: '图片'
-                    },
-                    quote: {
-                        windows: 'Ctrl-Q',
-                        mac: 'Cmd-Q',
-                        format: '> {text}',
-                        description: '引用'
-                    },
-                    multiQuote: {
-                        windows: 'Shift-Ctrl-Q',
-                        mac: 'Shift-Cmd-Q',
-                        format: '>> {text}',
-                        description: '多级引用'
-                    },
-                    strikethrough: {
-                        windows: 'Alt-S',
-                        mac: 'Alt-S',
-                        format: '~~{text}~~',
-                        description: '删除线'
-                    },
-                    list: {
-                        windows: 'Ctrl-U',
-                        mac: 'Cmd-U',
-                        format: '- {text}',
-                        description: '无序列表'
-                    },
-                    orderedList: {
-                        windows: 'Shift-Ctrl-O',
-                        mac: 'Shift-Cmd-O',
-                        format: '1. {text}',
-                        description: '有序列表'
-                    },
-                    heading1: {
-                        windows: 'Shift-Ctrl-1',
-                        mac: 'Shift-Cmd-1',
-                        format: '# {text}',
-                        description: '一级标题'
-                    },
-                    heading2: {
-                        windows: 'Shift-Ctrl-2',
-                        mac: 'Shift-Cmd-2',
-                        format: '## {text}',
-                        description: '二级标题'
-                    },
-                    heading3: {
-                        windows: 'Shift-Ctrl-3',
-                        mac: 'Shift-Cmd-3',
-                        format: '### {text}',
-                        description: '三级标题'
-                    },
-                    heading4: {
-                        windows: 'Shift-Ctrl-4',
-                        mac: 'Shift-Cmd-4',
-                        format: '#### {text}',
-                        description: '四级标题'
-                    },
-                    table: {
-                        windows: 'Shift-Ctrl-T',
-                        mac: 'Shift-Cmd-T',
-                        format: '| 表头 | 表头 |\n| --- | --- |\n| 内容 | 内容 |',
-                        description: '表格'
-                    }
-                }
+            storage: {
+                SHORTCUTS_ENABLED: 'editorEnhance.shortcutsEnabled'
             }
         },
 
         utils: {
+            isMac() {
+                return /macintosh|mac os x/i.test(navigator.userAgent);
+            },
+
+            showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `ns-editor-toast ns-editor-${type}`;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.classList.add('ns-editor-show');
+                }, 100);
+
+                setTimeout(() => {
+                    toast.classList.remove('ns-editor-show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            },
+
             async waitForElement(selector, parent = document, timeout = 10000) {
                 const element = parent.querySelector(selector);
                 if (element) return element;
@@ -145,182 +58,231 @@
                         resolve(null);
                     }, timeout);
                 });
-            },
+            }
+        },
 
-            isMac() {
-                return /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-            },
-
-            showToast(message, type = 'info') {
-                const toast = document.createElement('div');
-                toast.className = `ns-toast ns-toast-${type}`;
-                toast.textContent = message;
-                document.body.appendChild(toast);
-                
-                setTimeout(() => {
-                    toast.classList.add('ns-toast-fade-out');
-                    setTimeout(() => toast.remove(), 300);
-                }, 3000);
-            },
-
-            createShortcutGuide() {
-                const isMac = this.isMac();
-                const modal = document.createElement('div');
-                modal.className = 'ns-modal';
-                
-                const content = document.createElement('div');
-                content.className = 'ns-modal-content';
-                
-                const title = document.createElement('div');
-                title.className = 'ns-modal-title';
-                title.textContent = 'Markdown快捷键';
-                
-                const closeBtn = document.createElement('div');
-                closeBtn.className = 'ns-modal-close';
-                closeBtn.textContent = '×';
-                closeBtn.onclick = () => modal.remove();
-                
-                const shortcuts = document.createElement('div');
-                shortcuts.className = 'ns-shortcuts-list';
-                
-                Object.entries(NSEditorEnhance.config.shortcuts.format).forEach(([key, config]) => {
-                    const shortcut = document.createElement('div');
-                    shortcut.className = 'ns-shortcut-item';
-                    shortcut.innerHTML = `
-                        <span class="ns-shortcut-desc">${config.description}</span>
-                        <span class="ns-shortcut-key">${isMac ? config.mac.replace('Cmd', '⌘').replace('Shift', '⇧').replace('Alt', '⌥').replace('-', ' + ') : config.windows.replace('-', ' + ')}</span>
-                    `;
-                    shortcuts.appendChild(shortcut);
-                });
-
-                content.appendChild(title);
-                content.appendChild(closeBtn);
-                content.appendChild(shortcuts);
-                modal.appendChild(content);
-                
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        modal.remove();
+        shortcuts: {
+            'Ctrl+B': {
+                description: '加粗',
+                handler: (editor) => {
+                    const selection = editor.getSelection();
+                    const content = selection || '粗体文本';
+                    editor.replaceSelection(`**${content}**`);
+                    if (!selection) {
+                        const cursor = editor.getCursor();
+                        editor.setCursor(cursor.line, cursor.ch - 2);
                     }
-                });
-                
-                return modal;
-            }
-        },
-
-        renderSettings(container) {
-            const settingsHtml = `
-                <div class="ns-editor-settings">
-                    <div class="ns-editor-shortcuts">
-                        <button class="ns-view-shortcuts">查看快捷键列表</button>
-                    </div>
-                </div>
-            `;
-            
-            container.innerHTML = settingsHtml;
-            
-            const viewShortcutsBtn = container.querySelector('.ns-view-shortcuts');
-            viewShortcutsBtn.addEventListener('click', () => {
-                const modal = this.utils.createShortcutGuide();
-                document.body.appendChild(modal);
-            });
-        },
-
-        async init() {
-            console.log('[NS助手] 初始化编辑器增强模块');
-            
-            try {
-                console.log('[NS助手] 开始加载编辑器增强样式');
-                GM_xmlhttpRequest({
-                    method: 'GET',
-                    url: 'https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/editorEnhance/style.css',
-                    onload: (response) => {
-                        if (response.status === 200) {
-                            console.log('[NS助手] 编辑器增强样式加载成功');
-                            GM_addStyle(response.responseText);
-                        } else {
-                            console.error('[NS助手] 加载编辑器增强样式失败:', response.status);
-                        }
-                    },
-                    onerror: (error) => {
-                        console.error('[NS助手] 加载编辑器增强样式出错:', error);
+                }
+            },
+            'Ctrl+I': {
+                description: '斜体',
+                handler: (editor) => {
+                    const selection = editor.getSelection();
+                    const content = selection || '斜体文本';
+                    editor.replaceSelection(`*${content}*`);
+                    if (!selection) {
+                        const cursor = editor.getCursor();
+                        editor.setCursor(cursor.line, cursor.ch - 1);
                     }
-                });
-
-                const editorSetupResult = await this.setupEditor();
-                if (editorSetupResult) {
-                    console.log('[NS助手] 编辑器增强模块初始化完成');
-                    this.utils.showToast('编辑器增强已启用', 'success');
-                } else {
-                    console.log('[NS助手] 当前页面无编辑器，跳过增强');
                 }
-            } catch (error) {
-                console.error('[NS助手] 编辑器增强模块初始化失败:', error);
+            },
+            'Ctrl+K': {
+                description: '链接',
+                handler: (editor) => {
+                    const selection = editor.getSelection();
+                    const content = selection || '链接文本';
+                    editor.replaceSelection(`[${content}](url)`);
+                    if (!selection) {
+                        const cursor = editor.getCursor();
+                        editor.setCursor(cursor.line, cursor.ch - 4);
+                    }
+                }
+            },
+            'Ctrl+`': {
+                description: '代码',
+                handler: (editor) => {
+                    const selection = editor.getSelection();
+                    const content = selection || '代码';
+                    editor.replaceSelection(`\`${content}\``);
+                    if (!selection) {
+                        const cursor = editor.getCursor();
+                        editor.setCursor(cursor.line, cursor.ch - 1);
+                    }
+                }
+            },
+            'Ctrl+L': {
+                description: '无序列表',
+                handler: (editor) => {
+                    const cursor = editor.getCursor();
+                    const line = editor.getLine(cursor.line);
+                    editor.replaceRange('- ', {line: cursor.line, ch: 0});
+                }
+            },
+            'Ctrl+Alt+L': {
+                description: '有序列表',
+                handler: (editor) => {
+                    const cursor = editor.getCursor();
+                    const line = editor.getLine(cursor.line);
+                    editor.replaceRange('1. ', {line: cursor.line, ch: 0});
+                }
+            },
+            'Ctrl+Q': {
+                description: '引用',
+                handler: (editor) => {
+                    const cursor = editor.getCursor();
+                    const line = editor.getLine(cursor.line);
+                    editor.replaceRange('> ', {line: cursor.line, ch: 0});
+                }
+            },
+            'Ctrl+Alt+C': {
+                description: '代码块',
+                handler: (editor) => {
+                    const selection = editor.getSelection();
+                    const content = selection || '代码块';
+                    editor.replaceSelection(`\`\`\`\n${content}\n\`\`\``);
+                    if (!selection) {
+                        const cursor = editor.getCursor();
+                        editor.setCursor(cursor.line - 1, cursor.ch);
+                    }
+                }
+            },
+            'Ctrl+H': {
+                description: '标题',
+                handler: (editor) => {
+                    const cursor = editor.getCursor();
+                    const line = editor.getLine(cursor.line);
+                    editor.replaceRange('# ', {line: cursor.line, ch: 0});
+                }
             }
         },
 
-        async setupEditor() {
-            console.log('[NS助手] 等待编辑器加载...');
-            
-            const codeMirrorElement = await this.utils.waitForElement('.CodeMirror');
-            if (!codeMirrorElement) {
-                console.log('[NS助手] 未找到编辑器，跳过增强');
-                return false;
-            }
+        renderSettings() {
+            const settingsDiv = document.createElement('div');
+            settingsDiv.className = 'ns-editor-settings';
 
-            const btnSubmit = await this.utils.waitForElement('.topic-select button.submit.btn.focus-visible');
-            if (!btnSubmit) {
-                console.log('[NS助手] 未找到提交按钮，跳过增强');
-                return false;
-            }
+            const shortcutsDiv = document.createElement('div');
+            shortcutsDiv.className = 'ns-editor-shortcuts';
 
-            const codeMirrorInstance = codeMirrorElement.CodeMirror;
-            if (!codeMirrorInstance) {
-                console.log('[NS助手] 未找到CodeMirror实例，跳过增强');
-                return false;
-            }
+            const viewShortcutsBtn = document.createElement('button');
+            viewShortcutsBtn.className = 'ns-editor-shortcut-btn';
+            viewShortcutsBtn.textContent = '查看快捷键列表';
+            viewShortcutsBtn.onclick = () => this.showShortcutsList();
 
-            const isMac = this.utils.isMac();
-            const submitKey = isMac ? this.config.shortcuts.submit.mac : this.config.shortcuts.submit.windows;
-            const submitText = isMac ? '⌘+Enter' : 'Ctrl+Enter';
+            shortcutsDiv.appendChild(viewShortcutsBtn);
+            settingsDiv.appendChild(shortcutsDiv);
 
-            const topicSelect = btnSubmit.parentElement;
-            const shortcutBtn = document.createElement('button');
-            shortcutBtn.className = 'ns-shortcut-btn';
-            shortcutBtn.textContent = 'MD快捷键';
-            shortcutBtn.onclick = () => {
-                const modal = this.utils.createShortcutGuide();
-                document.body.appendChild(modal);
-            };
-            topicSelect.insertBefore(shortcutBtn, topicSelect.firstChild);
+            return settingsDiv;
+        },
 
-            if (!btnSubmit.textContent.includes(submitText)) {
-                btnSubmit.innerText = `发布评论 (${submitText})`;
-            }
+        showShortcutsList() {
+            const overlay = document.createElement('div');
+            overlay.className = 'ns-editor-shortcut-overlay';
 
-            const keyMap = {
-                [submitKey]: (cm) => {
-                    btnSubmit.click();
-                }
+            const modal = document.createElement('div');
+            modal.className = 'ns-editor-shortcut-list';
+
+            const header = document.createElement('div');
+            header.className = 'ns-editor-shortcut-header';
+
+            const title = document.createElement('div');
+            title.className = 'ns-editor-shortcut-title';
+            title.textContent = '编辑器快捷键列表';
+
+            const closeBtn = document.createElement('div');
+            closeBtn.className = 'ns-editor-shortcut-close';
+            closeBtn.textContent = '×';
+            closeBtn.onclick = () => {
+                overlay.classList.remove('ns-editor-show');
+                modal.classList.remove('ns-editor-show');
+                setTimeout(() => overlay.remove(), 300);
             };
 
-            Object.entries(this.config.shortcuts.format).forEach(([key, config]) => {
-                const shortcutKey = isMac ? config.mac : config.windows;
-                keyMap[shortcutKey] = (cm) => {
-                    const selectedText = cm.getSelection() || '';
-                    const cursor = cm.getCursor();
-                    const formatted = config.format.replace('{text}', selectedText);
-                    cm.replaceSelection(formatted);
-                    
-                    if (!selectedText) {
-                        const cursorPos = cursor.ch + formatted.indexOf('{text}');
-                        cm.setCursor({ line: cursor.line, ch: cursorPos });
-                    }
-                };
+            header.appendChild(title);
+            header.appendChild(closeBtn);
+
+            const content = document.createElement('div');
+            content.className = 'ns-editor-shortcut-content';
+
+            const grid = document.createElement('div');
+            grid.className = 'ns-editor-shortcut-grid';
+
+            Object.entries(this.shortcuts).forEach(([key, { description }]) => {
+                const item = document.createElement('div');
+                item.className = 'ns-editor-shortcut-item';
+
+                const desc = document.createElement('div');
+                desc.className = 'ns-editor-shortcut-desc';
+                desc.textContent = description;
+
+                const keySpan = document.createElement('div');
+                keySpan.className = 'ns-editor-shortcut-key';
+                keySpan.textContent = this.utils.isMac() ? key.replace('Ctrl', '⌘') : key;
+
+                item.appendChild(desc);
+                item.appendChild(keySpan);
+                grid.appendChild(item);
             });
 
-            codeMirrorInstance.setOption('extraKeys', keyMap);
-            return true;
+            content.appendChild(grid);
+            modal.appendChild(header);
+            modal.appendChild(content);
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+
+            setTimeout(() => {
+                overlay.classList.add('ns-editor-show');
+                modal.classList.add('ns-editor-show');
+            }, 100);
+        },
+
+        init() {
+            console.log('[NS助手] 初始化编辑器增强功能');
+
+            console.log('[NS助手] 开始加载编辑器样式');
+            GM_xmlhttpRequest({
+                method: 'GET',
+                url: 'https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/editorEnhance/style.css',
+                onload: (response) => {
+                    if (response.status === 200) {
+                        console.log('[NS助手] 编辑器样式加载成功');
+                        GM_addStyle(response.responseText);
+                    } else {
+                        console.error('[NS助手] 加载编辑器样式失败:', response.status);
+                    }
+                },
+                onerror: (error) => {
+                    console.error('[NS助手] 加载编辑器样式出错:', error);
+                }
+            });
+
+            document.addEventListener('click', async (e) => {
+                if (e.target.matches('textarea[name="content"]')) {
+                    console.log('[NS助手] 检测到编辑器点击');
+                    const editor = await this.utils.waitForElement('.CodeMirror');
+                    if (!editor) {
+                        console.log('[NS助手] 未找到编辑器实例');
+                        return;
+                    }
+
+                    const cm = editor.CodeMirror;
+                    if (!cm) {
+                        console.log('[NS助手] 未找到 CodeMirror 实例');
+                        return;
+                    }
+
+                    Object.entries(this.shortcuts).forEach(([key, { handler }]) => {
+                        const keys = this.utils.isMac() ? key.replace('Ctrl', 'Cmd') : key;
+                        cm.setOption('extraKeys', {
+                            ...cm.getOption('extraKeys'),
+                            [keys]: handler.bind(this, cm)
+                        });
+                    });
+
+                    console.log('[NS助手] 快捷键注册完成');
+                }
+            });
+
+            console.log('[NS助手] 编辑器增强模块初始化完成');
         }
     };
 
