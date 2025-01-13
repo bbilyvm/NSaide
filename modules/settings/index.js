@@ -1,6 +1,8 @@
 (function() {
     'use strict';
     
+    console.log('[NS助手] settings 模块开始加载');
+
     const NSSettings = {
         id: 'settings',
         name: '设置面板',
@@ -15,10 +17,10 @@
         components: {
             createSwitch(id, checked, onChange) {
                 const switchLabel = document.createElement('label');
-                switchLabel.className = 'ns-switch';
+                switchLabel.className = 'ns-settings-switch';
                 switchLabel.innerHTML = `
                     <input type="checkbox" ${checked ? 'checked' : ''}>
-                    <span class="ns-slider"></span>
+                    <span class="ns-settings-switch-slider"></span>
                 `;
                 
                 const input = switchLabel.querySelector('input');
@@ -29,7 +31,7 @@
 
             createSelect(id, options, value, onChange) {
                 const select = document.createElement('select');
-                select.className = 'ns-select';
+                select.className = 'ns-settings-select';
                 
                 options.forEach(option => {
                     const optElement = document.createElement('option');
@@ -45,7 +47,7 @@
 
             createInput(id, value, onChange, type = 'text') {
                 const input = document.createElement('input');
-                input.className = 'ns-input';
+                input.className = 'ns-settings-input';
                 input.type = type;
                 input.value = value;
                 
@@ -55,7 +57,7 @@
 
             createButton(id, label, onClick) {
                 const button = document.createElement('button');
-                button.className = 'ns-button';
+                button.className = 'ns-settings-button';
                 button.textContent = label;
                 button.addEventListener('click', onClick);
                 return button;
@@ -63,10 +65,10 @@
 
             createSettingItem(label, component) {
                 const container = document.createElement('div');
-                container.className = 'ns-setting-item';
+                container.className = 'ns-settings-item';
                 
                 const labelElement = document.createElement('span');
-                labelElement.className = 'ns-setting-label';
+                labelElement.className = 'ns-settings-item-label';
                 labelElement.textContent = label;
                 
                 container.appendChild(labelElement);
@@ -107,15 +109,15 @@
                 panel.className = 'ns-settings-panel';
                 panel.innerHTML = `
                     <div class="ns-settings-header">
-                        <h2>NS助手设置</h2>
-                        <span class="ns-settings-close">×</span>
+                        <h2 class="ns-settings-header-title">NS助手设置</h2>
+                        <span class="ns-settings-header-close">×</span>
                     </div>
                     <div class="ns-settings-content">
-                        <div class="ns-settings-modules"></div>
+                        <div class="ns-settings-content-modules"></div>
                     </div>
                 `;
 
-                const closeBtn = panel.querySelector('.ns-settings-close');
+                const closeBtn = panel.querySelector('.ns-settings-header-close');
                 closeBtn.onclick = () => panel.remove();
 
                 const header = panel.querySelector('.ns-settings-header');
@@ -188,7 +190,7 @@
             },
 
             renderModuleSettings() {
-                const modulesContainer = document.querySelector('.ns-settings-modules');
+                const modulesContainer = document.querySelector('.ns-settings-content-modules');
                 if (!modulesContainer) return;
 
                 modulesContainer.innerHTML = '';
@@ -228,7 +230,7 @@
                         
                         module.settings.forEach(setting => {
                             let component;
-                            const value = GM_getValue(`${module.id}_${setting.id}`, setting.default);
+                            const value = setting.value ? setting.value() : GM_getValue(`${module.id}_${setting.id}`, setting.default);
                             
                             switch (setting.type) {
                                 case 'switch':
