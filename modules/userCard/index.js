@@ -52,6 +52,32 @@
                 });
             },
 
+            async getUserInfo(userId) {
+                try {
+                    const response = await fetch(`https://www.nodeseek.com/api/account/getInfo/${userId}`, {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    if (!data.success) {
+                        throw new Error('Failed to get user info');
+                    }
+                    
+                    return data.detail;
+                } catch (error) {
+                    console.error('[NS助手] 获取用户信息失败:', error);
+                    return null;
+                }
+            },
+
             calculateNextLevelInfo(currentLevel, currentChickenLegs) {
                 if (currentLevel >= 6) {
                     return {
@@ -146,6 +172,11 @@
                 if (score >= 80) return 'high';
                 if (score >= 50) return 'medium';
                 return 'low';
+            },
+
+            extractJoinDays(createdAtStr) {
+                const match = createdAtStr.match(/(\d+)days/);
+                return match ? parseInt(match[1]) : 0;
             }
         },
 
@@ -174,11 +205,12 @@
             });
 
             console.log('[NS助手] 注册头像点击监听器');
-            document.addEventListener('click', (e) => {
+            document.addEventListener('click', async (e) => {
                 const avatarLink = e.target.closest('a[href^="/space/"]');
                 if (avatarLink && avatarLink.querySelector('img.avatar-normal')) {
                     console.log('[NS助手] 检测到头像点击');
-                    this.waitAndEnhance();
+                    const userId = avatarLink.getAttribute('href').split('/').pop();
+                    this.waitAndEnhance(userId);
                 }
             });
 
@@ -241,7 +273,7 @@
             };
         },
 
-        async waitAndEnhance() {
+        async waitAndEnhance(userId) {
             try {
                 console.log('[NS助手] 等待卡片出现...');
 
@@ -261,16 +293,15 @@
                     return;
                 }
 
-                console.log('[NS助手] 找到卡片，等待内容加载...');
-
-                const statBlock = await this.utils.waitForElement('.stat-block', card, 3000);
-                if (!statBlock) {
-                    console.log('[NS助手] 卡片内容加载超时');
+                console.log('[NS助手] 找到卡片，获取用户数据...');
+                const userInfo = await this.utils.getUserInfo(userId);
+                if (!userInfo) {
+                    console.log('[NS助手] 获取用户数据失败');
                     return;
                 }
 
-                console.log('[NS助手] 卡片内容加载完成，开始增强');
-                this.enhance(card);
+                console.log('[NS助手] 用户数据获取完成，开始增强');
+                this.enhance(card, userInfo);
               
                 if (GM_getValue('ns_usercard_enable_dragging', true)) {
                     this.enableDragging(card);
@@ -281,7 +312,7 @@
             }
         },
 
-        enhance(cardElement) {
+        enhance(cardElement, userInfo) {
             if (cardElement.classList.contains('enhanced')) {
                 console.log('[NS助手] 卡片已增强，跳过');
                 return;
@@ -293,36 +324,12 @@
 
             try {
                 const userData = {
-                    level: 0,
-                    chickenLegs: 0,
-                    posts: 0,
-                    comments: 0,
-                    joinDays: 0
+                    level: userInfo.rank,
+                    chickenLegs: userInfo.coin,
+                    posts: userInfo.nPost,
+                    comments: userInfo.nComment,
+                    joinDays: this.utils.extractJoinDays(userInfo.created_at_str)
                 };
-
-                const joinedText = cardElement.querySelector('div[style*="color: rgb(136, 136, 136)"]')?.textContent || '';
-                const daysMatch = joinedText.match(/(\d+)days/);
-                if (daysMatch) {
-                    userData.joinDays = parseInt(daysMatch[1]);
-                }
-
-                const spans = cardElement.querySelectorAll('span[data-v-0f04b1f4]');
-                spans.forEach(span => {
-                    const text = span.textContent.trim();
-                    if (text.includes('等级')) {
-                        const match = text.match(/Lv (\d+)/);
-                        if (match) userData.level = parseInt(match[1]);
-                    } else if (text.includes('鸡腿')) {
-                        const match = text.match(/鸡腿 (\d+)/);
-                        if (match) userData.chickenLegs = parseInt(match[1]);
-                    } else if (text.includes('主题帖')) {
-                        const match = text.match(/主题帖 (\d+)/);
-                        if (match) userData.posts = parseInt(match[1]);
-                    } else if (text.includes('评论数')) {
-                        const match = text.match(/评论数 (\d+)/);
-                        if (match) userData.comments = parseInt(match[1]);
-                    }
-                });
 
                 console.log('[NS助手] 提取的用户数据:', userData);
 
