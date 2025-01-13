@@ -30,6 +30,7 @@
                 type: 'select',
                 label: '签到模式',
                 default: 0,
+                value: () => GM_getValue('ns_signin_status', 0),
                 options: [
                     { value: 0, label: '禁用自动签到' },
                     { value: 1, label: '随机签到模式' },
@@ -115,12 +116,12 @@
 
             showToast(message, type = 'info') {
                 const toast = document.createElement('div');
-                toast.className = `ns-toast ns-toast-${type}`;
+                toast.className = `ns-signin-toast ns-signin-toast-${type}`;
                 toast.textContent = message;
                 document.body.appendChild(toast);
                 
                 setTimeout(() => {
-                    toast.classList.add('ns-toast-fade-out');
+                    toast.classList.add('ns-signin-toast-fade-out');
                     setTimeout(() => toast.remove(), 300);
                 }, 3000);
             }
@@ -165,15 +166,6 @@
             } else {
                 console.log('[NS助手] 今日已签到，跳过');
             }
-        },
-
-        async retrySignIn() {
-            const status = GM_getValue(this.config.storage.STATUS, this.config.modes.DISABLED);
-            if (status === this.config.modes.DISABLED) return;
-
-            console.log('[NS助手] 执行重新签到');
-            GM_setValue(this.config.storage.LAST_DATE, '');
-            await this.executeAutoSignIn();
         },
 
         async performSignIn(isRandom) {

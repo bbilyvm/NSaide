@@ -23,20 +23,20 @@
     user-select: none;
 }
 
-.ns-settings-header h2 {
+.ns-settings-header-title {
     margin: 0;
     font-size: 18px;
     color: #1890ff;
 }
 
-.ns-settings-close {
+.ns-settings-header-close {
     font-size: 24px;
     color: #999;
     cursor: pointer;
     transition: color 0.3s;
 }
 
-.ns-settings-close:hover {
+.ns-settings-header-close:hover {
     color: #666;
 }
 
@@ -46,47 +46,52 @@
     max-height: calc(80vh - 60px);
 }
 
-.ns-module-card {
+.ns-settings-content-modules {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.ns-settings-module {
     background: #fafafa;
     border-radius: 6px;
     padding: 16px;
-    margin-bottom: 16px;
     border: 1px solid #f0f0f0;
     transition: all 0.3s;
 }
 
-.ns-module-card:hover {
+.ns-settings-module:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
     border-color: #e6f7ff;
 }
 
-.ns-module-header {
+.ns-settings-module-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 8px;
 }
 
-.ns-module-header h3 {
+.ns-settings-module-title {
     margin: 0;
     font-size: 16px;
     color: #333;
 }
 
-.ns-module-desc {
+.ns-settings-module-desc {
     margin: 0;
     font-size: 14px;
     color: #666;
     line-height: 1.5;
 }
 
-.ns-module-settings {
+.ns-settings-module-content {
     margin-top: 16px;
     padding-top: 16px;
     border-top: 1px dashed #e8e8e8;
 }
 
-.ns-setting-item {
+.ns-settings-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -94,27 +99,27 @@
     padding: 8px 0;
 }
 
-.ns-setting-label {
+.ns-settings-item-label {
     flex: 1;
     font-size: 14px;
     color: #333;
     margin-right: 16px;
 }
 
-.ns-switch {
+.ns-settings-switch {
     position: relative;
     display: inline-block;
     width: 44px;
     height: 22px;
 }
 
-.ns-switch input {
+.ns-settings-switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-.ns-slider {
+.ns-settings-switch-slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -126,7 +131,7 @@
     border-radius: 22px;
 }
 
-.ns-slider:before {
+.ns-settings-switch-slider:before {
     position: absolute;
     content: "";
     height: 18px;
@@ -138,19 +143,19 @@
     border-radius: 50%;
 }
 
-input:checked + .ns-slider {
+.ns-settings-switch input:checked + .ns-settings-switch-slider {
     background-color: #1890ff;
 }
 
-input:focus + .ns-slider {
+.ns-settings-switch input:focus + .ns-settings-switch-slider {
     box-shadow: 0 0 1px #1890ff;
 }
 
-input:checked + .ns-slider:before {
+.ns-settings-switch input:checked + .ns-settings-switch-slider:before {
     transform: translateX(22px);
 }
 
-.ns-select {
+.ns-settings-select {
     min-width: 120px;
     height: 32px;
     padding: 4px 8px;
@@ -162,17 +167,17 @@ input:checked + .ns-slider:before {
     transition: all 0.3s;
 }
 
-.ns-select:hover {
+.ns-settings-select:hover {
     border-color: #40a9ff;
 }
 
-.ns-select:focus {
+.ns-settings-select:focus {
     outline: none;
     border-color: #1890ff;
     box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
 }
 
-.ns-input {
+.ns-settings-input {
     width: 200px;
     height: 32px;
     padding: 4px 8px;
@@ -184,17 +189,17 @@ input:checked + .ns-slider:before {
     transition: all 0.3s;
 }
 
-.ns-input:hover {
+.ns-settings-input:hover {
     border-color: #40a9ff;
 }
 
-.ns-input:focus {
+.ns-settings-input:focus {
     outline: none;
     border-color: #1890ff;
     box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
 }
 
-.ns-button {
+.ns-settings-button {
     min-width: 80px;
     height: 32px;
     padding: 4px 16px;
@@ -207,12 +212,12 @@ input:checked + .ns-slider:before {
     transition: all 0.3s;
 }
 
-.ns-button:hover {
+.ns-settings-button:hover {
     background-color: #40a9ff;
     border-color: #40a9ff;
 }
 
-.ns-button:active {
+.ns-settings-button:active {
     background-color: #096dd9;
     border-color: #096dd9;
 }

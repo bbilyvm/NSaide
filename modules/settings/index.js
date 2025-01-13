@@ -194,12 +194,13 @@
                 modulesContainer.innerHTML = '';
                 window.NS.modules.forEach((module) => {
                     const moduleCard = document.createElement('div');
-                    moduleCard.className = 'ns-module-card';
+                    moduleCard.className = 'ns-settings-module';
                     
                     const moduleHeader = document.createElement('div');
-                    moduleHeader.className = 'ns-module-header';
+                    moduleHeader.className = 'ns-settings-module-header';
                     
                     const moduleTitle = document.createElement('h3');
+                    moduleTitle.className = 'ns-settings-module-title';
                     moduleTitle.textContent = module.name;
                     
                     const moduleSwitch = NSSettings.components.createSwitch(
@@ -215,7 +216,7 @@
                     moduleHeader.appendChild(moduleSwitch);
                     
                     const moduleDesc = document.createElement('p');
-                    moduleDesc.className = 'ns-module-desc';
+                    moduleDesc.className = 'ns-settings-module-desc';
                     moduleDesc.textContent = module.description;
                     
                     moduleCard.appendChild(moduleHeader);
@@ -223,7 +224,7 @@
                     
                     if (module.settings) {
                         const moduleSettings = document.createElement('div');
-                        moduleSettings.className = 'ns-module-settings';
+                        moduleSettings.className = 'ns-settings-module-content';
                         
                         module.settings.forEach(setting => {
                             let component;
