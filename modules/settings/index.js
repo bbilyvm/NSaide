@@ -14,6 +14,9 @@
             }
         },
 
+        settingsCache: new Map(),
+        needsSave: false,
+
         components: {
             createSwitch(id, checked, onChange) {
                 const switchLabel = document.createElement('label');
@@ -75,7 +78,40 @@
                 container.appendChild(component);
                 
                 return container;
+            },
+
+            createSaveBar() {
+                const saveBar = document.createElement('div');
+                saveBar.className = 'ns-settings-save-bar';
+                
+                const saveButton = document.createElement('button');
+                saveButton.className = 'ns-settings-save-button';
+                saveButton.textContent = '保存设置';
+                saveButton.addEventListener('click', () => {
+                    NSSettings.saveAllSettings();
+                });
+                
+                saveBar.appendChild(saveButton);
+                return saveBar;
             }
+        },
+
+        saveAllSettings() {
+            console.log('[NS助手] 开始保存设置');
+            this.settingsCache.forEach((value, key) => {
+                console.log(`[NS助手] 保存设置: ${key} = ${value}`);
+                GM_setValue(key, value);
+            });
+            
+            this.settingsCache.clear();
+            this.needsSave = false;
+            
+            const saveBar = document.querySelector('.ns-settings-save-bar');
+            if (saveBar) {
+                saveBar.classList.remove('ns-settings-save-bar-active');
+            }
+            
+            location.reload();
         },
 
         utils: {
@@ -186,6 +222,9 @@
                     panel.style.transform = `translate3d(${xOffset}px, ${yOffset}px, 0)`;
                 }
 
+                const saveBar = NSSettings.components.createSaveBar();
+                panel.appendChild(saveBar);
+
                 return panel;
             },
 
@@ -209,8 +248,9 @@
                         `module_${module.id}_enabled`,
                         module.enabled,
                         (checked) => {
-                            GM_setValue(`module_${module.id}_enabled`, checked);
-                            location.reload();
+                            NSSettings.settingsCache.set(`module_${module.id}_enabled`, checked);
+                            NSSettings.needsSave = true;
+                            document.querySelector('.ns-settings-save-bar').classList.add('ns-settings-save-bar-active');
                         }
                     );
                     
@@ -238,7 +278,9 @@
                                         `${module.id}_${setting.id}`,
                                         value,
                                         (checked) => {
-                                            GM_setValue(`${module.id}_${setting.id}`, checked);
+                                            NSSettings.settingsCache.set(`${module.id}_${setting.id}`, checked);
+                                            NSSettings.needsSave = true;
+                                            document.querySelector('.ns-settings-save-bar').classList.add('ns-settings-save-bar-active');
                                             if (setting.onChange) setting.onChange(checked);
                                         }
                                     );
@@ -250,7 +292,9 @@
                                         setting.options,
                                         value,
                                         (newValue) => {
-                                            GM_setValue(`${module.id}_${setting.id}`, newValue);
+                                            NSSettings.settingsCache.set(`${module.id}_${setting.id}`, newValue);
+                                            NSSettings.needsSave = true;
+                                            document.querySelector('.ns-settings-save-bar').classList.add('ns-settings-save-bar-active');
                                             if (setting.onChange) setting.onChange(newValue);
                                         }
                                     );
@@ -262,7 +306,9 @@
                                         `${module.id}_${setting.id}`,
                                         value,
                                         (newValue) => {
-                                            GM_setValue(`${module.id}_${setting.id}`, newValue);
+                                            NSSettings.settingsCache.set(`${module.id}_${setting.id}`, newValue);
+                                            NSSettings.needsSave = true;
+                                            document.querySelector('.ns-settings-save-bar').classList.add('ns-settings-save-bar-active');
                                             if (setting.onChange) setting.onChange(newValue);
                                         },
                                         setting.type
