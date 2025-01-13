@@ -355,7 +355,7 @@
                     <div class="ns-usercard-activity-detail">
                         📊 互动频率：${activity.dailyInteraction}次/天 (${activity.details.interactionScore}分)
                         <br>
-                        🎯 鸡腿效率：${activity.chickenEfficiency}个/天 (${activity.details.chickenScore}分)
+                        🍗 鸡腿效率：${activity.chickenEfficiency}个/天 (${activity.details.chickenScore}分)
                         <br>
                         ⌛ 注册时长：${userData.joinDays}天 (${activity.details.timeScore}分)
                     </div>
