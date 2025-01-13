@@ -2,34 +2,27 @@
     'use strict';
 
     const userDataCache = new Map();
-    const originalXHR = window.XMLHttpRequest;
-    function XMLHttpRequestProxy() {
-        const xhr = new originalXHR();
-        const open = xhr.open;
+    const originalFetch = window.fetch;
+    window.fetch = async function(...args) {
+        const [url] = args;
+        const response = await originalFetch.apply(this, args);
         
-        xhr.open = function() {
-            const url = arguments[1];
-            if (url.includes('/api/account/getInfo/')) {
-                const userId = url.split('/').pop();
-                xhr.addEventListener('load', function() {
-                    if (xhr.status === 200) {
-                        try {
-                            const response = JSON.parse(xhr.responseText);
-                            if (response.success) {
-                                userDataCache.set(userId, response.detail);
-                            }
-                        } catch (error) {
-                            console.error('[NS助手] 解析用户数据失败:', error);
-                        }
-                    }
-                });
+        const responseClone = response.clone();
+        
+        if (typeof url === 'string' && url.includes('/api/account/getInfo/')) {
+            const userId = url.split('/').pop();
+            try {
+                const data = await responseClone.json();
+                if (data.success) {
+                    userDataCache.set(userId, data.detail);
+                }
+            } catch (error) {
+                console.error('[NS助手] 解析用户数据失败:', error);
             }
-            return open.apply(xhr, arguments);
-        };
+        }
         
-        return xhr;
-    }
-    window.XMLHttpRequest = XMLHttpRequestProxy;
+        return response;
+    };
 
     console.log('[NS助手] userCard 模块开始加载');
 
@@ -459,5 +452,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] userCard 模块加载完成 【0.1.0】');
+    console.log('[NS助手] userCard 模块加载完成 【0.1.1】');
 })();
