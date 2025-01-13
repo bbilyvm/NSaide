@@ -24,37 +24,40 @@
             }
         },
 
-        settings: [
-            {
-                id: 'mode',
-                type: 'select',
-                label: '签到模式',
-                default: 0,
-                value: () => GM_getValue('ns_signin_status', 0),
-                options: [
-                    { value: 0, label: '禁用自动签到' },
-                    { value: 1, label: '随机签到模式' },
-                    { value: 2, label: '固定签到模式' }
-                ],
-                onChange: (value) => {
-                    NSSettings.settingsCache.set('ns_signin_status', parseInt(value));
-                    NSSettings.needsSave = true;
-                    document.querySelector('.ns-settings-save-bar').classList.add('ns-settings-save-bar-active');
+        settings: {
+            items: [
+                {
+                    id: 'mode',
+                    type: 'select',
+                    label: '签到模式',
+                    default: 0,
+                    value: () => GM_getValue('ns_signin_status', 0),
+                    options: [
+                        { value: 0, label: '禁用自动签到' },
+                        { value: 1, label: '随机签到模式' },
+                        { value: 2, label: '固定签到模式' }
+                    ]
+                },
+                {
+                    id: 'retry',
+                    type: 'button',
+                    label: '立即签到',
+                    onClick: async () => {
+                        const status = GM_getValue('ns_signin_status', 0);
+                        if (status === 0) return;
+                        
+                        GM_setValue('ns_signin_last_date', '');
+                        await NSAutoSignIn.executeAutoSignIn();
+                    }
                 }
-            },
-            {
-                id: 'retry',
-                type: 'button',
-                label: '立即签到',
-                onClick: async () => {
-                    const status = GM_getValue('ns_signin_status', 0);
-                    if (status === 0) return;
-                    
-                    GM_setValue('ns_signin_last_date', '');
-                    await NSAutoSignIn.executeAutoSignIn();
+            ],
+            
+            handleChange(settingId, value, settingsManager) {
+                if (settingId === 'mode') {
+                    settingsManager.cacheValue('ns_signin_status', parseInt(value));
                 }
             }
-        ],
+        },
 
         utils: {
             async waitForElement(selector, parent = document, timeout = 10000) {
