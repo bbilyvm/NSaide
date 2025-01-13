@@ -1,29 +1,6 @@
 (function() {
     'use strict';
 
-    const userDataCache = new Map();
-    const originalFetch = window.fetch;
-    window.fetch = async function(...args) {
-        const [url] = args;
-        const response = await originalFetch.apply(this, args);
-        
-        const responseClone = response.clone();
-        
-        if (typeof url === 'string' && url.includes('/api/account/getInfo/')) {
-            const userId = url.split('/').pop();
-            try {
-                const data = await responseClone.json();
-                if (data.success) {
-                    userDataCache.set(userId, data.detail);
-                }
-            } catch (error) {
-                console.error('[NS助手] 解析用户数据失败:', error);
-            }
-        }
-        
-        return response;
-    };
-
     console.log('[NS助手] userCard 模块开始加载');
 
     const NSUserCard = {
@@ -76,24 +53,29 @@
             },
 
             async getUserInfo(userId) {
-
-                if (userDataCache.has(userId)) {
-                    return userDataCache.get(userId);
-                }
-                
-                let retries = 0;
-                const maxRetries = 50;
-                
-                while (retries < maxRetries) {
-                    if (userDataCache.has(userId)) {
-                        return userDataCache.get(userId);
+                try {
+                    const response = await fetch(`https://www.nodeseek.com/api/account/getInfo/${userId}`, {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    retries++;
+                    
+                    const data = await response.json();
+                    if (!data.success) {
+                        throw new Error('Failed to get user info');
+                    }
+                    
+                    return data.detail;
+                } catch (error) {
+                    console.error('[NS助手] 获取用户信息失败:', error);
+                    return null;
                 }
-                
-                console.error('[NS助手] 获取用户数据超时');
-                return null;
             },
 
             calculateNextLevelInfo(currentLevel, currentChickenLegs) {
@@ -120,70 +102,39 @@
             },
 
             calculateActivity(joinDays, posts, comments, chickenLegs) {
-                const hasJoinDays = joinDays > 0;
+                const dailyInteraction = ((posts + comments) / joinDays).toFixed(2);
                 let interactionScore = 0;
                 let chickenScore = 0;
                 let timeScore = 0;
+
+                if (dailyInteraction >= 1) interactionScore = 30;
+                else if (dailyInteraction >= 0.5) interactionScore = 25;
+                else if (dailyInteraction >= 0.2) interactionScore = 20;
+                else if (dailyInteraction >= 0.1) interactionScore = 15;
+                else interactionScore = 10;
+
+                const chickenEfficiency = (chickenLegs / joinDays).toFixed(2);
+
+                if (chickenEfficiency >= 2) chickenScore = 40;
+                else if (chickenEfficiency >= 1.5) chickenScore = 35;
+                else if (chickenEfficiency >= 1) chickenScore = 30;
+                else if (chickenEfficiency >= 0.5) chickenScore = 25;
+                else chickenScore = 20;
+
+                timeScore = 30 - Math.floor(joinDays / 365) * 7;
+                timeScore = Math.max(0, timeScore);
                 
-                if (hasJoinDays) {
-                    const dailyInteraction = ((posts + comments) / joinDays).toFixed(2);
-
-                    if (dailyInteraction >= 1) interactionScore = 30;
-                    else if (dailyInteraction >= 0.5) interactionScore = 25;
-                    else if (dailyInteraction >= 0.2) interactionScore = 20;
-                    else if (dailyInteraction >= 0.1) interactionScore = 15;
-                    else interactionScore = 10;
-
-                    const chickenEfficiency = (chickenLegs / joinDays).toFixed(2);
-
-                    if (chickenEfficiency >= 2) chickenScore = 40;
-                    else if (chickenEfficiency >= 1.5) chickenScore = 35;
-                    else if (chickenEfficiency >= 1) chickenScore = 30;
-                    else if (chickenEfficiency >= 0.5) chickenScore = 25;
-                    else chickenScore = 20;
-
-                    timeScore = 30 - Math.floor(joinDays / 365) * 7;
-                    timeScore = Math.max(0, timeScore);
-                    
-                    return {
-                        score: interactionScore + chickenScore + timeScore,
-                        level: this.getActivityLevel(interactionScore + chickenScore + timeScore),
-                        dailyInteraction,
-                        chickenEfficiency,
-                        details: {
-                            hasJoinDays: true,
-                            interactionScore,
-                            chickenScore,
-                            timeScore
-                        }
-                    };
-                } else {
-                    const totalInteractions = posts + comments;
-
-                    if (totalInteractions >= 300) interactionScore = 45;
-                    else if (totalInteractions >= 200) interactionScore = 40;
-                    else if (totalInteractions >= 100) interactionScore = 35;
-                    else if (totalInteractions >= 50) interactionScore = 30;
-                    else interactionScore = 25;
-
-                    if (chickenLegs >= 1000) chickenScore = 55;
-                    else if (chickenLegs >= 500) chickenScore = 50;
-                    else if (chickenLegs >= 200) chickenScore = 45;
-                    else if (chickenLegs >= 100) chickenScore = 40;
-                    else chickenScore = 35;
-                    
-                    return {
-                        score: interactionScore + chickenScore,
-                        level: this.getActivityLevel(interactionScore + chickenScore),
-                        totalInteractions,
-                        chickenLegs,
-                        details: {
-                            hasJoinDays: false,
-                            interactionScore,
-                            chickenScore
-                        }
-                    };
-                }
+                return {
+                    score: interactionScore + chickenScore + timeScore,
+                    level: this.getActivityLevel(interactionScore + chickenScore + timeScore),
+                    dailyInteraction,
+                    chickenEfficiency,
+                    details: {
+                        interactionScore,
+                        chickenScore,
+                        timeScore
+                    }
+                };
             },
 
             getActivityLevel(score) {
@@ -346,13 +297,13 @@
                     chickenLegs: userInfo.coin,
                     posts: userInfo.nPost,
                     comments: userInfo.nComment,
-                    joinDays: this.utils.extractJoinDays(userInfo.created_at_str)
+                    joinDays: this.utils.extractJoinDays(userInfo.created_at_str),
+                    memberId: userInfo.member_id
                 };
 
                 console.log('[NS助手] 提取的用户数据:', userData);
 
                 const nextLevelInfo = this.utils.calculateNextLevelInfo(userData.level, userData.chickenLegs);
-
                 const activity = this.utils.calculateActivity(
                     userData.joinDays,
                     userData.posts,
@@ -362,6 +313,11 @@
 
                 const extensionDiv = document.createElement('div');
                 extensionDiv.className = 'ns-usercard-extension';
+
+                const userIdDiv = document.createElement('div');
+                userIdDiv.className = 'ns-usercard-userid';
+                userIdDiv.innerHTML = `🆔 用户ID：${userData.memberId}`;
+                extensionDiv.appendChild(userIdDiv);
 
                 const nextLevelDiv = document.createElement('div');
                 nextLevelDiv.className = nextLevelInfo.isMaxLevel ?
@@ -397,25 +353,14 @@
                         <span class="ns-usercard-activity-score">${activity.score}分</span>
                     </div>
                     <div class="ns-usercard-activity-detail">
-                `;
-
-                if (activity.details.hasJoinDays) {
-                    activityHtml += `
                         📊 互动频率：${activity.dailyInteraction}次/天 (${activity.details.interactionScore}分)
                         <br>
                         🎯 鸡腿效率：${activity.chickenEfficiency}个/天 (${activity.details.chickenScore}分)
                         <br>
                         ⌛ 注册时长：${userData.joinDays}天 (${activity.details.timeScore}分)
-                    `;
-                } else {
-                    activityHtml += `
-                        📊 互动总量：${activity.totalInteractions}次 (${activity.details.interactionScore}分)
-                        <br>
-                        🎯 鸡腿总量：${activity.chickenLegs}个 (${activity.details.chickenScore}分)
-                    `;
-                }
+                    </div>
+                `;
 
-                activityHtml += `</div>`;
                 activityDiv.innerHTML = activityHtml;
 
                 extensionDiv.appendChild(nextLevelDiv);
@@ -452,5 +397,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] userCard 模块加载完成 【0.1.1】');
+    console.log('[NS助手] userCard 模块加载完成');
 })();
