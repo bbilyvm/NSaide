@@ -1,6 +1,36 @@
 (function() {
     'use strict';
 
+    const userDataCache = new Map();
+    const originalXHR = window.XMLHttpRequest;
+    function XMLHttpRequestProxy() {
+        const xhr = new originalXHR();
+        const open = xhr.open;
+        
+        xhr.open = function() {
+            const url = arguments[1];
+            if (url.includes('/api/account/getInfo/')) {
+                const userId = url.split('/').pop();
+                xhr.addEventListener('load', function() {
+                    if (xhr.status === 200) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            if (response.success) {
+                                userDataCache.set(userId, response.detail);
+                            }
+                        } catch (error) {
+                            console.error('[NS助手] 解析用户数据失败:', error);
+                        }
+                    }
+                });
+            }
+            return open.apply(xhr, arguments);
+        };
+        
+        return xhr;
+    }
+    window.XMLHttpRequest = XMLHttpRequestProxy;
+
     console.log('[NS助手] userCard 模块开始加载');
 
     const NSUserCard = {
@@ -25,8 +55,6 @@
                 }
             }
         },
-
-        userDataCache: new Map(),
 
         utils: {
             async waitForElement(selector, parent = document, timeout = 10000) {
@@ -54,50 +82,18 @@
                 });
             },
 
-            setupXHRInterceptor() {
-                const originalXHR = window.XMLHttpRequest;
-                function XMLHttpRequestProxy() {
-                    const xhr = new originalXHR();
-                    const open = xhr.open;
-                    
-                    xhr.open = function() {
-                        const url = arguments[1];
-                        if (url.includes('/api/account/getInfo/')) {
-                            const userId = url.split('/').pop();
-                            xhr.addEventListener('load', function() {
-                                if (xhr.status === 200) {
-                                    try {
-                                        const response = JSON.parse(xhr.responseText);
-                                        if (response.success) {
-                                            NSUserCard.userDataCache.set(userId, response.detail);
-                                        }
-                                    } catch (error) {
-                                        console.error('[NS助手] 解析用户数据失败:', error);
-                                    }
-                                }
-                            });
-                        }
-                        return open.apply(xhr, arguments);
-                    };
-                    
-                    return xhr;
-                }
-                
-                window.XMLHttpRequest = XMLHttpRequestProxy;
-            },
-
             async getUserInfo(userId) {
 
-                if (NSUserCard.userDataCache.has(userId)) {
-                    return NSUserCard.userDataCache.get(userId);
+                if (userDataCache.has(userId)) {
+                    return userDataCache.get(userId);
                 }
                 
                 let retries = 0;
                 const maxRetries = 50;
                 
                 while (retries < maxRetries) {
-                    if (NSUserCard.userDataCache.has(userId)) {
-                        return NSUserCard.userDataCache.get(userId);
+                    if (userDataCache.has(userId)) {
+                        return userDataCache.get(userId);
                     }
                     await new Promise(resolve => setTimeout(resolve, 100));
                     retries++;
@@ -215,8 +211,6 @@
             this.waitAndEnhance = this.waitAndEnhance.bind(this);
             this.enhance = this.enhance.bind(this);
             this.enableDragging = this.enableDragging.bind(this);
-
-            this.utils.setupXHRInterceptor();
 
             console.log('[NS助手] 开始加载用户卡片样式');
             GM_xmlhttpRequest({
