@@ -86,6 +86,21 @@
     border-top: 1px dashed #e8e8e8;
 }
 
+.ns-setting-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding: 8px 0;
+}
+
+.ns-setting-label {
+    flex: 1;
+    font-size: 14px;
+    color: #333;
+    margin-right: 16px;
+}
+
 .ns-switch {
     position: relative;
     display: inline-block;
@@ -135,6 +150,72 @@ input:checked + .ns-slider:before {
     transform: translateX(22px);
 }
 
+.ns-select {
+    min-width: 120px;
+    height: 32px;
+    padding: 4px 8px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #333;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.ns-select:hover {
+    border-color: #40a9ff;
+}
+
+.ns-select:focus {
+    outline: none;
+    border-color: #1890ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.ns-input {
+    width: 200px;
+    height: 32px;
+    padding: 4px 8px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #333;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.ns-input:hover {
+    border-color: #40a9ff;
+}
+
+.ns-input:focus {
+    outline: none;
+    border-color: #1890ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.ns-button {
+    min-width: 80px;
+    height: 32px;
+    padding: 4px 16px;
+    border: 1px solid #1890ff;
+    border-radius: 4px;
+    background-color: #1890ff;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.ns-button:hover {
+    background-color: #40a9ff;
+    border-color: #40a9ff;
+}
+
+.ns-button:active {
+    background-color: #096dd9;
+    border-color: #096dd9;
+}
 
 .ns-settings-content::-webkit-scrollbar {
     width: 8px;

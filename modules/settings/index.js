@@ -1,8 +1,6 @@
 (function() {
     'use strict';
     
-    console.log('[NS助手] settings 模块开始加载');
-
     const NSSettings = {
         id: 'settings',
         name: '设置面板',
@@ -11,6 +9,70 @@
         config: {
             storage: {
                 PANEL_POSITION: 'ns_settings_position'
+            }
+        },
+
+        components: {
+            createSwitch(id, checked, onChange) {
+                const switchLabel = document.createElement('label');
+                switchLabel.className = 'ns-switch';
+                switchLabel.innerHTML = `
+                    <input type="checkbox" ${checked ? 'checked' : ''}>
+                    <span class="ns-slider"></span>
+                `;
+                
+                const input = switchLabel.querySelector('input');
+                input.addEventListener('change', () => onChange(input.checked));
+                
+                return switchLabel;
+            },
+
+            createSelect(id, options, value, onChange) {
+                const select = document.createElement('select');
+                select.className = 'ns-select';
+                
+                options.forEach(option => {
+                    const optElement = document.createElement('option');
+                    optElement.value = option.value;
+                    optElement.textContent = option.label;
+                    optElement.selected = option.value === value;
+                    select.appendChild(optElement);
+                });
+                
+                select.addEventListener('change', () => onChange(select.value));
+                return select;
+            },
+
+            createInput(id, value, onChange, type = 'text') {
+                const input = document.createElement('input');
+                input.className = 'ns-input';
+                input.type = type;
+                input.value = value;
+                
+                input.addEventListener('change', () => onChange(input.value));
+                return input;
+            },
+
+            createButton(id, label, onClick) {
+                const button = document.createElement('button');
+                button.className = 'ns-button';
+                button.textContent = label;
+                button.addEventListener('click', onClick);
+                return button;
+            },
+
+            createSettingItem(label, component) {
+                const container = document.createElement('div');
+                container.className = 'ns-setting-item';
+                
+                const labelElement = document.createElement('span');
+                labelElement.className = 'ns-setting-label';
+                labelElement.textContent = label;
+                
+                container.appendChild(labelElement);
+                container.appendChild(component);
+                
+                return container;
             }
         },
 
@@ -41,7 +103,6 @@
             },
 
             createSettingsPanel() {
-                const self = this;
                 const panel = document.createElement('div');
                 panel.className = 'ns-settings-panel';
                 panel.innerHTML = `
@@ -141,12 +202,14 @@
                     const moduleTitle = document.createElement('h3');
                     moduleTitle.textContent = module.name;
                     
-                    const moduleSwitch = document.createElement('label');
-                    moduleSwitch.className = 'ns-switch';
-                    moduleSwitch.innerHTML = `
-                        <input type="checkbox" ${module.enabled ? 'checked' : ''}>
-                        <span class="ns-slider"></span>
-                    `;
+                    const moduleSwitch = NSSettings.components.createSwitch(
+                        `module_${module.id}_enabled`,
+                        module.enabled,
+                        (checked) => {
+                            GM_setValue(`module_${module.id}_enabled`, checked);
+                            location.reload();
+                        }
+                    );
                     
                     moduleHeader.appendChild(moduleTitle);
                     moduleHeader.appendChild(moduleSwitch);
@@ -158,18 +221,69 @@
                     moduleCard.appendChild(moduleHeader);
                     moduleCard.appendChild(moduleDesc);
                     
-                    if (module.renderSettings) {
+                    if (module.settings) {
                         const moduleSettings = document.createElement('div');
                         moduleSettings.className = 'ns-module-settings';
-                        module.renderSettings(moduleSettings);
+                        
+                        module.settings.forEach(setting => {
+                            let component;
+                            const value = GM_getValue(`${module.id}_${setting.id}`, setting.default);
+                            
+                            switch (setting.type) {
+                                case 'switch':
+                                    component = NSSettings.components.createSwitch(
+                                        `${module.id}_${setting.id}`,
+                                        value,
+                                        (checked) => {
+                                            GM_setValue(`${module.id}_${setting.id}`, checked);
+                                            if (setting.onChange) setting.onChange(checked);
+                                        }
+                                    );
+                                    break;
+                                    
+                                case 'select':
+                                    component = NSSettings.components.createSelect(
+                                        `${module.id}_${setting.id}`,
+                                        setting.options,
+                                        value,
+                                        (newValue) => {
+                                            GM_setValue(`${module.id}_${setting.id}`, newValue);
+                                            if (setting.onChange) setting.onChange(newValue);
+                                        }
+                                    );
+                                    break;
+                                    
+                                case 'text':
+                                case 'number':
+                                    component = NSSettings.components.createInput(
+                                        `${module.id}_${setting.id}`,
+                                        value,
+                                        (newValue) => {
+                                            GM_setValue(`${module.id}_${setting.id}`, newValue);
+                                            if (setting.onChange) setting.onChange(newValue);
+                                        },
+                                        setting.type
+                                    );
+                                    break;
+
+                                case 'button':
+                                    component = NSSettings.components.createButton(
+                                        `${module.id}_${setting.id}`,
+                                        setting.label,
+                                        setting.onClick
+                                    );
+                                    break;
+                            }
+                            
+                            if (component) {
+                                moduleSettings.appendChild(
+                                    NSSettings.components.createSettingItem(setting.label, component)
+                                );
+                            }
+                        });
+                        
                         moduleCard.appendChild(moduleSettings);
                     }
-                    
-                    const checkbox = moduleSwitch.querySelector('input');
-                    checkbox.addEventListener('change', () => {
-                        GM_setValue(`module_${module.id}_enabled`, checkbox.checked);
-                        location.reload();
-                    });
                     
                     modulesContainer.appendChild(moduleCard);
                 });

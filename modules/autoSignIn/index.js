@@ -24,6 +24,36 @@
             }
         },
 
+        settings: [
+            {
+                id: 'mode',
+                type: 'select',
+                label: '签到模式',
+                default: 0,
+                options: [
+                    { value: 0, label: '禁用自动签到' },
+                    { value: 1, label: '随机签到模式' },
+                    { value: 2, label: '固定签到模式' }
+                ],
+                onChange: (value) => {
+                    GM_setValue('ns_signin_status', parseInt(value));
+                    location.reload();
+                }
+            },
+            {
+                id: 'retry',
+                type: 'button',
+                label: '立即签到',
+                onClick: async () => {
+                    const status = GM_getValue('ns_signin_status', 0);
+                    if (status === 0) return;
+                    
+                    GM_setValue('ns_signin_last_date', '');
+                    await NSAutoSignIn.executeAutoSignIn();
+                }
+            }
+        ],
+
         utils: {
             async waitForElement(selector, parent = document, timeout = 10000) {
                 const element = parent.querySelector(selector);
@@ -113,42 +143,6 @@
             console.log('[NS助手] 用户已登录，继续执行签到');
             await this.executeAutoSignIn();
             return true;
-        },
-
-        renderSettings(container) {
-            const status = GM_getValue(this.config.storage.STATUS, this.config.modes.DISABLED);
-            const settingsHtml = `
-                <div class="ns-signin-settings">
-                    <div class="ns-signin-mode">
-                        <label>
-                            <input type="radio" name="signin_mode" value="${this.config.modes.DISABLED}" ${status === this.config.modes.DISABLED ? 'checked' : ''}>
-                            <span>禁用自动签到</span>
-                        </label>
-                        <label>
-                            <input type="radio" name="signin_mode" value="${this.config.modes.RANDOM}" ${status === this.config.modes.RANDOM ? 'checked' : ''}>
-                            <span>随机签到模式</span>
-                        </label>
-                        <label>
-                            <input type="radio" name="signin_mode" value="${this.config.modes.FIXED}" ${status === this.config.modes.FIXED ? 'checked' : ''}>
-                            <span>固定签到模式</span>
-                        </label>
-                    </div>
-                    <button class="ns-signin-retry">立即签到</button>
-                </div>
-            `;
-            
-            container.innerHTML = settingsHtml;
-            
-            const radios = container.querySelectorAll('input[type="radio"]');
-            radios.forEach(radio => {
-                radio.addEventListener('change', () => {
-                    GM_setValue(this.config.storage.STATUS, parseInt(radio.value));
-                    location.reload();
-                });
-            });
-            
-            const retryButton = container.querySelector('.ns-signin-retry');
-            retryButton.addEventListener('click', () => this.retrySignIn());
         },
 
         async executeAutoSignIn() {
