@@ -9,6 +9,10 @@
         description: '为编辑器添加快捷键等增强功能',
 
         config: {
+            storage: {
+                SHOW_TOAST: 'ns_editor_show_toast',
+                SHOW_SHORTCUT_BTN: 'ns_editor_show_shortcut_btn'
+            },
             shortcuts: {
                 submit: {
                     windows: 'Ctrl-Enter',
@@ -121,6 +125,42 @@
             }
         },
 
+        settings: {
+            items: [
+                {
+                    id: 'show_toast',
+                    type: 'switch',
+                    label: '显示加载提示',
+                    default: true,
+                    value: () => GM_getValue('ns_editor_show_toast', true)
+                },
+                {
+                    id: 'show_shortcut_btn',
+                    type: 'switch',
+                    label: '显示编辑器快捷键按钮',
+                    default: true,
+                    value: () => GM_getValue('ns_editor_show_shortcut_btn', true)
+                },
+                {
+                    id: 'view_shortcuts',
+                    type: 'button',
+                    label: '查看快捷键列表',
+                    onClick: () => {
+                        const modal = NSEditorEnhance.utils.createShortcutGuide();
+                        document.body.appendChild(modal);
+                    }
+                }
+            ],
+            
+            handleChange(settingId, value, settingsManager) {
+                if (settingId === 'show_toast') {
+                    settingsManager.cacheValue('ns_editor_show_toast', value);
+                } else if (settingId === 'show_shortcut_btn') {
+                    settingsManager.cacheValue('ns_editor_show_shortcut_btn', value);
+                }
+            }
+        },
+
         utils: {
             async waitForElement(selector, parent = document, timeout = 10000) {
                 const element = parent.querySelector(selector);
@@ -153,12 +193,12 @@
 
             showToast(message, type = 'info') {
                 const toast = document.createElement('div');
-                toast.className = `ns-toast ns-toast-${type}`;
+                toast.className = `ns-editor-toast ns-editor-toast-${type}`;
                 toast.textContent = message;
                 document.body.appendChild(toast);
                 
                 setTimeout(() => {
-                    toast.classList.add('ns-toast-fade-out');
+                    toast.classList.add('ns-editor-toast-fade-out');
                     setTimeout(() => toast.remove(), 300);
                 }, 3000);
             },
@@ -166,29 +206,29 @@
             createShortcutGuide() {
                 const isMac = this.isMac();
                 const modal = document.createElement('div');
-                modal.className = 'ns-modal';
+                modal.className = 'ns-editor-modal';
                 
                 const content = document.createElement('div');
-                content.className = 'ns-modal-content';
+                content.className = 'ns-editor-modal-content';
                 
                 const title = document.createElement('div');
-                title.className = 'ns-modal-title';
+                title.className = 'ns-editor-modal-title';
                 title.textContent = 'Markdown快捷键';
                 
                 const closeBtn = document.createElement('div');
-                closeBtn.className = 'ns-modal-close';
+                closeBtn.className = 'ns-editor-modal-close';
                 closeBtn.textContent = '×';
                 closeBtn.onclick = () => modal.remove();
                 
                 const shortcuts = document.createElement('div');
-                shortcuts.className = 'ns-shortcuts-list';
+                shortcuts.className = 'ns-editor-shortcuts-list';
                 
                 Object.entries(NSEditorEnhance.config.shortcuts.format).forEach(([key, config]) => {
                     const shortcut = document.createElement('div');
-                    shortcut.className = 'ns-shortcut-item';
+                    shortcut.className = 'ns-editor-shortcut-item';
                     shortcut.innerHTML = `
-                        <span class="ns-shortcut-desc">${config.description}</span>
-                        <span class="ns-shortcut-key">${isMac ? config.mac.replace('Cmd', '⌘').replace('Shift', '⇧').replace('Alt', '⌥').replace('-', ' + ') : config.windows.replace('-', ' + ')}</span>
+                        <span class="ns-editor-shortcut-desc">${config.description}</span>
+                        <span class="ns-editor-shortcut-key">${isMac ? config.mac.replace('Cmd', '⌘').replace('Shift', '⇧').replace('Alt', '⌥').replace('-', ' + ') : config.windows.replace('-', ' + ')}</span>
                     `;
                     shortcuts.appendChild(shortcut);
                 });
@@ -206,24 +246,6 @@
                 
                 return modal;
             }
-        },
-
-        renderSettings(container) {
-            const settingsHtml = `
-                <div class="ns-editor-settings">
-                    <div class="ns-editor-shortcuts">
-                        <button class="ns-view-shortcuts">查看快捷键列表</button>
-                    </div>
-                </div>
-            `;
-            
-            container.innerHTML = settingsHtml;
-            
-            const viewShortcutsBtn = container.querySelector('.ns-view-shortcuts');
-            viewShortcutsBtn.addEventListener('click', () => {
-                const modal = this.utils.createShortcutGuide();
-                document.body.appendChild(modal);
-            });
         },
 
         async init() {
@@ -250,7 +272,9 @@
                 const editorSetupResult = await this.setupEditor();
                 if (editorSetupResult) {
                     console.log('[NS助手] 编辑器增强模块初始化完成');
-                    this.utils.showToast('编辑器增强已启用', 'success');
+                    if (GM_getValue('ns_editor_show_toast', true)) {
+                        this.utils.showToast('编辑器增强已启用', 'success');
+                    }
                 } else {
                     console.log('[NS助手] 当前页面无编辑器，跳过增强');
                 }
@@ -285,14 +309,16 @@
             const submitText = isMac ? '⌘+Enter' : 'Ctrl+Enter';
 
             const topicSelect = btnSubmit.parentElement;
-            const shortcutBtn = document.createElement('button');
-            shortcutBtn.className = 'ns-shortcut-btn';
-            shortcutBtn.textContent = 'MD快捷键';
-            shortcutBtn.onclick = () => {
-                const modal = this.utils.createShortcutGuide();
-                document.body.appendChild(modal);
-            };
-            topicSelect.insertBefore(shortcutBtn, topicSelect.firstChild);
+            if (GM_getValue('ns_editor_show_shortcut_btn', true)) {
+                const shortcutBtn = document.createElement('button');
+                shortcutBtn.className = 'ns-editor-shortcut-btn';
+                shortcutBtn.textContent = 'MD快捷键';
+                shortcutBtn.onclick = () => {
+                    const modal = this.utils.createShortcutGuide();
+                    document.body.appendChild(modal);
+                };
+                topicSelect.insertBefore(shortcutBtn, topicSelect.firstChild);
+            }
 
             if (!btnSubmit.textContent.includes(submitText)) {
                 btnSubmit.innerText = `发布评论 (${submitText})`;
