@@ -87,18 +87,17 @@
             },
 
             async getUserInfo(userId) {
-                // 首先检查缓存
-                if (this.userDataCache.has(userId)) {
-                    return this.userDataCache.get(userId);
+
+                if (NSUserCard.userDataCache.has(userId)) {
+                    return NSUserCard.userDataCache.get(userId);
                 }
                 
-                // 等待数据被拦截器缓存
                 let retries = 0;
                 const maxRetries = 50;
                 
                 while (retries < maxRetries) {
-                    if (this.userDataCache.has(userId)) {
-                        return this.userDataCache.get(userId);
+                    if (NSUserCard.userDataCache.has(userId)) {
+                        return NSUserCard.userDataCache.get(userId);
                     }
                     await new Promise(resolve => setTimeout(resolve, 100));
                     retries++;
@@ -217,7 +216,6 @@
             this.enhance = this.enhance.bind(this);
             this.enableDragging = this.enableDragging.bind(this);
 
-            // 设置 XHR 拦截器
             this.utils.setupXHRInterceptor();
 
             console.log('[NS助手] 开始加载用户卡片样式');
