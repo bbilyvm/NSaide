@@ -37,8 +37,9 @@
                     { value: 2, label: '固定签到模式' }
                 ],
                 onChange: (value) => {
-                    GM_setValue('ns_signin_status', parseInt(value));
-                    location.reload();
+                    NSSettings.settingsCache.set('ns_signin_status', parseInt(value));
+                    NSSettings.needsSave = true;
+                    document.querySelector('.ns-settings-save-bar').classList.add('ns-settings-save-bar-active');
                 }
             },
             {
