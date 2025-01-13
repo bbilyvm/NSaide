@@ -197,10 +197,18 @@
                 toast.textContent = message;
                 document.body.appendChild(toast);
                 
-                setTimeout(() => {
-                    toast.classList.add('ns-editor-toast-fade-out');
-                    setTimeout(() => toast.remove(), 300);
-                }, 3000);
+                // Force reflow
+                toast.offsetHeight;
+                
+                // Show toast
+                requestAnimationFrame(() => {
+                    toast.classList.add('ns-editor-toast-show');
+                    
+                    setTimeout(() => {
+                        toast.classList.add('ns-editor-toast-fade-out');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 3000);
+                });
             },
 
             createShortcutGuide() {
