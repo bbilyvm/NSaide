@@ -364,6 +364,13 @@
             cardElement.classList.add('ns-usercard-enhanced');
 
             try {
+                const isDarkMode = document.body.classList.contains('dark-layout');
+                console.log('[NS助手] 当前主题模式:', isDarkMode ? 'dark' : 'light');
+
+                if (isDarkMode) {
+                    cardElement.closest('.hover-user-card').classList.add('dark-layout');
+                }
+
                 const userData = {
                     level: userInfo.rank,
                     chickenLegs: userInfo.coin,
