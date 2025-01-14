@@ -9,9 +9,7 @@
         description: '提供统一的设置界面',
 
         config: {
-            storage: {
-                PANEL_POSITION: 'ns_settings_position'
-            }
+            storage: {}
         },
 
         settingsCache: new Map(),
@@ -21,6 +19,7 @@
             createSwitch(id, checked, onChange) {
                 const switchLabel = document.createElement('label');
                 switchLabel.className = 'ns-settings-switch';
+
                 switchLabel.innerHTML = `
                     <input type="checkbox" ${checked ? 'checked' : ''}>
                     <span class="ns-settings-switch-slider"></span>
@@ -162,16 +161,14 @@
                 let currentY;
                 let initialX;
                 let initialY;
-                let xOffset = 0;
-                let yOffset = 0;
 
                 const dragStart = (e) => {
                     if (e.type === "touchstart") {
-                        initialX = e.touches[0].clientX - xOffset;
-                        initialY = e.touches[0].clientY - yOffset;
+                        initialX = e.touches[0].clientX;
+                        initialY = e.touches[0].clientY;
                     } else {
-                        initialX = e.clientX - xOffset;
-                        initialY = e.clientY - yOffset;
+                        initialX = e.clientX;
+                        initialY = e.clientY;
                     }
                     
                     if (e.target === header) {
@@ -180,14 +177,7 @@
                 };
 
                 const dragEnd = () => {
-                    initialX = currentX;
-                    initialY = currentY;
                     isDragging = false;
-                    
-                    GM_setValue(NSSettings.config.storage.PANEL_POSITION, {
-                        x: xOffset,
-                        y: yOffset
-                    });
                 };
 
                 const drag = (e) => {
@@ -202,9 +192,7 @@
                             currentY = e.clientY - initialY;
                         }
 
-                        xOffset = currentX;
-                        yOffset = currentY;
-                        panel.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+                        panel.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`;
                     }
                 };
 
@@ -214,13 +202,6 @@
                 header.addEventListener("mousedown", dragStart, false);
                 document.addEventListener("mouseup", dragEnd, false);
                 document.addEventListener("mousemove", drag, false);
-
-                const lastPosition = GM_getValue(NSSettings.config.storage.PANEL_POSITION, null);
-                if (lastPosition) {
-                    xOffset = lastPosition.x;
-                    yOffset = lastPosition.y;
-                    panel.style.transform = `translate3d(${xOffset}px, ${yOffset}px, 0)`;
-                }
 
                 const saveBar = NSSettings.components.createSaveBar();
                 panel.appendChild(saveBar);
