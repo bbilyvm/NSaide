@@ -102,6 +102,25 @@
             },
 
             calculateActivity(joinDays, posts, comments, chickenLegs, rank, bio) {
+                if (joinDays === 0) {
+                    return {
+                        score: 0,
+                        finalScore: bio ? 5 : 0,
+                        level: 'low',
+                        dailyPosts: '0.00',
+                        dailyComments: '0.00',
+                        dailyChickenLegs: '0.00',
+                        joinDays: 0,
+                        details: {
+                            postScore: 0,
+                            commentScore: 0,
+                            chickenScore: 0,
+                            rankScore: 0,
+                            bioBonus: bio ? 5 : 0
+                        }
+                    };
+                }
+
                 const dailyPosts = (posts / joinDays).toFixed(2);
                 const dailyComments = (comments / joinDays).toFixed(2);
                 const dailyChickenLegs = (chickenLegs / joinDays).toFixed(2);
