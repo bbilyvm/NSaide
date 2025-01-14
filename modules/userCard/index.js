@@ -101,7 +101,7 @@
                 };
             },
 
-            calculateActivity(joinDays, posts, comments, chickenLegs) {
+            calculateActivity(joinDays, posts, comments, chickenLegs, rank) {
                 const dailyPosts = (posts / joinDays).toFixed(2);
                 const dailyComments = (comments / joinDays).toFixed(2);
                 const dailyChickenLegs = (chickenLegs / joinDays).toFixed(2);
@@ -128,11 +128,11 @@
                 else chickenScore = 3;
 
                 let rankScore = 0;
-                if (userInfo.rank >= 6) rankScore = 30;
-                else if (userInfo.rank >= 5) rankScore = 25;
-                else if (userInfo.rank >= 4) rankScore = 20;
-                else if (userInfo.rank >= 3) rankScore = 15;
-                else if (userInfo.rank >= 2) rankScore = 10;
+                if (rank >= 6) rankScore = 30;
+                else if (rank >= 5) rankScore = 25;
+                else if (rank >= 4) rankScore = 20;
+                else if (rank >= 3) rankScore = 15;
+                else if (rank >= 2) rankScore = 10;
                 else rankScore = 5;
 
                 let totalScore = postScore + commentScore + chickenScore + rankScore;
@@ -324,7 +324,8 @@
                     userData.joinDays,
                     userData.posts,
                     userData.comments,
-                    userData.chickenLegs
+                    userData.chickenLegs,
+                    userData.level
                 );
 
                 const extensionDiv = document.createElement('div');
