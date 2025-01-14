@@ -140,8 +140,14 @@
             },
 
             createSettingsPanel() {
+                const existingPanel = document.querySelector('.ns-settings-panel');
+                if (existingPanel) {
+                    existingPanel.remove();
+                }
+
                 const panel = document.createElement('div');
                 panel.className = 'ns-settings-panel';
+                panel.style.opacity = '0';
                 panel.innerHTML = `
                     <div class="ns-settings-header">
                         <h2 class="ns-settings-header-title">NS助手设置</h2>
@@ -152,8 +158,18 @@
                     </div>
                 `;
 
+                document.body.insertBefore(panel, document.body.firstChild);
+
+                setTimeout(() => {
+                    panel.style.opacity = '1';
+                }, 10);
+
                 const closeBtn = panel.querySelector('.ns-settings-header-close');
-                closeBtn.onclick = () => panel.remove();
+                closeBtn.onclick = () => {
+                    panel.style.opacity = '0';
+                    panel.style.transform = 'translate(-50%, -48%) scale(0.95)';
+                    setTimeout(() => panel.remove(), 300);
+                };
 
                 const header = panel.querySelector('.ns-settings-header');
                 let isDragging = false;
@@ -173,11 +189,13 @@
                     
                     if (e.target === header) {
                         isDragging = true;
+                        panel.style.transition = 'none';
                     }
                 };
 
                 const dragEnd = () => {
                     isDragging = false;
+                    panel.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
                 };
 
                 const drag = (e) => {
@@ -192,16 +210,21 @@
                             currentY = e.clientY - initialY;
                         }
 
+                        const maxX = window.innerWidth / 2;
+                        const maxY = window.innerHeight / 2;
+                        currentX = Math.max(-maxX, Math.min(currentX, maxX));
+                        currentY = Math.max(-maxY, Math.min(currentY, maxY));
+
                         panel.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`;
                     }
                 };
 
-                header.addEventListener("touchstart", dragStart, false);
-                header.addEventListener("touchend", dragEnd, false);
-                header.addEventListener("touchmove", drag, false);
-                header.addEventListener("mousedown", dragStart, false);
-                document.addEventListener("mouseup", dragEnd, false);
-                document.addEventListener("mousemove", drag, false);
+                header.addEventListener("touchstart", dragStart, { passive: false });
+                header.addEventListener("touchend", dragEnd);
+                header.addEventListener("touchmove", drag, { passive: false });
+                header.addEventListener("mousedown", dragStart);
+                document.addEventListener("mouseup", dragEnd);
+                document.addEventListener("mousemove", drag);
 
                 const saveBar = NSSettings.components.createSaveBar();
                 panel.appendChild(saveBar);
@@ -338,6 +361,73 @@
         init() {
             console.log('[NS助手] 初始化设置面板模块');
             
+            const styles = `
+                .ns-settings-button {
+                    min-width: 88px;
+                    height: 36px;
+                    padding: 4px 20px;
+                    border: none;
+                    border-radius: 6px;
+                    background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+                    color: #fff;
+                    font-size: 14px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                    overflow: hidden;
+                    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                    white-space: nowrap;
+                }
+
+                .ns-settings-button:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+                    background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+                }
+
+                .ns-settings-button:active {
+                    transform: translateY(1px);
+                    background: linear-gradient(135deg, #096dd9 0%, #0050b3 100%);
+                }
+
+                .ns-settings-button::before {
+                    content: '';
+                    position: absolute;
+                    top: -50%;
+                    left: -50%;
+                    width: 200%;
+                    height: 200%;
+                    background: radial-gradient(circle at center,
+                        rgba(255, 255, 255, 0.2) 0%,
+                        transparent 60%);
+                    transform: scale(0);
+                    transition: transform 0.6s;
+                }
+
+                .ns-settings-button:hover::before {
+                    transform: scale(1);
+                }
+
+                .ns-settings-button:disabled {
+                    background: #d9d9d9;
+                    cursor: not-allowed;
+                    transform: none;
+                    box-shadow: none;
+                }
+
+                .ns-settings-panel {
+                    z-index: 99999;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+            `;
+            
+            GM_addStyle(styles);
+
             GM_xmlhttpRequest({
                 method: 'GET',
                 url: 'https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/settings/style.css',
@@ -359,7 +449,6 @@
 
             GM_registerMenuCommand('⚙️ 打开设置面板', () => {
                 const panel = boundCreateSettingsPanel();
-                document.body.appendChild(panel);
                 boundRenderModuleSettings();
             });
 
