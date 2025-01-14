@@ -380,8 +380,7 @@
                         🍗 鸡腿效率：${activity.dailyChickenLegs}个/天 (${activity.details.chickenScore}分)
                         <br>
                         👑 用户等级：Lv.${userInfo.rank} (${activity.details.rankScore}分)
-                        <br>
-                        ${userInfo.bio ? '📝 个性签名 (+5分)' : ''}
+                        ${userInfo.bio ? '<br>📝 个性签名 (+5分)' : ''}
                         <br>
                         ⌛ 注册时长：${activity.joinDays}天
                     </div>
