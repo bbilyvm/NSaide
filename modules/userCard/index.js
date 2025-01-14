@@ -101,7 +101,7 @@
                 };
             },
 
-            calculateActivity(joinDays, posts, comments, chickenLegs, rank) {
+            calculateActivity(joinDays, posts, comments, chickenLegs, rank, bio) {
                 const dailyPosts = (posts / joinDays).toFixed(2);
                 const dailyComments = (comments / joinDays).toFixed(2);
                 const dailyChickenLegs = (chickenLegs / joinDays).toFixed(2);
@@ -136,9 +136,11 @@
                 else rankScore = 5;
 
                 let totalScore = postScore + commentScore + chickenScore + rankScore;
+                let bioBonus = bio ? 5 : 0;
                 
                 return {
                     score: totalScore,
+                    finalScore: totalScore + bioBonus,
                     level: this.getActivityLevel(totalScore),
                     dailyPosts,
                     dailyComments,
@@ -148,7 +150,8 @@
                         postScore,
                         commentScore,
                         chickenScore,
-                        rankScore
+                        rankScore,
+                        bioBonus
                     }
                 };
             },
@@ -325,7 +328,8 @@
                     userData.posts,
                     userData.comments,
                     userData.chickenLegs,
-                    userData.level
+                    userData.level,
+                    userInfo.bio
                 );
 
                 const extensionDiv = document.createElement('div');
@@ -363,14 +367,11 @@
                 const activityDiv = document.createElement('div');
                 activityDiv.className = `ns-usercard-activity ns-usercard-activity-${activity.level}`;
 
-                let bioBonus = userInfo.bio ? 5 : 0;
-                let finalScore = activity.score + bioBonus;
-
                 let activityHtml = `
                     <div class="ns-usercard-activity-title">
                         ${activity.level === 'high' ? '🔥' : activity.level === 'medium' ? '⭐' : '💫'}
                         可靠性指数
-                        <span class="ns-usercard-activity-score">${finalScore}分</span>
+                        <span class="ns-usercard-activity-score">${activity.finalScore}分</span>
                     </div>
                     <div class="ns-usercard-activity-detail">
                         📝 发帖频率：${activity.dailyPosts}篇/天 (${activity.details.postScore}分)
