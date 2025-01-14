@@ -223,13 +223,21 @@
                 }
             });
 
+            const currentTheme = document.body.classList.contains('dark-layout') ? 'dark' : 'light';
+            console.log('[NS助手] 当前主题模式:', currentTheme);
+
             const observer = new MutationObserver((mutations) => {
                 mutations.forEach((mutation) => {
-                    if (mutation.target.classList.contains('dark-layout') || 
-                        mutation.target.classList.contains('light-layout')) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        const newTheme = document.body.classList.contains('dark-layout') ? 'dark' : 'light';
+                        console.log('[NS助手] 主题切换:', newTheme);
+                        
                         const cards = document.querySelectorAll('.hover-user-card');
+                        console.log('[NS助手] 找到需要更新的卡片数量:', cards.length);
+                        
                         cards.forEach(card => {
                             if (card.classList.contains('enhanced')) {
+                                console.log('[NS助手] 重新渲染卡片以适应新主题');
                                 card.classList.remove('enhanced');
                                 card.classList.remove('ns-usercard-enhanced');
                                 const extension = card.querySelector('.ns-usercard-extension');
