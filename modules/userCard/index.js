@@ -223,6 +223,30 @@
                 }
             });
 
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.target.classList.contains('dark-layout') || 
+                        mutation.target.classList.contains('light-layout')) {
+                        const cards = document.querySelectorAll('.hover-user-card');
+                        cards.forEach(card => {
+                            if (card.classList.contains('enhanced')) {
+                                card.classList.remove('enhanced');
+                                card.classList.remove('ns-usercard-enhanced');
+                                const extension = card.querySelector('.ns-usercard-extension');
+                                if (extension) {
+                                    extension.remove();
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+
+            observer.observe(document.body, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+
             console.log('[NS助手] 用户卡片模块初始化完成');
         },
 
