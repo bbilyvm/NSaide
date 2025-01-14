@@ -107,27 +107,35 @@
                 const dailyChickenLegs = (chickenLegs / joinDays).toFixed(2);
 
                 let postScore = 0;
-                if (dailyPosts >= 0.5) postScore = 40;
-                else if (dailyPosts >= 0.25) postScore = 35;
-                else if (dailyPosts >= 0.15) postScore = 30;
-                else if (dailyPosts >= 0.07) postScore = 25;
-                else postScore = 20;
+                if (dailyPosts >= 0.5) postScore = 30;
+                else if (dailyPosts >= 0.25) postScore = 25;
+                else if (dailyPosts >= 0.15) postScore = 20;
+                else if (dailyPosts >= 0.07) postScore = 15;
+                else postScore = 10;
 
                 let commentScore = 0;
-                if (dailyComments >= 1) commentScore = 35;
-                else if (dailyComments >= 0.5) commentScore = 30;
-                else if (dailyComments >= 0.25) commentScore = 25;
-                else if (dailyComments >= 0.15) commentScore = 20;
-                else commentScore = 15;
+                if (dailyComments >= 1) commentScore = 25;
+                else if (dailyComments >= 0.5) commentScore = 20;
+                else if (dailyComments >= 0.25) commentScore = 15;
+                else if (dailyComments >= 0.15) commentScore = 10;
+                else commentScore = 5;
 
                 let chickenScore = 0;
-                if (dailyChickenLegs >= 10) chickenScore = 25;
-                else if (dailyChickenLegs >= 7) chickenScore = 20;
-                else if (dailyChickenLegs >= 5) chickenScore = 15;
-                else if (dailyChickenLegs >= 3) chickenScore = 10;
-                else chickenScore = 5;
+                if (dailyChickenLegs >= 10) chickenScore = 15;
+                else if (dailyChickenLegs >= 7) chickenScore = 12;
+                else if (dailyChickenLegs >= 5) chickenScore = 9;
+                else if (dailyChickenLegs >= 3) chickenScore = 6;
+                else chickenScore = 3;
 
-                let totalScore = postScore + commentScore + chickenScore;
+                let rankScore = 0;
+                if (userInfo.rank >= 6) rankScore = 30;
+                else if (userInfo.rank >= 5) rankScore = 25;
+                else if (userInfo.rank >= 4) rankScore = 20;
+                else if (userInfo.rank >= 3) rankScore = 15;
+                else if (userInfo.rank >= 2) rankScore = 10;
+                else rankScore = 5;
+
+                let totalScore = postScore + commentScore + chickenScore + rankScore;
                 
                 return {
                     score: totalScore,
@@ -139,7 +147,8 @@
                     details: {
                         postScore,
                         commentScore,
-                        chickenScore
+                        chickenScore,
+                        rankScore
                     }
                 };
             },
@@ -369,7 +378,11 @@
                         <br>
                         🍗 鸡腿效率：${activity.dailyChickenLegs}个/天 (${activity.details.chickenScore}分)
                         <br>
-                        ⌛ 注册时长：${activity.joinDays}天 ${userInfo.bio ? '| 📝 个性签名 (+5分)' : ''}
+                        👑 用户等级：Lv.${userInfo.rank} (${activity.details.rankScore}分)
+                        <br>
+                        ${userInfo.bio ? '📝 个性签名 (+5分)' : ''}
+                        <br>
+                        ⌛ 注册时长：${activity.joinDays}天
                     </div>
                 `;
 
