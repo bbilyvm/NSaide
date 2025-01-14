@@ -16,16 +16,47 @@
     animation: panelFadeIn 0.3s ease-out;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.ns-settings-panel::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.03) 30%,
+        rgba(255, 255, 255, 0.05) 40%,
+        rgba(255, 255, 255, 0.03) 50%,
+        transparent 100%
+    );
+    animation: panelShine 8s linear infinite;
+}
+
+@keyframes panelShine {
+    0% {
+        transform: translateX(-50%) translateY(-50%) rotate(0deg);
+    }
+    100% {
+        transform: translateX(-50%) translateY(-50%) rotate(360deg);
+    }
 }
 
 @keyframes panelFadeIn {
     from {
         opacity: 0;
-        transform: translate(-50%, -48%);
+        transform: translate(-50%, -48%) scale(0.95);
+        filter: blur(10px);
     }
     to {
         opacity: 1;
-        transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%) scale(1);
+        filter: blur(0);
     }
 }
 
@@ -40,6 +71,32 @@
     flex-shrink: 0;
     background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
     border-radius: 12px 12px 0 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.ns-settings-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0) 100%);
+    transform: translateX(-100%);
+    animation: headerShine 3s infinite;
+}
+
+@keyframes headerShine {
+    0% {
+        transform: translateX(-100%);
+    }
+    20%, 100% {
+        transform: translateX(100%);
+    }
 }
 
 .ns-settings-header-title {
@@ -48,6 +105,25 @@
     color: #fff;
     font-weight: 500;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ns-settings-header-title::before {
+    content: '⚙️';
+    font-size: 24px;
+    animation: titleIconSpin 4s linear infinite;
+    display: inline-block;
+}
+
+@keyframes titleIconSpin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .ns-settings-header-close {
@@ -61,11 +137,31 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
+    position: relative;
+    overflow: hidden;
 }
 
 .ns-settings-header-close:hover {
     background: rgba(255, 255, 255, 0.2);
-    transform: rotate(90deg);
+    transform: rotate(90deg) scale(1.1);
+}
+
+.ns-settings-header-close::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+}
+
+.ns-settings-header-close:hover::after {
+    width: 100%;
+    height: 100%;
 }
 
 .ns-settings-content {
@@ -79,16 +175,19 @@
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
     animation: modulesAppear 0.4s ease-out;
+    padding: 4px;
 }
 
 @keyframes modulesAppear {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(20px);
+        filter: blur(5px);
     }
     to {
         opacity: 1;
         transform: translateY(0);
+        filter: blur(0);
     }
 }
 
@@ -97,15 +196,26 @@
     border-radius: 12px;
     padding: 20px;
     border: 1px solid #f0f0f0;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
+    animation: moduleFloat 6s ease-in-out infinite;
+}
+
+@keyframes moduleFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
 }
 
 .ns-settings-module:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 24px rgba(24, 144, 255, 0.15);
     border-color: #1890ff;
-    transform: translateY(-2px);
+    transform: translateY(-5px) scale(1.02);
+    z-index: 1;
 }
 
 .ns-settings-module::before {
@@ -115,12 +225,42 @@
     left: 0;
     width: 100%;
     height: 4px;
-    background: linear-gradient(90deg, #1890ff, #096dd9);
+    background: linear-gradient(90deg, #1890ff, #096dd9, #1890ff);
     opacity: 0;
     transition: opacity 0.3s;
+    background-size: 200% 100%;
+    animation: gradientMove 3s linear infinite;
+}
+
+@keyframes gradientMove {
+    0% {
+        background-position: 100% 0;
+    }
+    100% {
+        background-position: -100% 0;
+    }
 }
 
 .ns-settings-module:hover::before {
+    opacity: 1;
+}
+
+.ns-settings-module::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, 
+        rgba(24, 144, 255, 0.1) 0%,
+        transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+
+.ns-settings-module:hover::after {
     opacity: 1;
 }
 
@@ -156,15 +296,36 @@
     align-items: center;
     justify-content: space-between;
     margin-bottom: 16px;
-    padding: 8px 0;
+    padding: 8px 12px;
     transition: all 0.3s;
+    border-radius: 8px;
+    background: transparent;
+    position: relative;
+    overflow: hidden;
 }
 
 .ns-settings-item:hover {
     background: rgba(24, 144, 255, 0.05);
-    padding: 8px 12px;
-    margin: 0 -12px 16px -12px;
-    border-radius: 6px;
+    transform: translateX(4px);
+}
+
+.ns-settings-item::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, 
+        transparent 0%,
+        rgba(24, 144, 255, 0.1) 50%,
+        transparent 100%);
+    transform: scaleX(0);
+    transition: transform 0.3s;
+}
+
+.ns-settings-item:hover::after {
+    transform: scaleX(1);
 }
 
 .ns-settings-item-label {
@@ -184,12 +345,8 @@
     display: inline-block;
     width: 44px;
     height: 22px;
-}
-
-.ns-settings-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
+    transform-style: preserve-3d;
+    perspective: 800px;
 }
 
 .ns-settings-switch-slider {
@@ -200,9 +357,10 @@
     right: 0;
     bottom: 0;
     background-color: #f5f5f5;
-    transition: .4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 22px;
     border: 1px solid #d9d9d9;
+    transform-style: preserve-3d;
 }
 
 .ns-settings-switch-slider:before {
@@ -213,18 +371,18 @@
     left: 2px;
     bottom: 1px;
     background-color: white;
-    transition: .4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 50%;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .ns-settings-switch input:checked + .ns-settings-switch-slider {
-    background-color: #1890ff;
+    background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
     border-color: #1890ff;
 }
 
 .ns-settings-switch input:checked + .ns-settings-switch-slider:before {
-    transform: translateX(22px);
+    transform: translateX(22px) rotateY(180deg);
 }
 
 .ns-settings-switch input:focus + .ns-settings-switch-slider {
@@ -284,46 +442,45 @@
     min-width: 80px;
     height: 32px;
     padding: 4px 16px;
-    border: 1px solid #1890ff;
+    border: none;
     border-radius: 6px;
-    background-color: #1890ff;
+    background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
     color: #fff;
     font-size: 14px;
     cursor: pointer;
     transition: all 0.3s;
     position: relative;
     overflow: hidden;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .ns-settings-button:hover {
-    background-color: #40a9ff;
-    border-color: #40a9ff;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+    background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
 }
 
 .ns-settings-button:active {
-    background-color: #096dd9;
-    border-color: #096dd9;
     transform: translateY(1px);
+    background: linear-gradient(135deg, #096dd9 0%, #0050b3 100%);
 }
 
-.ns-settings-button::after {
+.ns-settings-button::before {
     content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 120%;
-    height: 120%;
-    background: rgba(255, 255, 255, 0.2);
-    transform: translate(-50%, -50%) scale(0);
-    border-radius: 50%;
-    opacity: 0;
-    transition: transform 0.5s, opacity 0.3s;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center,
+        rgba(255, 255, 255, 0.2) 0%,
+        transparent 60%);
+    transform: scale(0);
+    transition: transform 0.6s;
 }
 
-.ns-settings-button:active::after {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
+.ns-settings-button:hover::before {
+    transform: scale(1);
 }
 
 .ns-settings-save-bar {
@@ -333,19 +490,30 @@
     right: 0;
     height: 64px;
     padding: 16px 24px;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     border-top: 1px solid rgba(0, 0, 0, 0.06);
     display: flex;
     align-items: center;
     justify-content: flex-end;
     transform: translateY(100%);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 0 0 12px 12px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .ns-settings-save-bar-active {
     transform: translateY(0);
+    animation: saveBarPulse 2s infinite;
+}
+
+@keyframes saveBarPulse {
+    0%, 100% {
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+    }
+    50% {
+        box-shadow: 0 -4px 20px rgba(82, 196, 26, 0.15);
+    }
 }
 
 .ns-settings-save-button {
@@ -362,36 +530,33 @@
     transition: all 0.3s;
     position: relative;
     overflow: hidden;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .ns-settings-save-button:hover {
     background: linear-gradient(135deg, #73d13d 0%, #52c41a 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(82, 196, 26, 0.2);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(82, 196, 26, 0.3);
 }
 
 .ns-settings-save-button:active {
     background: linear-gradient(135deg, #389e0d 0%, #237804 100%);
-    transform: translateY(1px);
+    transform: translateY(1px) scale(0.98);
 }
 
-.ns-settings-save-button::after {
-    content: '';
+.ns-settings-save-button::before {
+    content: '✓';
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 120%;
-    height: 120%;
-    background: rgba(255, 255, 255, 0.2);
     transform: translate(-50%, -50%) scale(0);
-    border-radius: 50%;
     opacity: 0;
-    transition: transform 0.5s, opacity 0.3s;
+    transition: all 0.3s;
 }
 
-.ns-settings-save-button:active::after {
+.ns-settings-save-button:hover::before {
     transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
+    opacity: 0.8;
 }
 
 .ns-settings-content::-webkit-scrollbar {
@@ -422,5 +587,51 @@
     .ns-settings-panel {
         width: 95vw;
         max-height: 90vh;
+    }
+    
+    .ns-settings-module {
+        animation: none;
+    }
+    
+    .ns-settings-module:hover {
+        transform: translateY(-2px);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .ns-settings-panel {
+        background: #1f1f1f;
+        border-color: rgba(255, 255, 255, 0.15);
+    }
+    
+    .ns-settings-module {
+        background: #2a2a2a;
+        border-color: #383838;
+    }
+    
+    .ns-settings-module-title {
+        color: #e6e6e6;
+    }
+    
+    .ns-settings-module-desc {
+        color: #999;
+    }
+    
+    .ns-settings-item-label {
+        color: #bfbfbf;
+    }
+    
+    .ns-settings-item:hover .ns-settings-item-label {
+        color: #e6e6e6;
+    }
+    
+    .ns-settings-switch-slider {
+        background-color: #333;
+        border-color: #4d4d4d;
+    }
+    
+    .ns-settings-save-bar {
+        background: rgba(31, 31, 31, 0.95);
+        border-top-color: rgba(255, 255, 255, 0.1);
     }
 } 
