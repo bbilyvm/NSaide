@@ -12,7 +12,7 @@
 }
 
 .dark-layout .ns-usercard-enhanced {
-    background: #283046;
+    background: #333 !important;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
@@ -44,7 +44,7 @@
 }
 
 .dark-layout .ns-usercard-extension {
-    background: #283046;
+    background: #333 !important;
     border-top: 1px solid rgba(255,255,255,0.1);
     color: #b4b7bd;
 }
@@ -60,8 +60,8 @@
 }
 
 .dark-layout .ns-usercard-next-level {
-    background: linear-gradient(135deg, rgba(246,248,255,0.1) 0%, rgba(240,244,255,0.1) 100%);
-    border: 1px solid rgba(0,157,255,0.2);
+    background: #3b3b3b !important;
+    border: 1px solid rgba(255,255,255,0.1);
 }
 
 .ns-usercard-next-level.ns-usercard-max-level {
@@ -70,7 +70,7 @@
 }
 
 .dark-layout .ns-usercard-next-level.ns-usercard-max-level {
-    background: linear-gradient(135deg, rgba(255,249,240,0.1) 0%, rgba(255,244,230,0.1) 100%);
+    background: #3b3b3b !important;
     border: 1px solid rgba(255,171,0,0.2);
 }
 
@@ -104,7 +104,7 @@
 }
 
 .dark-layout .ns-usercard-activity {
-    background: #242b3d;
+    background: #3b3b3b !important;
     border: 1px solid rgba(255,255,255,0.1);
 }
 
@@ -231,7 +231,7 @@
 }
 
 .dark-layout .ns-usercard-userid {
-    background: linear-gradient(135deg, rgba(240,247,255,0.1) 0%, rgba(230,244,255,0.1) 100%);
+    background: #3b3b3b !important;
     border: 1px solid rgba(24,144,255,0.2);
     color: #40a9ff;
 } 
