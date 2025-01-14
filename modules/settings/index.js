@@ -148,6 +148,10 @@
                 const panel = document.createElement('div');
                 panel.className = 'ns-settings-panel';
                 panel.style.opacity = '0';
+                panel.style.position = 'fixed';
+                panel.style.top = '50vh';
+                panel.style.left = '50vw';
+                panel.style.transform = 'translate(-50%, -50%)';
                 panel.innerHTML = `
                     <div class="ns-settings-header">
                         <h2 class="ns-settings-header-title">NS助手设置</h2>
@@ -158,11 +162,15 @@
                     </div>
                 `;
 
-                document.body.insertBefore(panel, document.body.firstChild);
+                document.body.appendChild(panel);
 
-                setTimeout(() => {
+                const viewportHeight = window.innerHeight;
+                const maxHeight = Math.min(viewportHeight * 0.8, 800);
+                panel.style.maxHeight = `${maxHeight}px`;
+
+                requestAnimationFrame(() => {
                     panel.style.opacity = '1';
-                }, 10);
+                });
 
                 const closeBtn = panel.querySelector('.ns-settings-header-close');
                 closeBtn.onclick = () => {
@@ -187,7 +195,7 @@
                         initialY = e.clientY;
                     }
                     
-                    if (e.target === header) {
+                    if (e.target === header || e.target.closest('.ns-settings-header')) {
                         isDragging = true;
                         panel.style.transition = 'none';
                     }
@@ -210,8 +218,12 @@
                             currentY = e.clientY - initialY;
                         }
 
-                        const maxX = window.innerWidth / 2;
-                        const maxY = window.innerHeight / 2;
+                        const panelRect = panel.getBoundingClientRect();
+                        const margin = 20;
+                        
+                        const maxX = (window.innerWidth - panelRect.width) / 2 + margin;
+                        const maxY = (window.innerHeight - panelRect.height) / 2 + margin;
+                        
                         currentX = Math.max(-maxX, Math.min(currentX, maxX));
                         currentY = Math.max(-maxY, Math.min(currentY, maxY));
 
@@ -225,6 +237,30 @@
                 header.addEventListener("mousedown", dragStart);
                 document.addEventListener("mouseup", dragEnd);
                 document.addEventListener("mousemove", drag);
+
+                const handleResize = () => {
+                    const viewportHeight = window.innerHeight;
+                    const maxHeight = Math.min(viewportHeight * 0.8, 800);
+                    panel.style.maxHeight = `${maxHeight}px`;
+                    
+                    panel.style.transform = 'translate(-50%, -50%)';
+                    currentX = 0;
+                    currentY = 0;
+                };
+
+                window.addEventListener('resize', handleResize);
+
+                const cleanup = () => {
+                    window.removeEventListener('resize', handleResize);
+                    header.removeEventListener("touchstart", dragStart);
+                    header.removeEventListener("touchend", dragEnd);
+                    header.removeEventListener("touchmove", drag);
+                    header.removeEventListener("mousedown", dragStart);
+                    document.removeEventListener("mouseup", dragEnd);
+                    document.removeEventListener("mousemove", drag);
+                };
+
+                panel.addEventListener('remove', cleanup);
 
                 const saveBar = NSSettings.components.createSaveBar();
                 panel.appendChild(saveBar);
