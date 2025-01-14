@@ -102,44 +102,51 @@
             },
 
             calculateActivity(joinDays, posts, comments, chickenLegs) {
-                const dailyInteraction = ((posts + comments) / joinDays).toFixed(2);
-                let interactionScore = 0;
+                const dailyPosts = (posts / joinDays).toFixed(2);
+                const dailyComments = (comments / joinDays).toFixed(2);
+                const dailyChickenLegs = (chickenLegs / joinDays).toFixed(2);
+
+                let postScore = 0;
+                if (dailyPosts >= 0.5) postScore = 40;
+                else if (dailyPosts >= 0.25) postScore = 35;
+                else if (dailyPosts >= 0.15) postScore = 30;
+                else if (dailyPosts >= 0.07) postScore = 25;
+                else postScore = 20;
+
+                let commentScore = 0;
+                if (dailyComments >= 1) commentScore = 35;
+                else if (dailyComments >= 0.5) commentScore = 30;
+                else if (dailyComments >= 0.25) commentScore = 25;
+                else if (dailyComments >= 0.15) commentScore = 20;
+                else commentScore = 15;
+
                 let chickenScore = 0;
-                let timeScore = 0;
+                if (dailyChickenLegs >= 10) chickenScore = 25;
+                else if (dailyChickenLegs >= 7) chickenScore = 20;
+                else if (dailyChickenLegs >= 5) chickenScore = 15;
+                else if (dailyChickenLegs >= 3) chickenScore = 10;
+                else chickenScore = 5;
 
-                if (dailyInteraction >= 1) interactionScore = 30;
-                else if (dailyInteraction >= 0.5) interactionScore = 25;
-                else if (dailyInteraction >= 0.2) interactionScore = 20;
-                else if (dailyInteraction >= 0.1) interactionScore = 15;
-                else interactionScore = 10;
-
-                const chickenEfficiency = (chickenLegs / joinDays).toFixed(2);
-
-                if (chickenEfficiency >= 2) chickenScore = 40;
-                else if (chickenEfficiency >= 1.5) chickenScore = 35;
-                else if (chickenEfficiency >= 1) chickenScore = 30;
-                else if (chickenEfficiency >= 0.5) chickenScore = 25;
-                else chickenScore = 20;
-
-                timeScore = 30 - Math.floor(joinDays / 365) * 7;
-                timeScore = Math.max(0, timeScore);
+                let totalScore = postScore + commentScore + chickenScore;
                 
                 return {
-                    score: interactionScore + chickenScore + timeScore,
-                    level: this.getActivityLevel(interactionScore + chickenScore + timeScore),
-                    dailyInteraction,
-                    chickenEfficiency,
+                    score: totalScore,
+                    level: this.getActivityLevel(totalScore),
+                    dailyPosts,
+                    dailyComments,
+                    dailyChickenLegs,
+                    joinDays,
                     details: {
-                        interactionScore,
-                        chickenScore,
-                        timeScore
+                        postScore,
+                        commentScore,
+                        chickenScore
                     }
                 };
             },
 
             getActivityLevel(score) {
-                if (score >= 80) return 'high';
-                if (score >= 50) return 'medium';
+                if (score >= 85) return 'high';
+                if (score >= 60) return 'medium';
                 return 'low';
             },
 
@@ -346,18 +353,23 @@
                 const activityDiv = document.createElement('div');
                 activityDiv.className = `ns-usercard-activity ns-usercard-activity-${activity.level}`;
 
+                let bioBonus = userInfo.bio ? 5 : 0;
+                let finalScore = activity.score + bioBonus;
+
                 let activityHtml = `
                     <div class="ns-usercard-activity-title">
                         ${activity.level === 'high' ? '🔥' : activity.level === 'medium' ? '⭐' : '💫'}
-                        活跃指数
-                        <span class="ns-usercard-activity-score">${activity.score}分</span>
+                        可靠性指数
+                        <span class="ns-usercard-activity-score">${finalScore}分</span>
                     </div>
                     <div class="ns-usercard-activity-detail">
-                        📊 互动频率：${activity.dailyInteraction}次/天 (${activity.details.interactionScore}分)
+                        📝 发帖频率：${activity.dailyPosts}篇/天 (${activity.details.postScore}分)
                         <br>
-                        🍗 鸡腿效率：${activity.chickenEfficiency}个/天 (${activity.details.chickenScore}分)
+                        💬 评论频率：${activity.dailyComments}条/天 (${activity.details.commentScore}分)
                         <br>
-                        ⌛ 注册时长：${userData.joinDays}天 (${activity.details.timeScore}分)
+                        🍗 鸡腿效率：${activity.dailyChickenLegs}个/天 (${activity.details.chickenScore}分)
+                        <br>
+                        ⌛ 注册时长：${activity.joinDays}天 ${userInfo.bio ? '| 📝 个性签名 (+5分)' : ''}
                     </div>
                 `;
 
