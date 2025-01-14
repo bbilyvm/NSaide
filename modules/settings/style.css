@@ -7,40 +7,65 @@
     max-width: 90vw;
     max-height: 80vh;
     background: #fff;
-    border-radius: 8px 8px 0 0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     z-index: 9999;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     display: flex;
     flex-direction: column;
+    animation: panelFadeIn 0.3s ease-out;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes panelFadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -48%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
 }
 
 .ns-settings-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 24px;
-    border-bottom: 1px solid #f0f0f0;
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     cursor: move;
     user-select: none;
     flex-shrink: 0;
+    background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+    border-radius: 12px 12px 0 0;
 }
 
 .ns-settings-header-title {
     margin: 0;
-    font-size: 18px;
-    color: #1890ff;
+    font-size: 20px;
+    color: #fff;
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .ns-settings-header-close {
     font-size: 24px;
-    color: #999;
+    color: rgba(255, 255, 255, 0.85);
     cursor: pointer;
-    transition: color 0.3s;
+    transition: all 0.3s;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
 }
 
 .ns-settings-header-close:hover {
-    color: #666;
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
 }
 
 .ns-settings-content {
@@ -50,63 +75,108 @@
 }
 
 .ns-settings-content-modules {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    animation: modulesAppear 0.4s ease-out;
+}
+
+@keyframes modulesAppear {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .ns-settings-module {
-    background: #fafafa;
-    border-radius: 6px;
-    padding: 16px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
     border: 1px solid #f0f0f0;
-    transition: all 0.3s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 }
 
 .ns-settings-module:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
-    border-color: #e6f7ff;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border-color: #1890ff;
+    transform: translateY(-2px);
+}
+
+.ns-settings-module::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #1890ff, #096dd9);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.ns-settings-module:hover::before {
+    opacity: 1;
 }
 
 .ns-settings-module-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .ns-settings-module-title {
     margin: 0;
-    font-size: 16px;
-    color: #333;
+    font-size: 18px;
+    color: #262626;
+    font-weight: 500;
 }
 
 .ns-settings-module-desc {
     margin: 0;
     font-size: 14px;
-    color: #666;
-    line-height: 1.5;
+    color: #8c8c8c;
+    line-height: 1.6;
 }
 
 .ns-settings-module-content {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px dashed #e8e8e8;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px dashed #f0f0f0;
 }
 
 .ns-settings-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
     padding: 8px 0;
+    transition: all 0.3s;
+}
+
+.ns-settings-item:hover {
+    background: rgba(24, 144, 255, 0.05);
+    padding: 8px 12px;
+    margin: 0 -12px 16px -12px;
+    border-radius: 6px;
 }
 
 .ns-settings-item-label {
     flex: 1;
     font-size: 14px;
-    color: #333;
+    color: #595959;
     margin-right: 16px;
+    transition: color 0.3s;
+}
+
+.ns-settings-item:hover .ns-settings-item-label {
+    color: #262626;
 }
 
 .ns-settings-switch {
@@ -129,9 +199,10 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
+    background-color: #f5f5f5;
+    transition: .4s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 22px;
+    border: 1px solid #d9d9d9;
 }
 
 .ns-settings-switch-slider:before {
@@ -140,34 +211,41 @@
     height: 18px;
     width: 18px;
     left: 2px;
-    bottom: 2px;
+    bottom: 1px;
     background-color: white;
-    transition: .4s;
+    transition: .4s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .ns-settings-switch input:checked + .ns-settings-switch-slider {
     background-color: #1890ff;
-}
-
-.ns-settings-switch input:focus + .ns-settings-switch-slider {
-    box-shadow: 0 0 1px #1890ff;
+    border-color: #1890ff;
 }
 
 .ns-settings-switch input:checked + .ns-settings-switch-slider:before {
     transform: translateX(22px);
 }
 
+.ns-settings-switch input:focus + .ns-settings-switch-slider {
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
 .ns-settings-select {
     min-width: 120px;
     height: 32px;
-    padding: 4px 8px;
+    padding: 4px 12px;
     border: 1px solid #d9d9d9;
-    border-radius: 4px;
+    border-radius: 6px;
     background-color: #fff;
-    color: #333;
+    color: #262626;
     font-size: 14px;
     transition: all 0.3s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L2 4h8z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 28px;
 }
 
 .ns-settings-select:hover {
@@ -183,11 +261,11 @@
 .ns-settings-input {
     width: 200px;
     height: 32px;
-    padding: 4px 8px;
+    padding: 4px 12px;
     border: 1px solid #d9d9d9;
-    border-radius: 4px;
+    border-radius: 6px;
     background-color: #fff;
-    color: #333;
+    color: #262626;
     font-size: 14px;
     transition: all 0.3s;
 }
@@ -207,22 +285,45 @@
     height: 32px;
     padding: 4px 16px;
     border: 1px solid #1890ff;
-    border-radius: 4px;
+    border-radius: 6px;
     background-color: #1890ff;
     color: #fff;
     font-size: 14px;
     cursor: pointer;
     transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
 }
 
 .ns-settings-button:hover {
     background-color: #40a9ff;
     border-color: #40a9ff;
+    transform: translateY(-1px);
 }
 
 .ns-settings-button:active {
     background-color: #096dd9;
     border-color: #096dd9;
+    transform: translateY(1px);
+}
+
+.ns-settings-button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 120%;
+    height: 120%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%) scale(0);
+    border-radius: 50%;
+    opacity: 0;
+    transition: transform 0.5s, opacity 0.3s;
+}
+
+.ns-settings-button:active::after {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
 }
 
 .ns-settings-save-bar {
@@ -232,14 +333,15 @@
     right: 0;
     height: 64px;
     padding: 16px 24px;
-    background: #fff;
-    border-top: 1px solid #f0f0f0;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
     display: flex;
     align-items: center;
     justify-content: flex-end;
     transform: translateY(100%);
-    transition: transform 0.3s;
-    border-radius: 0 0 8px 8px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 0 0 12px 12px;
 }
 
 .ns-settings-save-bar-active {
@@ -247,24 +349,49 @@
 }
 
 .ns-settings-save-button {
-    min-width: 80px;
-    height: 32px;
-    padding: 4px 16px;
+    min-width: 88px;
+    height: 36px;
+    padding: 4px 20px;
     border: none;
-    border-radius: 4px;
-    background-color: #52c41a;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
     color: #fff;
     font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
 }
 
 .ns-settings-save-button:hover {
-    background-color: #73d13d;
+    background: linear-gradient(135deg, #73d13d 0%, #52c41a 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(82, 196, 26, 0.2);
 }
 
 .ns-settings-save-button:active {
-    background-color: #389e0d;
+    background: linear-gradient(135deg, #389e0d 0%, #237804 100%);
+    transform: translateY(1px);
+}
+
+.ns-settings-save-button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 120%;
+    height: 120%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%) scale(0);
+    border-radius: 50%;
+    opacity: 0;
+    transition: transform 0.5s, opacity 0.3s;
+}
+
+.ns-settings-save-button:active::after {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
 }
 
 .ns-settings-content::-webkit-scrollbar {
@@ -273,15 +400,27 @@
 }
 
 .ns-settings-content::-webkit-scrollbar-track {
-    background: #f5f5f5;
+    background: transparent;
     border-radius: 4px;
 }
 
 .ns-settings-content::-webkit-scrollbar-thumb {
-    background: #ccc;
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 4px;
+    transition: background 0.3s;
 }
 
 .ns-settings-content::-webkit-scrollbar-thumb:hover {
-    background: #999;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+    .ns-settings-content-modules {
+        grid-template-columns: 1fr;
+    }
+    
+    .ns-settings-panel {
+        width: 95vw;
+        max-height: 90vh;
+    }
 } 
