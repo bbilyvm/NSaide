@@ -128,12 +128,14 @@
                 else chickenScore = 3;
 
                 let rankScore = 0;
-                if (rank >= 6) rankScore = 30;
-                else if (rank >= 5) rankScore = 25;
-                else if (rank >= 4) rankScore = 20;
-                else if (rank >= 3) rankScore = 15;
-                else if (rank >= 2) rankScore = 10;
-                else rankScore = 5;
+                if (rank > 0) {
+                    if (rank >= 6) rankScore = 30;
+                    else if (rank >= 5) rankScore = 25;
+                    else if (rank >= 4) rankScore = 20;
+                    else if (rank >= 3) rankScore = 15;
+                    else if (rank >= 2) rankScore = 10;
+                    else rankScore = 5;
+                }
 
                 let totalScore = postScore + commentScore + chickenScore + rankScore;
                 let bioBonus = bio ? 5 : 0;
