@@ -2,45 +2,50 @@
     position: fixed;
     width: 260px !important;
     background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     z-index: 1000;
     overflow: visible !important;
-    transition: box-shadow 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: move;
     user-select: none;
+    backdrop-filter: blur(10px);
+    transform: translateZ(0);
 }
 
 .dark-layout .ns-usercard-enhanced {
     background: #333 !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
 }
 
 .ns-usercard-enhanced.ns-usercard-dragging {
     opacity: 0.95;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+    transform: scale(1.02);
 }
 
 .dark-layout .ns-usercard-enhanced.ns-usercard-dragging {
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.5);
 }
 
 .ns-usercard-enhanced:hover {
-    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.2);
+    transform: translateY(-2px);
 }
 
 .dark-layout .ns-usercard-enhanced:hover {
-    box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.4);
 }
 
 .ns-usercard-extension {
     background: #fff;
     border-top: 1px solid rgba(0,0,0,0.06);
-    padding: 12px;
+    padding: 16px;
     margin-top: 5px;
     font-size: 13px;
     color: #666;
-    border-radius: 0 0 8px 8px;
+    border-radius: 0 0 12px 12px;
+    transition: all 0.3s ease;
 }
 
 .dark-layout .ns-usercard-extension {
@@ -50,13 +55,19 @@
 }
 
 .ns-usercard-next-level {
-    padding: 12px;
+    padding: 16px;
     background: linear-gradient(135deg, #f6f8ff 0%, #f0f4ff 100%);
-    border-radius: 6px;
-    margin-bottom: 10px;
+    border-radius: 10px;
+    margin-bottom: 12px;
     border: 1px solid rgba(0,157,255,0.1);
     position: relative;
     overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ns-usercard-next-level:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,157,255,0.1);
 }
 
 .dark-layout .ns-usercard-next-level {
@@ -64,14 +75,8 @@
     border: 1px solid rgba(255,255,255,0.1);
 }
 
-.ns-usercard-next-level.ns-usercard-max-level {
-    background: linear-gradient(135deg, #fff9f0 0%, #fff4e6 100%);
-    border: 1px solid rgba(255,171,0,0.1);
-}
-
-.dark-layout .ns-usercard-next-level.ns-usercard-max-level {
-    background: #3b3b3b !important;
-    border: 1px solid rgba(255,171,0,0.2);
+.dark-layout .ns-usercard-next-level:hover {
+    box-shadow: 0 4px 12px rgba(0,157,255,0.15);
 }
 
 .ns-usercard-next-level-title {
@@ -95,17 +100,26 @@
 }
 
 .ns-usercard-activity {
-    padding: 12px;
+    padding: 16px;
     background: #fafafa;
-    border-radius: 6px;
-    margin-top: 5px;
+    border-radius: 10px;
+    margin-top: 8px;
     border: 1px solid rgba(0,0,0,0.06);
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ns-usercard-activity:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 .dark-layout .ns-usercard-activity {
     background: #3b3b3b !important;
     border: 1px solid rgba(255,255,255,0.1);
+}
+
+.dark-layout .ns-usercard-activity:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .ns-usercard-activity-title {
@@ -124,9 +138,16 @@
 
 .ns-usercard-activity-score {
     font-size: 12px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: normal;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.ns-usercard-activity-score:hover {
+    transform: translateY(-1px);
 }
 
 .ns-usercard-activity-detail {
@@ -155,7 +176,7 @@
 }
 
 .dark-layout .ns-usercard-activity-high .ns-usercard-activity-score {
-    background: rgba(103,194,58,0.2);
+    background: rgba(103,194,58,0.15);
     color: #95d475;
 }
 
@@ -175,7 +196,7 @@
 }
 
 .dark-layout .ns-usercard-activity-medium .ns-usercard-activity-score {
-    background: rgba(230,162,60,0.2);
+    background: rgba(230,162,60,0.15);
     color: #eebe77;
 }
 
@@ -195,43 +216,268 @@
 }
 
 .dark-layout .ns-usercard-activity-low .ns-usercard-activity-score {
-    background: rgba(144,147,153,0.2);
+    background: rgba(144,147,153,0.15);
     color: #a6a9ad;
 }
 
 .ns-usercard-next-level-progress {
-    margin-top: 8px;
-    height: 6px;
+    margin-top: 10px;
+    height: 8px;
     background: rgba(0,157,255,0.1);
-    border-radius: 3px;
+    border-radius: 4px;
     overflow: hidden;
     position: relative;
+    transition: all 0.3s ease;
+}
+
+.ns-usercard-next-level-progress:hover {
+    transform: scaleY(1.1);
 }
 
 .dark-layout .ns-usercard-next-level-progress {
-    background: rgba(0,157,255,0.2);
+    background: rgba(0,157,255,0.15);
 }
 
 .ns-usercard-next-level-progress-bar {
     height: 100%;
     background: linear-gradient(90deg, #009dff 0%, #33b1ff 100%);
-    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
+    overflow: hidden;
+}
+
+.ns-usercard-next-level-progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, 
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.3) 50%,
+        rgba(255,255,255,0) 100%
+    );
+    transform: translateX(-100%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
 }
 
 .ns-usercard-userid {
-    padding: 8px 12px;
+    padding: 12px 16px;
     background: linear-gradient(135deg, #f0f7ff 0%, #e6f4ff 100%);
-    border-radius: 6px;
-    margin-bottom: 10px;
+    border-radius: 10px;
+    margin-bottom: 12px;
     border: 1px solid rgba(24,144,255,0.1);
     color: #1890ff;
     font-size: 13px;
     font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ns-usercard-userid:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(24,144,255,0.1);
 }
 
 .dark-layout .ns-usercard-userid {
     background: #3b3b3b !important;
     border: 1px solid rgba(24,144,255,0.2);
     color: #40a9ff;
+}
+
+.dark-layout .ns-usercard-userid:hover {
+    box-shadow: 0 4px 12px rgba(24,144,255,0.15);
+}
+
+.ns-usercard-next-level-progress {
+    margin-top: 10px;
+    height: 8px;
+    background: rgba(0,157,255,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.ns-usercard-next-level-progress:hover {
+    transform: scaleY(1.1);
+}
+
+.dark-layout .ns-usercard-next-level-progress {
+    background: rgba(0,157,255,0.15);
+}
+
+.ns-usercard-next-level-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #009dff 0%, #33b1ff 100%);
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.ns-usercard-next-level-progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, 
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.3) 50%,
+        rgba(255,255,255,0) 100%
+    );
+    transform: translateX(-100%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.ns-usercard-activity-score {
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.ns-usercard-activity-score:hover {
+    transform: translateY(-1px);
+}
+
+.ns-usercard-activity-high .ns-usercard-activity-score {
+    background: rgba(103,194,58,0.1);
+    color: #67C23A;
+}
+
+.dark-layout .ns-usercard-activity-high .ns-usercard-activity-score {
+    background: rgba(103,194,58,0.15);
+    color: #95d475;
+}
+
+.ns-usercard-activity-medium .ns-usercard-activity-score {
+    background: rgba(230,162,60,0.1);
+    color: #E6A23C;
+}
+
+.dark-layout .ns-usercard-activity-medium .ns-usercard-activity-score {
+    background: rgba(230,162,60,0.15);
+    color: #eebe77;
+}
+
+.ns-usercard-activity-low .ns-usercard-activity-score {
+    background: rgba(144,147,153,0.1);
+    color: #909399;
+}
+
+.dark-layout .ns-usercard-activity-low .ns-usercard-activity-score {
+    background: rgba(144,147,153,0.15);
+    color: #a6a9ad;
+}
+
+.ns-usercard-next-level-progress {
+    margin-top: 10px;
+    height: 8px;
+    background: rgba(0,157,255,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.ns-usercard-next-level-progress:hover {
+    transform: scaleY(1.1);
+}
+
+.dark-layout .ns-usercard-next-level-progress {
+    background: rgba(0,157,255,0.15);
+}
+
+.ns-usercard-next-level-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #009dff 0%, #33b1ff 100%);
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.ns-usercard-next-level-progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, 
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.3) 50%,
+        rgba(255,255,255,0) 100%
+    );
+    transform: translateX(-100%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.ns-usercard-activity-score {
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.ns-usercard-activity-score:hover {
+    transform: translateY(-1px);
+}
+
+.ns-usercard-activity-high .ns-usercard-activity-score {
+    background: rgba(103,194,58,0.1);
+    color: #67C23A;
+}
+
+.dark-layout .ns-usercard-activity-high .ns-usercard-activity-score {
+    background: rgba(103,194,58,0.15);
+    color: #95d475;
+}
+
+.ns-usercard-activity-medium .ns-usercard-activity-score {
+    background: rgba(230,162,60,0.1);
+    color: #E6A23C;
+}
+
+.dark-layout .ns-usercard-activity-medium .ns-usercard-activity-score {
+    background: rgba(230,162,60,0.15);
+    color: #eebe77;
+}
+
+.ns-usercard-activity-low .ns-usercard-activity-score {
+    background: rgba(144,147,153,0.1);
+    color: #909399;
+}
+
+.dark-layout .ns-usercard-activity-low .ns-usercard-activity-score {
+    background: rgba(144,147,153,0.15);
+    color: #a6a9ad;
 } 
