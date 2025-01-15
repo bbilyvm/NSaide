@@ -88,8 +88,9 @@
             const imageUrl = GM_getValue(this.config.storage.BG_IMAGE_URL, '');
             const opacityEnabled = GM_getValue(this.config.storage.OPACITY_ENABLED, false);
             const opacityValue = GM_getValue(this.config.storage.OPACITY_VALUE, 100);
+            const isDarkMode = document.body.classList.contains('dark-layout');
 
-            console.log('[NS助手] 当前设置状态:', { enabled, imageUrl, opacityEnabled, opacityValue });
+            console.log('[NS助手] 当前设置状态:', { enabled, imageUrl, opacityEnabled, opacityValue, isDarkMode });
 
             const styleId = 'ns-ui-enhance-styles';
             let styleElement = document.getElementById(styleId);
@@ -116,12 +117,13 @@
 
             if (opacityEnabled) {
                 const alpha = opacityValue / 100;
+                const color = isDarkMode ? '39, 39, 39' : '255, 255, 255';
                 styles += `
                     #nsk-body, header, .card, .user-card, .post-content, .topic-content, .navbar, .sidebar {
-                        background-color: rgba(255, 255, 255, ${alpha}) !important;
+                        background-color: rgba(${color}, ${alpha}) !important;
                     }
                     footer {
-                        background-color: rgba(255, 255, 255, ${alpha * 0.2}) !important;
+                        background-color: rgba(${color}, ${alpha * 0.2}) !important;
                     }
                 `;
             }
@@ -133,6 +135,21 @@
         init() {
             console.log('[NS助手] 初始化UI增强模块');
             this.applyStyles();
+
+            const observer = new MutationObserver(() => {
+                if (document.body.classList.contains('dark-layout')) {
+                    console.log('[NS助手] 检测到切换到暗色模式');
+                } else {
+                    console.log('[NS助手] 检测到切换到亮色模式');
+                }
+                this.applyStyles();
+            });
+
+            observer.observe(document.body, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+
             console.log('[NS助手] UI增强模块初始化完成');
         }
     };
