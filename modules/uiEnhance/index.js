@@ -11,7 +11,9 @@
         config: {
             storage: {
                 BG_IMAGE_ENABLED: 'ns_ui_bg_image_enabled',
-                BG_IMAGE_URL: 'ns_ui_bg_image_url'
+                BG_IMAGE_URL: 'ns_ui_bg_image_url',
+                OPACITY_ENABLED: 'ns_ui_opacity_enabled',
+                OPACITY_VALUE: 'ns_ui_opacity_value'
             }
         },
 
@@ -30,6 +32,31 @@
                     label: '背景图片链接',
                     default: '',
                     value: () => GM_getValue('ns_ui_bg_image_url', '')
+                },
+                {
+                    id: 'opacityEnabled',
+                    type: 'switch',
+                    label: '启用组件透明',
+                    default: false,
+                    value: () => GM_getValue('ns_ui_opacity_enabled', false)
+                },
+                {
+                    id: 'opacityValue',
+                    type: 'range',
+                    label: '透明度',
+                    default: 100,
+                    min: 1,
+                    max: 100,
+                    value: () => GM_getValue('ns_ui_opacity_value', 100)
+                },
+                {
+                    id: 'opacityNumber',
+                    type: 'number',
+                    label: '透明度数值',
+                    default: 100,
+                    min: 1,
+                    max: 100,
+                    value: () => GM_getValue('ns_ui_opacity_value', 100)
                 }
             ],
             
@@ -38,19 +65,33 @@
                     GM_setValue('ns_ui_bg_image_enabled', value);
                 } else if (settingId === 'bgImageUrl') {
                     GM_setValue('ns_ui_bg_image_url', value);
+                } else if (settingId === 'opacityEnabled') {
+                    GM_setValue('ns_ui_opacity_enabled', value);
+                } else if (settingId === 'opacityValue' || settingId === 'opacityNumber') {
+                    const numValue = parseInt(value);
+                    if (!isNaN(numValue) && numValue >= 1 && numValue <= 100) {
+                        GM_setValue('ns_ui_opacity_value', numValue);
+                        const otherInputId = settingId === 'opacityValue' ? 'opacityNumber' : 'opacityValue';
+                        const otherInput = document.querySelector(`[data-setting-id="${otherInputId}"]`);
+                        if (otherInput) {
+                            otherInput.value = numValue;
+                        }
+                    }
                 }
-                NSUIEnhance.applyBackgroundImage();
+                NSUIEnhance.applyStyles();
             }
         },
 
-        applyBackgroundImage() {
-            console.log('[NS助手] 开始应用背景图片样式');
+        applyStyles() {
+            console.log('[NS助手] 开始应用样式');
             const enabled = GM_getValue(this.config.storage.BG_IMAGE_ENABLED, false);
             const imageUrl = GM_getValue(this.config.storage.BG_IMAGE_URL, '');
+            const opacityEnabled = GM_getValue(this.config.storage.OPACITY_ENABLED, false);
+            const opacityValue = GM_getValue(this.config.storage.OPACITY_VALUE, 100);
 
-            console.log('[NS助手] 当前设置状态:', { enabled, imageUrl });
+            console.log('[NS助手] 当前设置状态:', { enabled, imageUrl, opacityEnabled, opacityValue });
 
-            const styleId = 'ns-ui-bg-image-styles';
+            const styleId = 'ns-ui-enhance-styles';
             let styleElement = document.getElementById(styleId);
 
             if (!styleElement) {
@@ -59,8 +100,10 @@
                 document.head.appendChild(styleElement);
             }
 
+            let styles = '';
+
             if (enabled && imageUrl) {
-                styleElement.textContent = `
+                styles += `
                     body {
                         background-image: url('${imageUrl}') !important;
                         background-size: cover !important;
@@ -69,15 +112,23 @@
                         background-attachment: fixed !important;
                     }
                 `;
-            } else {
-                styleElement.textContent = '';
             }
-            console.log('[NS助手] 背景图片样式应用完成');
+
+            if (opacityEnabled) {
+                styles += `
+                    .card, .user-card, .post-content, .topic-content, .navbar, .sidebar, .footer {
+                        opacity: ${opacityValue / 100} !important;
+                    }
+                `;
+            }
+
+            styleElement.textContent = styles;
+            console.log('[NS助手] 样式应用完成');
         },
 
         init() {
             console.log('[NS助手] 初始化UI增强模块');
-            this.applyBackgroundImage();
+            this.applyStyles();
             console.log('[NS助手] UI增强模块初始化完成');
         }
     };
