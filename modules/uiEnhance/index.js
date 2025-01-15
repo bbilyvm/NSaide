@@ -117,13 +117,18 @@
 
             if (opacityEnabled) {
                 const alpha = opacityValue / 100;
-                const color = isDarkMode ? '39, 39, 39' : '255, 255, 255';
+                const mainColor = isDarkMode ? '39, 39, 39' : '255, 255, 255';
+                const specialColor = isDarkMode ? '59, 59, 59' : '255, 255, 255';
                 styles += `
                     #nsk-body, header, .card, .user-card, .post-content, .topic-content, .navbar, .sidebar {
-                        background-color: rgba(${color}, ${alpha}) !important;
+                        background-color: rgba(${mainColor}, ${alpha}) !important;
                     }
                     footer {
-                        background-color: rgba(${color}, ${alpha * 0.2}) !important;
+                        background-color: rgba(${mainColor}, ${alpha * 0.2}) !important;
+                    }
+                    .tag, .pagination .page-item .page-link, .editor-toolbar, .CodeMirror, 
+                    .user-info-card, .stat-block, .badge, .dropdown-menu {
+                        background-color: rgba(${specialColor}, ${alpha}) !important;
                     }
                 `;
             }
