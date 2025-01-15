@@ -115,9 +115,13 @@
             }
 
             if (opacityEnabled) {
+                const alpha = opacityValue / 100;
                 styles += `
-                    .card, .user-card, .post-content, .topic-content, .navbar, .sidebar, .footer {
-                        opacity: ${opacityValue / 100} !important;
+                    #nsk-body, .card, .user-card, .post-content, .topic-content, .navbar, .sidebar {
+                        background-color: rgba(255, 255, 255, ${alpha}) !important;
+                    }
+                    footer {
+                        background-color: rgba(255, 255, 255, ${alpha * 0.2}) !important;
                     }
                 `;
             }
