@@ -10,98 +10,41 @@
 
         config: {
             storage: {
-                THEME: 'ns_ui_theme',
-                BG_COLOR: 'ns_ui_bg_color',
-                CUSTOM_CSS: 'ns_ui_custom_css'
+                BG_IMAGE_ENABLED: 'ns_ui_bg_image_enabled',
+                BG_IMAGE_URL: 'ns_ui_bg_image_url'
             }
         },
 
         settings: {
             items: [
                 {
-                    id: 'theme',
-                    type: 'select',
-                    label: '主题模式',
-                    default: 'default',
-                    value: () => GM_getValue('ns_ui_theme', 'default'),
-                    options: [
-                        { value: 'default', label: '默认主题' },
-                        { value: 'dark', label: '深色主题' },
-                        { value: 'light', label: '浅色主题' },
-                        { value: 'custom', label: '自定义主题' }
-                    ]
+                    id: 'bgImageEnabled',
+                    type: 'switch',
+                    label: '启用背景图片',
+                    default: false,
+                    value: () => GM_getValue('ns_ui_bg_image_enabled', false)
                 },
                 {
-                    id: 'bgColor',
+                    id: 'bgImageUrl',
                     type: 'text',
-                    label: '背景颜色',
-                    default: '#ffffff',
-                    value: () => GM_getValue('ns_ui_bg_color', '#ffffff')
-                },
-                {
-                    id: 'customCSS',
-                    type: 'text',
-                    label: '自定义CSS',
+                    label: '背景图片链接',
                     default: '',
-                    value: () => GM_getValue('ns_ui_custom_css', '')
-                },
-                {
-                    id: 'apply',
-                    type: 'button',
-                    label: '应用样式',
-                    onClick: () => NSUIEnhance.applyStyles()
+                    value: () => GM_getValue('ns_ui_bg_image_url', '')
                 }
             ],
             
             handleChange(settingId, value, settingsManager) {
                 settingsManager.cacheValue(`ns_ui_${settingId}`, value);
+                NSUIEnhance.applyBackgroundImage();
             }
         },
 
-        applyStyles() {
-            console.log('[NS助手] 开始应用UI样式');
-            const theme = GM_getValue(this.config.storage.THEME, 'default');
-            const bgColor = GM_getValue(this.config.storage.BG_COLOR, '#ffffff');
-            const customCSS = GM_getValue(this.config.storage.CUSTOM_CSS, '');
+        applyBackgroundImage() {
+            console.log('[NS助手] 开始应用背景图片样式');
+            const enabled = GM_getValue(this.config.storage.BG_IMAGE_ENABLED, false);
+            const imageUrl = GM_getValue(this.config.storage.BG_IMAGE_URL, '');
 
-            let styles = '';
-
-            switch (theme) {
-                case 'dark':
-                    styles += `
-                        body {
-                            background-color: #1a1a1a !important;
-                            color: #ffffff !important;
-                        }
-                        .card {
-                            background-color: #2d2d2d !important;
-                            border-color: #3d3d3d !important;
-                        }
-                    `;
-                    break;
-                case 'light':
-                    styles += `
-                        body {
-                            background-color: #f5f5f5 !important;
-                            color: #333333 !important;
-                        }
-                        .card {
-                            background-color: #ffffff !important;
-                            border-color: #e8e8e8 !important;
-                        }
-                    `;
-                    break;
-                case 'custom':
-                    styles += `
-                        body {
-                            background-color: ${bgColor} !important;
-                        }
-                        ${customCSS}
-                    `;
-                    break;
-            }
-
-            const styleId = 'ns-ui-enhance-styles';
+            const styleId = 'ns-ui-bg-image-styles';
             let styleElement = document.getElementById(styleId);
 
             if (!styleElement) {
@@ -110,13 +53,42 @@
                 document.head.appendChild(styleElement);
             }
 
-            styleElement.textContent = styles;
-            console.log('[NS助手] UI样式应用完成');
+            if (enabled && imageUrl) {
+                styleElement.textContent = `
+                    body::before {
+                        content: '';
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        z-index: -1;
+                        background-image: url('${imageUrl}');
+                        background-size: cover;
+                        background-position: center center;
+                        background-repeat: no-repeat;
+                        background-attachment: fixed;
+                        opacity: 0.9;
+                        pointer-events: none;
+                    }
+                    body {
+                        position: relative;
+                        background-color: transparent !important;
+                    }
+                    .card, .user-card, .post-content, .topic-content {
+                        background-color: rgba(255, 255, 255, 0.9) !important;
+                        backdrop-filter: blur(10px);
+                    }
+                `;
+            } else {
+                styleElement.textContent = '';
+            }
+            console.log('[NS助手] 背景图片样式应用完成');
         },
 
         init() {
             console.log('[NS助手] 初始化UI增强模块');
-            this.applyStyles();
+            this.applyBackgroundImage();
             console.log('[NS助手] UI增强模块初始化完成');
         }
     };
