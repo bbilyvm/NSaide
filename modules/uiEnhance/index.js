@@ -182,10 +182,7 @@
                     body .navbar,
                     body .sidebar,
                     body .user-info-card,
-                    body .stat-block {
-                        ${opacityEnabled ? `background-color: rgba(${mainColor}, ${alpha}) !important;` : ''}
-                        ${blur}
-                    }
+
                     body footer {
                         ${opacityEnabled ? `background-color: rgba(${mainColor}, ${alpha * 0.2}) !important;` : ''}
                         ${blur}
@@ -200,13 +197,10 @@
                     body .badge,
                     body .dropdown-menu,
                     body .md-editor,
-                    body .user-stat,
                     body .search-box,
                     body .pure-form,
-                    body .btn.new-discussion,
                     body .nav-item-btn,
                     body .submit.btn,
-                    body .pager-pos,
                     body .btn,
                     body .form-control,
                     body .md-editor-toolbar,
