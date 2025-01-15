@@ -155,11 +155,15 @@
                 panel.innerHTML = `
                     <div class="ns-settings-header">
                         <h2 class="ns-settings-header-title">NS助手设置</h2>
-                        <span class="ns-settings-header-close">×</span>
+                        <div class="ns-settings-header-controls">
+                            <span class="ns-settings-header-fullscreen"></span>
+                            <span class="ns-settings-header-close">×</span>
+                        </div>
                     </div>
                     <div class="ns-settings-content">
                         <div class="ns-settings-content-modules"></div>
                     </div>
+                    <div class="ns-settings-resize-handle"></div>
                 `;
 
                 document.body.appendChild(panel);
@@ -173,10 +177,27 @@
                 });
 
                 const closeBtn = panel.querySelector('.ns-settings-header-close');
+                const fullscreenBtn = panel.querySelector('.ns-settings-header-fullscreen');
+
                 closeBtn.onclick = () => {
                     panel.style.opacity = '0';
                     panel.style.transform = 'translate(-50%, -48%) scale(0.95)';
                     setTimeout(() => panel.remove(), 300);
+                };
+
+                fullscreenBtn.onclick = () => {
+                    panel.classList.toggle('fullscreen');
+                    if (panel.classList.contains('fullscreen')) {
+                        panel._prevStyle = {
+                            width: panel.style.width,
+                            height: panel.style.height
+                        };
+                    } else {
+                        if (panel._prevStyle) {
+                            panel.style.width = panel._prevStyle.width;
+                            panel.style.height = panel._prevStyle.height;
+                        }
+                    }
                 };
 
                 const header = panel.querySelector('.ns-settings-header');
