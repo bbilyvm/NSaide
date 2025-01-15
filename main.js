@@ -4,6 +4,7 @@
 // @version      0.1.0
 // @description  NodeSeek论坛增强脚本
 // @author       stardeep
+// @license      GPL-3.0
 // @match        https://www.nodeseek.com/*
 // @icon         https://drstth.com/download/favicon.ico
 // @grant        GM_addStyle
