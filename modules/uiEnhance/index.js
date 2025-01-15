@@ -117,7 +117,7 @@
             if (opacityEnabled) {
                 const alpha = opacityValue / 100;
                 styles += `
-                    #nsk-body, .card, .user-card, .post-content, .topic-content, .navbar, .sidebar {
+                    #nsk-body, header, .card, .user-card, .post-content, .topic-content, .navbar, .sidebar {
                         background-color: rgba(255, 255, 255, ${alpha}) !important;
                     }
                     footer {
