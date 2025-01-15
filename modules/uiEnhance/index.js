@@ -120,24 +120,60 @@
                 const mainColor = isDarkMode ? '39, 39, 39' : '255, 255, 255';
                 const specialColor = isDarkMode ? '59, 59, 59' : '255, 255, 255';
                 styles += `
-                    #nsk-body, header, .card, .user-card, .post-content, .topic-content, .navbar, .sidebar {
+                    body #nsk-body,
+                    body header,
+                    body .card,
+                    body .user-card,
+                    body .post-content,
+                    body .topic-content,
+                    body .navbar,
+                    body .sidebar,
+                    body .user-info-card,
+                    body .stat-block {
                         background-color: rgba(${mainColor}, ${alpha}) !important;
                     }
-                    footer {
+                    body footer {
                         background-color: rgba(${mainColor}, ${alpha * 0.2}) !important;
                     }
-                    .tag, .pagination .page-item .page-link, .editor-toolbar, .CodeMirror, 
-                    .user-info-card, .stat-block, .badge, .dropdown-menu,
-                    .md-editor, .user-stat, .search-box, .pure-form,
-                    .btn.new-discussion, .nav-item-btn, .submit.btn.focus-visible,
-                    .pager-pos, .btn, .form-control {
+                    body .tag,
+                    body .pagination .page-item .page-link,
+                    body .editor-toolbar,
+                    body .CodeMirror,
+                    body .badge,
+                    body .dropdown-menu,
+                    body .md-editor,
+                    body .user-stat,
+                    body .search-box,
+                    body .pure-form,
+                    body .btn.new-discussion,
+                    body .nav-item-btn,
+                    body .submit.btn,
+                    body .pager-pos,
+                    body .btn,
+                    body .form-control,
+                    body .md-editor-toolbar,
+                    body .editor-toolbar,
+                    body .CodeMirror,
+                    body .editor-preview,
+                    body .editor-preview-side,
+                    body .editor-statusbar,
+                    body .md-editor-content {
                         background-color: rgba(${specialColor}, ${alpha}) !important;
                     }
-                    .md-editor-preview {
+                    body .md-editor-preview,
+                    body .editor-preview,
+                    body .editor-preview-side {
                         background-color: rgba(${mainColor}, ${alpha}) !important;
                     }
-                    .btn:hover, .nav-item-btn:hover {
+                    body .btn:hover,
+                    body .nav-item-btn:hover,
+                    body .page-link:hover {
                         background-color: rgba(${specialColor}, ${Math.min(alpha + 0.1, 1)}) !important;
+                    }
+                    body .CodeMirror *,
+                    body .editor-toolbar *,
+                    body .editor-statusbar * {
+                        background-color: transparent !important;
                     }
                 `;
             }
@@ -154,7 +190,7 @@
                 if (document.body.classList.contains('dark-layout')) {
                     console.log('[NS助手] 检测到切换到暗色模式');
                 } else {
-                    console.log('[NS助手] 检测到切换到亮色模式');
+                    console.log('[NS助手] 检测到切换到亮色模式 v0.1.0');
                 }
                 this.applyStyles();
             });
