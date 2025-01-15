@@ -166,73 +166,88 @@
                 `;
             }
 
-            const alpha = opacityEnabled ? opacityValue / 100 : 1;
-            const blur = blurEnabled ? `backdrop-filter: blur(${blurValue}px) !important;` : '';
-            const mainColor = isDarkMode ? '39, 39, 39' : '255, 255, 255';
-            const specialColor = isDarkMode ? '59, 59, 59' : '255, 255, 255';
+            if (opacityEnabled || blurEnabled) {
+                const mainColor = isDarkMode ? '39, 39, 39' : '255, 255, 255';
+                const specialColor = isDarkMode ? '59, 59, 59' : '255, 255, 255';
+                const alpha = opacityEnabled ? opacityValue / 100 : 1;
+                const blur = blurEnabled ? `backdrop-filter: blur(${blurValue}px) !important;` : '';
 
-            styles += `
-                body #nsk-body,
-                body header,
-                body .card,
-                body .user-card,
-                body .post-content,
-                body .topic-content,
-                body .navbar,
-                body .sidebar,
-                body .user-info-card,
-                body .stat-block {
-                    background-color: rgba(${mainColor}, ${alpha}) !important;
-                    ${blur}
-                }
-                body footer {
-                    background-color: rgba(${mainColor}, ${alpha * 0.2}) !important;
-                    ${blur}
-                }
-                body .tag,
-                body .pagination .page-item .page-link,
-                body .editor-toolbar,
-                body .CodeMirror,
-                body .badge,
-                body .dropdown-menu,
-                body .md-editor,
-                body .user-stat,
-                body .stat-block,
-                body .search-box,
-                body .pure-form,
-                body .btn.new-discussion,
-                body .nav-item-btn,
-                body .submit.btn,
-                body .pager-pos,
-                body .btn,
-                body .form-control,
-                body .md-editor-toolbar,
-                body .editor-toolbar,
-                body .CodeMirror,
-                body .editor-preview,
-                body .editor-preview-side,
-                body .editor-statusbar,
-                body .md-editor-content {
-                    background-color: rgba(${specialColor}, ${alpha}) !important;
-                    ${blur}
-                }
-                body .md-editor-preview,
-                body .editor-preview,
-                body .editor-preview-side {
-                    background-color: rgba(${mainColor}, ${alpha}) !important;
-                    ${blur}
-                }
-                body .btn:hover,
-                body .nav-item-btn:hover,
-                body .page-link:hover {
-                    background-color: rgba(${specialColor}, ${Math.min(alpha + 0.1, 1)}) !important;
-                }
-                body .CodeMirror *,
-                body .editor-toolbar *,
-                body .editor-statusbar * {
-                    background-color: transparent !important;
-                }
-            `;
+                const mainElements = `
+                    body #nsk-body,
+                    body header,
+                    body .card,
+                    body .user-card,
+                    body .post-content,
+                    body .topic-content,
+                    body .navbar,
+                    body .sidebar,
+                    body .user-info-card,
+                    body .stat-block {
+                        ${opacityEnabled ? `background-color: rgba(${mainColor}, ${alpha}) !important;` : ''}
+                        ${blur}
+                    }
+                    body footer {
+                        ${opacityEnabled ? `background-color: rgba(${mainColor}, ${alpha * 0.2}) !important;` : ''}
+                        ${blur}
+                    }
+                `;
+
+                const specialElements = `
+                    body .tag,
+                    body .pagination .page-item .page-link,
+                    body .editor-toolbar,
+                    body .CodeMirror,
+                    body .badge,
+                    body .dropdown-menu,
+                    body .md-editor,
+                    body .user-stat,
+                    body .search-box,
+                    body .pure-form,
+                    body .btn.new-discussion,
+                    body .nav-item-btn,
+                    body .submit.btn,
+                    body .pager-pos,
+                    body .btn,
+                    body .form-control,
+                    body .md-editor-toolbar,
+                    body .editor-toolbar,
+                    body .CodeMirror,
+                    body .editor-preview,
+                    body .editor-preview-side,
+                    body .editor-statusbar,
+                    body .md-editor-content {
+                        ${opacityEnabled ? `background-color: rgba(${specialColor}, ${alpha}) !important;` : ''}
+                        ${blur}
+                    }
+                `;
+
+                const previewElements = `
+                    body .md-editor-preview,
+                    body .editor-preview,
+                    body .editor-preview-side {
+                        ${opacityEnabled ? `background-color: rgba(${mainColor}, ${alpha}) !important;` : ''}
+                        ${blur}
+                    }
+                `;
+
+                const hoverElements = opacityEnabled ? `
+                    body .btn:hover,
+                    body .nav-item-btn:hover,
+                    body .page-link:hover {
+                        background-color: rgba(${specialColor}, ${Math.min(alpha + 0.1, 1)}) !important;
+                    }
+                ` : '';
+
+                const editorElements = `
+                    body .CodeMirror *,
+                    body .editor-toolbar *,
+                    body .editor-statusbar * {
+                        background-color: transparent !important;
+                    }
+                `;
+
+                styles += mainElements + specialElements + previewElements + hoverElements + editorElements;
+            }
 
             styleElement.textContent = styles;
             console.log('[NS助手] 样式应用完成');
