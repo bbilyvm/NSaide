@@ -127,8 +127,17 @@
                         background-color: rgba(${mainColor}, ${alpha * 0.2}) !important;
                     }
                     .tag, .pagination .page-item .page-link, .editor-toolbar, .CodeMirror, 
-                    .user-info-card, .stat-block, .badge, .dropdown-menu {
+                    .user-info-card, .stat-block, .badge, .dropdown-menu,
+                    .md-editor, .user-stat, .search-box, .pure-form,
+                    .btn.new-discussion, .nav-item-btn, .submit.btn.focus-visible,
+                    .pager-pos, .btn, .form-control {
                         background-color: rgba(${specialColor}, ${alpha}) !important;
+                    }
+                    .md-editor-preview {
+                        background-color: rgba(${mainColor}, ${alpha}) !important;
+                    }
+                    .btn:hover, .nav-item-btn:hover {
+                        background-color: rgba(${specialColor}, ${Math.min(alpha + 0.1, 1)}) !important;
                     }
                 `;
             }
