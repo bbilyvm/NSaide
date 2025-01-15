@@ -13,7 +13,9 @@
                 BG_IMAGE_ENABLED: 'ns_ui_bg_image_enabled',
                 BG_IMAGE_URL: 'ns_ui_bg_image_url',
                 OPACITY_ENABLED: 'ns_ui_opacity_enabled',
-                OPACITY_VALUE: 'ns_ui_opacity_value'
+                OPACITY_VALUE: 'ns_ui_opacity_value',
+                BLUR_ENABLED: 'ns_ui_blur_enabled',
+                BLUR_VALUE: 'ns_ui_blur_value'
             }
         },
 
@@ -57,6 +59,31 @@
                     min: 1,
                     max: 100,
                     value: () => GM_getValue('ns_ui_opacity_value', 100)
+                },
+                {
+                    id: 'blurEnabled',
+                    type: 'switch',
+                    label: '启用磨砂效果',
+                    default: false,
+                    value: () => GM_getValue('ns_ui_blur_enabled', false)
+                },
+                {
+                    id: 'blurValue',
+                    type: 'range',
+                    label: '模糊程度',
+                    default: 10,
+                    min: 1,
+                    max: 20,
+                    value: () => GM_getValue('ns_ui_blur_value', 10)
+                },
+                {
+                    id: 'blurNumber',
+                    type: 'number',
+                    label: '模糊数值',
+                    default: 10,
+                    min: 1,
+                    max: 20,
+                    value: () => GM_getValue('ns_ui_blur_value', 10)
                 }
             ],
             
@@ -77,6 +104,18 @@
                             otherInput.value = numValue;
                         }
                     }
+                } else if (settingId === 'blurEnabled') {
+                    GM_setValue('ns_ui_blur_enabled', value);
+                } else if (settingId === 'blurValue' || settingId === 'blurNumber') {
+                    const numValue = parseInt(value);
+                    if (!isNaN(numValue) && numValue >= 1 && numValue <= 20) {
+                        GM_setValue('ns_ui_blur_value', numValue);
+                        const otherInputId = settingId === 'blurValue' ? 'blurNumber' : 'blurValue';
+                        const otherInput = document.querySelector(`[data-setting-id="${otherInputId}"]`);
+                        if (otherInput) {
+                            otherInput.value = numValue;
+                        }
+                    }
                 }
                 NSUIEnhance.applyStyles();
             }
@@ -88,9 +127,11 @@
             const imageUrl = GM_getValue(this.config.storage.BG_IMAGE_URL, '');
             const opacityEnabled = GM_getValue(this.config.storage.OPACITY_ENABLED, false);
             const opacityValue = GM_getValue(this.config.storage.OPACITY_VALUE, 100);
+            const blurEnabled = GM_getValue(this.config.storage.BLUR_ENABLED, false);
+            const blurValue = GM_getValue(this.config.storage.BLUR_VALUE, 10);
             const isDarkMode = document.body.classList.contains('dark-layout');
 
-            console.log('[NS助手] 当前设置状态:', { enabled, imageUrl, opacityEnabled, opacityValue, isDarkMode });
+            console.log('[NS助手] 当前设置状态:', { enabled, imageUrl, opacityEnabled, opacityValue, blurEnabled, blurValue, isDarkMode });
 
             const styleId = 'ns-ui-enhance-styles';
             let styleElement = document.getElementById(styleId);
@@ -115,68 +156,72 @@
                 `;
             }
 
-            if (opacityEnabled) {
-                const alpha = opacityValue / 100;
-                const mainColor = isDarkMode ? '39, 39, 39' : '255, 255, 255';
-                const specialColor = isDarkMode ? '59, 59, 59' : '255, 255, 255';
-                styles += `
-                    body #nsk-body,
-                    body header,
-                    body .card,
-                    body .user-card,
-                    body .post-content,
-                    body .topic-content,
-                    body .navbar,
-                    body .sidebar,
-                    body .user-info-card,
-                    body .stat-block {
-                        background-color: rgba(${mainColor}, ${alpha}) !important;
-                    }
-                    body footer {
-                        background-color: rgba(${mainColor}, ${alpha * 0.2}) !important;
-                    }
-                    body .tag,
-                    body .pagination .page-item .page-link,
-                    body .editor-toolbar,
-                    body .CodeMirror,
-                    body .badge,
-                    body .dropdown-menu,
-                    body .md-editor,
-                    body .user-stat,
-                    body .search-box,
-                    body .pure-form,
-                    body .btn.new-discussion,
-                    body .nav-item-btn,
-                    body .submit.btn,
-                    body .pager-pos,
-                    body .btn,
-                    body .form-control,
-                    body .md-editor-toolbar,
-                    body .editor-toolbar,
-                    body .CodeMirror,
-                    body .editor-preview,
-                    body .editor-preview-side,
-                    body .editor-statusbar,
-                    body .md-editor-content {
-                        background-color: rgba(${specialColor}, ${alpha}) !important;
-                    }
-                    body .md-editor-preview,
-                    body .editor-preview,
-                    body .editor-preview-side {
-                        background-color: rgba(${mainColor}, ${alpha}) !important;
-                    }
-                    body .btn:hover,
-                    body .nav-item-btn:hover,
-                    body .page-link:hover {
-                        background-color: rgba(${specialColor}, ${Math.min(alpha + 0.1, 1)}) !important;
-                    }
-                    body .CodeMirror *,
-                    body .editor-toolbar *,
-                    body .editor-statusbar * {
-                        background-color: transparent !important;
-                    }
-                `;
-            }
+            const alpha = opacityEnabled ? opacityValue / 100 : 1;
+            const blur = blurEnabled ? `backdrop-filter: blur(${blurValue}px) !important;` : '';
+            const mainColor = isDarkMode ? '39, 39, 39' : '255, 255, 255';
+            const specialColor = isDarkMode ? '59, 59, 59' : '255, 255, 255';
+
+            styles += `
+                body #nsk-body,
+                body header,
+                body .card,
+                body .user-card,
+                body .post-content,
+                body .topic-content,
+                body .navbar,
+                body .sidebar,
+                body .user-info-card,
+                body .stat-block {
+                    background-color: rgba(${mainColor}, ${alpha}) !important;
+                    ${blur}
+                }
+                body footer {
+                    background-color: rgba(${mainColor}, ${alpha * 0.2}) !important;
+                    ${blur}
+                }
+                body .tag,
+                body .pagination .page-item .page-link,
+                body .editor-toolbar,
+                body .CodeMirror,
+                body .badge,
+                body .dropdown-menu,
+                body .md-editor,
+                body .user-stat,
+                body .search-box,
+                body .pure-form,
+                body .btn.new-discussion,
+                body .nav-item-btn,
+                body .submit.btn,
+                body .pager-pos,
+                body .btn,
+                body .form-control,
+                body .md-editor-toolbar,
+                body .editor-toolbar,
+                body .CodeMirror,
+                body .editor-preview,
+                body .editor-preview-side,
+                body .editor-statusbar,
+                body .md-editor-content {
+                    background-color: rgba(${specialColor}, ${alpha}) !important;
+                    ${blur}
+                }
+                body .md-editor-preview,
+                body .editor-preview,
+                body .editor-preview-side {
+                    background-color: rgba(${mainColor}, ${alpha}) !important;
+                    ${blur}
+                }
+                body .btn:hover,
+                body .nav-item-btn:hover,
+                body .page-link:hover {
+                    background-color: rgba(${specialColor}, ${Math.min(alpha + 0.1, 1)}) !important;
+                }
+                body .CodeMirror *,
+                body .editor-toolbar *,
+                body .editor-statusbar * {
+                    background-color: transparent !important;
+                }
+            `;
 
             styleElement.textContent = styles;
             console.log('[NS助手] 样式应用完成');
@@ -190,7 +235,7 @@
                 if (document.body.classList.contains('dark-layout')) {
                     console.log('[NS助手] 检测到切换到暗色模式');
                 } else {
-                    console.log('[NS助手] 检测到切换到亮色模式 v0.1.0');
+                    console.log('[NS助手] 检测到切换到亮色模式');
                 }
                 this.applyStyles();
             });
