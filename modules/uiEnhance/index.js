@@ -34,7 +34,11 @@
             ],
             
             handleChange(settingId, value, settingsManager) {
-                settingsManager.cacheValue(`ns_ui_${settingId}`, value);
+                if (settingId === 'bgImageEnabled') {
+                    GM_setValue('ns_ui_bg_image_enabled', value);
+                } else if (settingId === 'bgImageUrl') {
+                    GM_setValue('ns_ui_bg_image_url', value);
+                }
                 NSUIEnhance.applyBackgroundImage();
             }
         },
@@ -43,6 +47,8 @@
             console.log('[NS助手] 开始应用背景图片样式');
             const enabled = GM_getValue(this.config.storage.BG_IMAGE_ENABLED, false);
             const imageUrl = GM_getValue(this.config.storage.BG_IMAGE_URL, '');
+
+            console.log('[NS助手] 当前设置状态:', { enabled, imageUrl });
 
             const styleId = 'ns-ui-bg-image-styles';
             let styleElement = document.getElementById(styleId);
@@ -55,29 +61,12 @@
 
             if (enabled && imageUrl) {
                 styleElement.textContent = `
-                    body::before {
-                        content: '';
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        z-index: -1;
-                        background-image: url('${imageUrl}');
-                        background-size: cover;
-                        background-position: center center;
-                        background-repeat: no-repeat;
-                        background-attachment: fixed;
-                        opacity: 0.9;
-                        pointer-events: none;
-                    }
                     body {
-                        position: relative;
-                        background-color: transparent !important;
-                    }
-                    .card, .user-card, .post-content, .topic-content {
-                        background-color: rgba(255, 255, 255, 0.9) !important;
-                        backdrop-filter: blur(10px);
+                        background-image: url('${imageUrl}') !important;
+                        background-size: cover !important;
+                        background-position: center top !important;
+                        background-repeat: no-repeat !important;
+                        background-attachment: fixed !important;
                     }
                 `;
             } else {
