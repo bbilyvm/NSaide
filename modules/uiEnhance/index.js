@@ -200,8 +200,6 @@
                     body .search-box,
                     body .pure-form,
                     body .nav-item-btn,
-                    body .submit.btn,
-                    body .btn,
                     body .form-control,
                     body .md-editor-toolbar,
                     body .editor-toolbar,
