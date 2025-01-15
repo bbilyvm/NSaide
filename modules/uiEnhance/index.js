@@ -95,11 +95,16 @@
                 } else if (settingId === 'opacityEnabled') {
                     GM_setValue('ns_ui_opacity_enabled', value);
                 } else if (settingId === 'opacityValue' || settingId === 'opacityNumber') {
-                    const numValue = parseInt(value);
-                    if (!isNaN(numValue) && numValue >= 1 && numValue <= 100) {
+                    let numValue = parseInt(value);
+                    if (!isNaN(numValue)) {
+                        numValue = Math.max(1, Math.min(100, numValue));
                         GM_setValue('ns_ui_opacity_value', numValue);
                         const otherInputId = settingId === 'opacityValue' ? 'opacityNumber' : 'opacityValue';
+                        const currentInput = document.querySelector(`[data-setting-id="${settingId}"]`);
                         const otherInput = document.querySelector(`[data-setting-id="${otherInputId}"]`);
+                        if (currentInput) {
+                            currentInput.value = numValue;
+                        }
                         if (otherInput) {
                             otherInput.value = numValue;
                         }
@@ -107,11 +112,16 @@
                 } else if (settingId === 'blurEnabled') {
                     GM_setValue('ns_ui_blur_enabled', value);
                 } else if (settingId === 'blurValue' || settingId === 'blurNumber') {
-                    const numValue = parseInt(value);
-                    if (!isNaN(numValue) && numValue >= 1 && numValue <= 20) {
+                    let numValue = parseInt(value);
+                    if (!isNaN(numValue)) {
+                        numValue = Math.max(1, Math.min(20, numValue));
                         GM_setValue('ns_ui_blur_value', numValue);
                         const otherInputId = settingId === 'blurValue' ? 'blurNumber' : 'blurValue';
+                        const currentInput = document.querySelector(`[data-setting-id="${settingId}"]`);
                         const otherInput = document.querySelector(`[data-setting-id="${otherInputId}"]`);
+                        if (currentInput) {
+                            currentInput.value = numValue;
+                        }
                         if (otherInput) {
                             otherInput.value = numValue;
                         }
@@ -231,7 +241,44 @@
             console.log('[NS助手] 初始化UI增强模块');
             this.applyStyles();
 
-            const observer = new MutationObserver(() => {
+            const addInputConstraints = () => {
+                const inputs = document.querySelectorAll('input[type="number"][data-setting-id]');
+                inputs.forEach(input => {
+                    const settingId = input.getAttribute('data-setting-id');
+                    if (settingId.includes('opacity')) {
+                        input.addEventListener('input', (e) => {
+                            let value = parseInt(e.target.value);
+                            if (value < 1) e.target.value = 1;
+                            if (value > 100) e.target.value = 100;
+                        });
+                    } else if (settingId.includes('blur')) {
+                        input.addEventListener('input', (e) => {
+                            let value = parseInt(e.target.value);
+                            if (value < 1) e.target.value = 1;
+                            if (value > 20) e.target.value = 20;
+                        });
+                    }
+                });
+            };
+
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.addedNodes.length) {
+                        mutation.addedNodes.forEach((node) => {
+                            if (node.classList && node.classList.contains('ns-settings-panel')) {
+                                addInputConstraints();
+                            }
+                        });
+                    }
+                });
+            });
+
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+
+            const themeObserver = new MutationObserver(() => {
                 if (document.body.classList.contains('dark-layout')) {
                     console.log('[NS助手] 检测到切换到暗色模式');
                 } else {
@@ -240,7 +287,7 @@
                 this.applyStyles();
             });
 
-            observer.observe(document.body, {
+            themeObserver.observe(document.body, {
                 attributes: true,
                 attributeFilter: ['class']
             });
