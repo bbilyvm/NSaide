@@ -216,7 +216,7 @@
                         initialY = e.clientY;
                     }
                     
-                    if (e.target === header || e.target.closest('.ns-settings-header')) {
+                    if (e.target === header || (e.target.closest('.ns-settings-header') && !e.target.closest('.ns-settings-header-controls'))) {
                         isDragging = true;
                         panel.style.transition = 'none';
                     }
@@ -251,6 +251,50 @@
                         panel.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`;
                     }
                 };
+
+                const resizeHandle = panel.querySelector('.ns-settings-resize-handle');
+                let isResizing = false;
+                let startWidth, startHeight, startX, startY;
+
+                const resizeStart = (e) => {
+                    isResizing = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    startWidth = panel.offsetWidth;
+                    startHeight = panel.offsetHeight;
+                    panel.style.transition = 'none';
+                    document.body.style.cursor = 'se-resize';
+                    e.preventDefault();
+                    e.stopPropagation();
+                };
+
+                const resize = (e) => {
+                    if (!isResizing) return;
+                    
+                    const width = startWidth + (e.clientX - startX);
+                    const height = startHeight + (e.clientY - startY);
+                    
+                    const minWidth = 300;
+                    const minHeight = 200;
+                    const maxWidth = window.innerWidth * 0.9;
+                    const maxHeight = window.innerHeight * 0.8;
+                    
+                    panel.style.width = `${Math.min(Math.max(width, minWidth), maxWidth)}px`;
+                    panel.style.height = `${Math.min(Math.max(height, minHeight), maxHeight)}px`;
+                    
+                    e.preventDefault();
+                    e.stopPropagation();
+                };
+
+                const resizeEnd = () => {
+                    isResizing = false;
+                    panel.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                    document.body.style.cursor = '';
+                };
+
+                resizeHandle.addEventListener('mousedown', resizeStart);
+                document.addEventListener('mousemove', resize);
+                document.addEventListener('mouseup', resizeEnd);
 
                 header.addEventListener("touchstart", dragStart, { passive: false });
                 header.addEventListener("touchend", dragEnd);
