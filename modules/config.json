@@ -2,17 +2,17 @@
     "version": "0.1.0",
     "modules": [
         {
-            "name": "settings",
+            "name": "设置面板",
             "id": "settings",
             "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/settings/index.js"
         },
         {
-            "name": "userCard",
+            "name": "用户卡片增强",
             "id": "userCard",
             "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/userCard/index.js"
         },
         {
-            "name": "editorEnhance",
+            "name": "编辑器增强",
             "id": "editorEnhance",
             "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/editorEnhance/index.js"
         },
@@ -20,6 +20,11 @@
             "name": "自动签到",
             "id": "autoSignIn",
             "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/autoSignIn/index.js"
+        },
+        {
+            "name": "UI美化",
+            "id": "uiEnhance",
+            "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/uiEnhance/index.js"
         }
     ]
 } 
