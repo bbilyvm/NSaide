@@ -197,6 +197,7 @@
                 body .dropdown-menu,
                 body .md-editor,
                 body .user-stat,
+                body .stat-block,
                 body .search-box,
                 body .pure-form,
                 body .btn.new-discussion,
