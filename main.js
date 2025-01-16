@@ -23,28 +23,61 @@
     console.log('[NS助手] 脚本开始加载');
 
     const CONFIG_URL = 'https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/config.json';
+    const CACHE_EXPIRY = 30 * 60 * 1000;
+    const CACHE_KEY_PREFIX = 'ns_module_cache_';
+    const CONFIG_CACHE_KEY = 'ns_config_cache';
 
-    const loadConfig = () => {
+    const getCachedData = (key) => {
+        const cached = GM_getValue(key);
+        if (!cached) return null;
+        
+        try {
+            const { data, timestamp } = JSON.parse(cached);
+            if (Date.now() - timestamp > CACHE_EXPIRY) {
+                GM_setValue(key, '');
+                return null;
+            }
+            return data;
+        } catch {
+            return null;
+        }
+    };
+
+    const setCachedData = (key, data) => {
+        GM_setValue(key, JSON.stringify({
+            data,
+            timestamp: Date.now()
+        }));
+    };
+
+    const fetchWithCache = (url, cacheKey) => {
         return new Promise((resolve, reject) => {
+            const cached = getCachedData(cacheKey);
+            if (cached) {
+                console.log(`[NS助手] 使用缓存数据: ${cacheKey}`);
+                resolve(cached);
+                return;
+            }
+
             GM_xmlhttpRequest({
                 method: 'GET',
-                url: `${CONFIG_URL}?t=${Date.now()}`,
+                url: `${url}?t=${Date.now()}`,
                 nocache: true,
                 headers: {
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
                 },
                 onload: (response) => {
                     if (response.status === 200) {
                         try {
-                            const config = JSON.parse(response.responseText);
-                            resolve(config);
+                            const data = response.responseText;
+                            setCachedData(cacheKey, data);
+                            resolve(data);
                         } catch (error) {
                             reject(error);
                         }
                     } else {
-                        reject(new Error(`配置加载失败: ${response.status}`));
+                        reject(new Error(`请求失败: ${response.status}`));
                     }
                 },
                 onerror: reject
@@ -52,32 +85,27 @@
         });
     };
 
-    const loadModule = (moduleInfo) => {
-        return new Promise((resolve, reject) => {
-            GM_xmlhttpRequest({
-                method: 'GET',
-                url: `${moduleInfo.url}?t=${Date.now()}`,
-                nocache: true,
-                headers: {
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
-                },
-                onload: (response) => {
-                    if (response.status === 200) {
-                        try {
-                            eval(response.responseText);
-                            resolve();
-                        } catch (error) {
-                            reject(error);
-                        }
-                    } else {
-                        reject(new Error(`模块加载失败: ${response.status}`));
-                    }
-                },
-                onerror: reject
-            });
-        });
+    const loadConfig = async () => {
+        try {
+            const configText = await fetchWithCache(CONFIG_URL, CONFIG_CACHE_KEY);
+            return JSON.parse(configText);
+        } catch (error) {
+            console.error('[NS助手] 配置加载失败:', error);
+            throw error;
+        }
+    };
+
+    const loadModule = async (moduleInfo) => {
+        const cacheKey = `${CACHE_KEY_PREFIX}${moduleInfo.id}`;
+        try {
+            console.log(`[NS助手] 开始加载模块: ${moduleInfo.name}`);
+            const moduleCode = await fetchWithCache(moduleInfo.url, cacheKey);
+            eval(moduleCode);
+            console.log(`[NS助手] 模块加载成功: ${moduleInfo.name}`);
+        } catch (error) {
+            console.error(`[NS助手] 模块 ${moduleInfo.name} 加载失败:`, error);
+            throw error;
+        }
     };
 
     const createNS = () => {
@@ -87,9 +115,7 @@
             isReady: false,
             
             registerModule(moduleDefinition) {
-                if (!moduleDefinition || !moduleDefinition.id || !moduleDefinition.init) {
-                    return;
-                }
+                if (!moduleDefinition || !moduleDefinition.id || !moduleDefinition.init) return;
 
                 const module = {
                     ...moduleDefinition,
@@ -97,24 +123,30 @@
                 };
 
                 this.modules.set(moduleDefinition.id, module);
+                console.log(`[NS助手] 模块已注册: ${module.name}`);
             },
 
             init() {
-                if (this.isReady) {
-                    return;
-                }
+                if (this.isReady) return;
 
-                this.modules.forEach((module, id) => {
-                    try {
-                        if (module.enabled) {
+                const enabledModules = Array.from(this.modules.values()).filter(m => m.enabled);
+                console.log(`[NS助手] 开始初始化 ${enabledModules.length} 个已启用模块`);
+
+                Promise.all(enabledModules.map(module => 
+                    new Promise(resolve => {
+                        try {
                             module.init();
+                            console.log(`[NS助手] 模块初始化成功: ${module.name}`);
+                            resolve();
+                        } catch (error) {
+                            console.error(`[NS助手] 模块 ${module.name} 初始化失败:`, error);
+                            resolve();
                         }
-                    } catch (error) {
-                        console.error(`[NS助手] 模块 ${module.name} (${id}) 初始化失败:`, error);
-                    }
+                    })
+                )).then(() => {
+                    this.isReady = true;
+                    console.log('[NS助手] 所有模块初始化完成');
                 });
-
-                this.isReady = true;
             }
         };
 
@@ -123,11 +155,11 @@
         };
     };
 
-    createNS();
-
     const initializeModules = async () => {
         try {
+            createNS();
             const config = await loadConfig();
+            
             await Promise.all(config.modules.map(loadModule));
             
             if (window.NS.modules.size > 0) {
