@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         星渊NS助手
 // @namespace    https://www.nodeseek.com/
-// @version      0.1.0
+// @version      0.1.1
 // @description  NodeSeek论坛增强脚本
 // @author       stardeep
 // @license      GPL-3.0
