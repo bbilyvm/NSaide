@@ -387,5 +387,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] uiEnhance 模块加载完成');
+    console.log('[NS助手] uiEnhance 模块加载完成v0.0.1');
 })(); 
