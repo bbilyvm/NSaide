@@ -331,7 +331,7 @@
                 attributeFilter: ['class']
             });
 
-            console.log('[NS助手] UI增强模块初始化完成');
+            console.log('[NS助手] UI增强模块初始化完成 v0.0.4');
         }
     };
 
