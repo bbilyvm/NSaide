@@ -15,7 +15,9 @@
                 OPACITY_ENABLED: 'ns_ui_opacity_enabled',
                 OPACITY_VALUE: 'ns_ui_opacity_value',
                 BLUR_ENABLED: 'ns_ui_blur_enabled',
-                BLUR_VALUE: 'ns_ui_blur_value'
+                BLUR_VALUE: 'ns_ui_blur_value',
+                CONTRAST_ENABLED: 'ns_ui_contrast_enabled',
+                CONTRAST_VALUE: 'ns_ui_contrast_value'
             }
         },
 
@@ -84,6 +86,31 @@
                     min: 1,
                     max: 20,
                     value: () => GM_getValue('ns_ui_blur_value', 10)
+                },
+                {
+                    id: 'contrastEnabled',
+                    type: 'switch',
+                    label: '启用文字对比度',
+                    default: false,
+                    value: () => GM_getValue('ns_ui_contrast_enabled', false)
+                },
+                {
+                    id: 'contrastValue',
+                    type: 'range',
+                    label: '对比度',
+                    default: 100,
+                    min: 50,
+                    max: 200,
+                    value: () => GM_getValue('ns_ui_contrast_value', 100)
+                },
+                {
+                    id: 'contrastNumber',
+                    type: 'number',
+                    label: '对比度数值',
+                    default: 100,
+                    min: 50,
+                    max: 200,
+                    value: () => GM_getValue('ns_ui_contrast_value', 100)
                 }
             ],
             
@@ -126,6 +153,23 @@
                             otherInput.value = numValue;
                         }
                     }
+                } else if (settingId === 'contrastEnabled') {
+                    GM_setValue('ns_ui_contrast_enabled', value);
+                } else if (settingId === 'contrastValue' || settingId === 'contrastNumber') {
+                    let numValue = parseInt(value);
+                    if (!isNaN(numValue)) {
+                        numValue = Math.max(50, Math.min(200, numValue));
+                        GM_setValue('ns_ui_contrast_value', numValue);
+                        const otherInputId = settingId === 'contrastValue' ? 'contrastNumber' : 'contrastValue';
+                        const currentInput = document.querySelector(`[data-setting-id="${settingId}"]`);
+                        const otherInput = document.querySelector(`[data-setting-id="${otherInputId}"]`);
+                        if (currentInput) {
+                            currentInput.value = numValue;
+                        }
+                        if (otherInput) {
+                            otherInput.value = numValue;
+                        }
+                    }
                 }
                 NSUIEnhance.applyStyles();
             }
@@ -139,9 +183,11 @@
             const opacityValue = GM_getValue(this.config.storage.OPACITY_VALUE, 100);
             const blurEnabled = GM_getValue(this.config.storage.BLUR_ENABLED, false);
             const blurValue = GM_getValue(this.config.storage.BLUR_VALUE, 10);
+            const contrastEnabled = GM_getValue(this.config.storage.CONTRAST_ENABLED, false);
+            const contrastValue = GM_getValue(this.config.storage.CONTRAST_VALUE, 100);
             const isDarkMode = document.body.classList.contains('dark-layout');
 
-            console.log('[NS助手] 当前设置状态:', { enabled, imageUrl, opacityEnabled, opacityValue, blurEnabled, blurValue, isDarkMode });
+            console.log('[NS助手] 当前设置状态:', { enabled, imageUrl, opacityEnabled, opacityValue, blurEnabled, blurValue, contrastEnabled, contrastValue, isDarkMode });
 
             const styleId = 'ns-ui-enhance-styles';
             let styleElement = document.getElementById(styleId);
@@ -162,6 +208,14 @@
                         background-position: center top !important;
                         background-repeat: no-repeat !important;
                         background-attachment: fixed !important;
+                    }
+                `;
+            }
+
+            if (contrastEnabled) {
+                styles += `
+                    body {
+                        filter: contrast(${contrastValue}%) !important;
                     }
                 `;
             }
@@ -264,6 +318,12 @@
                             let value = parseInt(e.target.value);
                             if (value < 1) e.target.value = 1;
                             if (value > 20) e.target.value = 20;
+                        });
+                    } else if (settingId.includes('contrast')) {
+                        input.addEventListener('input', (e) => {
+                            let value = parseInt(e.target.value);
+                            if (value < 50) e.target.value = 50;
+                            if (value > 200) e.target.value = 200;
                         });
                     }
                 });
