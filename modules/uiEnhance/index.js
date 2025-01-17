@@ -392,5 +392,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] uiEnhance 模块加载完成v0.0.1');
+    console.log('[NS助手] uiEnhance 模块加载完成v0.0.2');
 })(); 
