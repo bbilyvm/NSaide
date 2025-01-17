@@ -166,7 +166,7 @@
     font-size: 24px;
     color: rgba(255, 255, 255, 0.9);
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     width: 32px;
     height: 32px;
     display: flex;
@@ -176,13 +176,31 @@
     position: relative;
     z-index: 1;
     background: rgba(255, 255, 255, 0.1);
-    line-height: 1;
-    padding: 0;
+    margin-left: 8px;
+    transform-origin: center;
 }
 
 .ns-settings-header-close:hover {
     background: rgba(255, 255, 255, 0.2);
-    transform: rotate(90deg) scale(1.1);
+    transform: rotate(180deg) scale(1.1);
+    color: #fff;
+}
+
+.ns-settings-header-close::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.ns-settings-header-close:hover::before {
+    opacity: 1;
 }
 
 .ns-settings-header-close::after {
