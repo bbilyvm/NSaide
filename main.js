@@ -145,7 +145,7 @@
                     })
                 )).then(() => {
                     this.isReady = true;
-                    console.log('[NS助手] 所有模块初始化完成 v0.1.1');
+                    console.log('[NS助手] 所有模块初始化完成');
                 });
             }
         };

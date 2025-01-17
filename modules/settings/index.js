@@ -553,7 +553,7 @@
                 boundRenderModuleSettings();
             });
 
-            console.log('[NS助手] 设置面板模块初始化完成');
+            console.log('[NS助手] 设置面板模块初始化完成v0.0.2');
         }
     };
 
