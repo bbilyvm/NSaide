@@ -212,19 +212,19 @@
                 `;
             }
 
+            let filters = [];
             if (contrastEnabled) {
-                styles += `
-                    body {
-                        filter: contrast(${contrastValue}%) !important;
-                    }
-                `;
+                filters.push(`contrast(${contrastValue}%)`);
             }
 
             if (opacityEnabled || blurEnabled) {
                 const mainColor = isDarkMode ? '39, 39, 39' : '255, 255, 255';
                 const specialColor = isDarkMode ? '59, 59, 59' : '255, 255, 255';
                 const alpha = opacityEnabled ? opacityValue / 100 : 1;
-                const blur = blurEnabled ? `backdrop-filter: blur(${blurValue}px) !important;` : '';
+                const blur = blurEnabled ? `blur(${blurValue}px)` : '';
+                if (blur) {
+                    filters.push(blur);
+                }
 
                 const mainElements = `
                     body #nsk-body,
@@ -236,10 +236,9 @@
                     body .navbar,
                     body .sidebar,
                     body .user-info-card,
-
                     body footer {
                         ${opacityEnabled ? `background-color: rgba(${mainColor}, ${alpha * 0.2}) !important;` : ''}
-                        ${blur}
+                        ${filters.length > 0 ? `backdrop-filter: ${filters.join(' ')} !important;` : ''}
                     }
                 `;
 
@@ -263,7 +262,7 @@
                     body .editor-statusbar,
                     body .md-editor-content {
                         ${opacityEnabled ? `background-color: rgba(${specialColor}, ${alpha}) !important;` : ''}
-                        ${blur}
+                        ${filters.length > 0 ? `backdrop-filter: ${filters.join(' ')} !important;` : ''}
                     }
                 `;
 
@@ -272,7 +271,7 @@
                     body .editor-preview,
                     body .editor-preview-side {
                         ${opacityEnabled ? `background-color: rgba(${mainColor}, ${alpha}) !important;` : ''}
-                        ${blur}
+                        ${filters.length > 0 ? `backdrop-filter: ${filters.join(' ')} !important;` : ''}
                     }
                 `;
 
@@ -293,6 +292,12 @@
                 `;
 
                 styles += mainElements + specialElements + previewElements + hoverElements + editorElements;
+            } else if (filters.length > 0) {
+                styles += `
+                    body {
+                        filter: ${filters.join(' ')} !important;
+                    }
+                `;
             }
 
             styleElement.textContent = styles;
