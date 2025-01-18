@@ -169,18 +169,32 @@
                     const newComments = doc.querySelector('.comments');
 
                     if (commentList && newComments) {
+                        Array.from(newComments.children).forEach(comment => {
+                            const menu = comment.querySelector('.comment-menu');
+                            if (menu) {
+                                const mount = document.createElement('div');
+                                mount.className = 'comment-menu-mount';
+                                menu.parentNode.replaceChild(mount, menu);
+                            }
+                        });
+
                         commentList.append(...newComments.childNodes);
                         console.log('[NS助手] 追加评论列表');
 
                         const vue = document.querySelector('.comment-menu')?.__vue__;
                         if (vue) {
-                            const items = document.querySelectorAll('.content-item');
-                            items.forEach((item, index) => {
-                                const mount = item.querySelector('.comment-menu-mount');
-                                if (!mount) return;
-                                const newVue = new vue.$root.constructor(vue.$options);
-                                newVue.setIndex(index);
-                                newVue.$mount(mount);
+                            const menuMounts = document.querySelectorAll('.comment-menu-mount');
+                            menuMounts.forEach((mount, index) => {
+                                if (!mount.__vue__) {
+                                    const newVue = new vue.$root.constructor({
+                                        ...vue.$options,
+                                        propsData: {
+                                            ...vue.$props,
+                                            index: index
+                                        }
+                                    });
+                                    newVue.$mount(mount);
+                                }
                             });
                         }
                     } else {
@@ -241,5 +255,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.1.1');
+    console.log('[NS助手] autoPage 模块加载完成 v0.1.2');
 })(); 
