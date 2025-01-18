@@ -94,33 +94,33 @@
                 const text = await response.text();
                 const doc = new DOMParser().parseFromString(text, 'text/html');
 
-                const postList = document.querySelector('.topic-list');
-                const newPosts = doc.querySelector('.topic-list');
+                const postList = document.querySelector('.post-list');
+                const newPosts = doc.querySelector('.post-list');
 
                 if (postList && newPosts) {
-                    const posts = Array.from(newPosts.children).filter(post => post.tagName === 'DIV');
+                    const posts = Array.from(newPosts.children).filter(post => post.classList.contains('post-list-item'));
                     console.log('[NS助手] 找到新帖子数量:', posts.length);
 
                     posts.forEach(post => {
-                        const postId = post.getAttribute('data-id');
-                        if (postId && !postList.querySelector(`[data-id="${postId}"]`)) {
-                            const clonedPost = post.cloneNode(true);
-                            postList.insertBefore(clonedPost, postList.lastElementChild);
-                            console.log('[NS助手] 追加帖子:', postId);
+                        const postTitle = post.querySelector('.post-title a');
+                        if (postTitle) {
+                            const postHref = postTitle.getAttribute('href');
+                            if (!postList.querySelector(`.post-title a[href="${postHref}"]`)) {
+                                const clonedPost = post.cloneNode(true);
+                                postList.appendChild(clonedPost);
+                                console.log('[NS助手] 追加帖子:', postHref);
+                            }
                         }
                     });
 
-                    const topPager = document.querySelector('.nsk-pager:not(.pager-bottom)');
-                    const bottomPager = document.querySelector('.nsk-pager.pager-bottom');
-                    const newTopPager = doc.querySelector('.nsk-pager:not(.pager-bottom)');
-                    const newBottomPager = doc.querySelector('.nsk-pager.pager-bottom');
-
-                    if (topPager && newTopPager) {
-                        topPager.innerHTML = newTopPager.innerHTML;
-                    }
-                    if (bottomPager && newBottomPager) {
-                        bottomPager.innerHTML = newBottomPager.innerHTML;
-                    }
+                    const pagers = document.querySelectorAll('.nsk-pager');
+                    const newPagers = doc.querySelectorAll('.nsk-pager');
+                    
+                    pagers.forEach((pager, index) => {
+                        if (newPagers[index]) {
+                            pager.innerHTML = newPagers[index].innerHTML;
+                        }
+                    });
 
                     history.pushState(null, null, nextUrl);
                     console.log('[NS助手] 下一页加载完成');
@@ -166,5 +166,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.0.5');
+    console.log('[NS助手] autoPage 模块加载完成 v0.0.6');
 })(); 
