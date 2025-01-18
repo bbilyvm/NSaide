@@ -580,23 +580,43 @@
                             评论数量：${userInfo.nComment}
                         </div>
                     `;
-                    levelTag.appendChild(tooltip);
+                    document.body.appendChild(tooltip);
 
-                    let tooltipTimeout;
-                    levelTag.addEventListener('mouseenter', () => {
-                        clearTimeout(tooltipTimeout);
+                    const updateTooltipPosition = (e) => {
                         const rect = levelTag.getBoundingClientRect();
-                        tooltip.style.left = '50%';
-                        tooltip.style.top = '100%';
-                        tooltip.style.transform = 'translateX(-50%)';
+                        const tooltipRect = tooltip.getBoundingClientRect();
+                        
+                        let left = rect.left + (rect.width - tooltipRect.width) / 2;
+                        let top = rect.bottom + 5;
+
+                        // 确保提示框不会超出视口
+                        if (left < 10) left = 10;
+                        if (left + tooltipRect.width > window.innerWidth - 10) {
+                            left = window.innerWidth - tooltipRect.width - 10;
+                        }
+                        if (top + tooltipRect.height > window.innerHeight - 10) {
+                            top = rect.top - tooltipRect.height - 5;
+                        }
+
+                        tooltip.style.left = `${left}px`;
+                        tooltip.style.top = `${top}px`;
+                    };
+
+                    levelTag.addEventListener('mouseenter', () => {
                         tooltip.classList.add('show');
+                        updateTooltipPosition();
                     });
 
                     levelTag.addEventListener('mouseleave', () => {
-                        tooltipTimeout = setTimeout(() => {
-                            tooltip.classList.remove('show');
-                        }, 200);
+                        tooltip.classList.remove('show');
                     });
+
+                    // 监听滚动事件，更新提示框位置
+                    window.addEventListener('scroll', () => {
+                        if (tooltip.classList.contains('show')) {
+                            updateTooltipPosition();
+                        }
+                    }, { passive: true });
                     
                     switch (position) {
                         case 'before_name':
