@@ -15,7 +15,7 @@
                     label: '帖子列表',
                     type: 'switch',
                     default: false,
-                    value: () => GM_getValue('autoPage_postList_enabled', true)
+                    value: () => GM_getValue('autoPage_postList_enabled', false)
                 },
                 {
                     id: 'postThreshold',
@@ -29,7 +29,7 @@
                     label: '评论区',
                     type: 'switch',
                     default: false,
-                    value: () => GM_getValue('autoPage_comment_enabled', true)
+                    value: () => GM_getValue('autoPage_comment_enabled', false)
                 },
                 {
                     id: 'commentThreshold',
@@ -89,25 +89,25 @@
 
         initAutoLoading() {
             const isPostList = /^\/($|node\/|search|page-)/.test(location.pathname);
-            const isComment = /^\/t\//.test(location.pathname);
+            const isComment = /^\/post-\d+/.test(location.pathname);
+            
+            console.log('[NS助手] 当前页面类型:', isPostList ? '帖子列表' : (isComment ? '评论区' : '其他'));
             
             if (!isPostList && !isComment) {
                 console.log('[NS助手] 不在目标页面');
                 return;
             }
 
-            if (isPostList && !GM_getValue('autoPage_postList_enabled', true)) {
+            if (isPostList && !GM_getValue('autoPage_postList_enabled', false)) {
                 console.log('[NS助手] 帖子列表自动加载已禁用');
                 return;
             }
 
-            if (isComment && !GM_getValue('autoPage_comment_enabled', true)) {
+            if (isComment && !GM_getValue('autoPage_comment_enabled', false)) {
                 console.log('[NS助手] 评论区自动加载已禁用');
                 return;
             }
 
-            console.log('[NS助手] 初始化自动加载, 页面类型:', isPostList ? '帖子列表' : '评论区');
-            
             this.windowScroll((direction, e) => {
                 if (direction === 'down') {
                     const scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
@@ -160,44 +160,40 @@
                                 }
                             }
                         });
+                    } else {
+                        console.log('[NS助手] 未找到帖子列表容器');
                     }
                 } else {
-                    const commentList = document.querySelector('.content-items');
-                    const newComments = doc.querySelector('.content-items');
+                    const commentList = document.querySelector('.comments');
+                    const newComments = doc.querySelector('.comments');
 
                     if (commentList && newComments) {
                         const comments = Array.from(newComments.children).filter(comment => comment.classList.contains('content-item'));
                         console.log('[NS助手] 找到新评论数量:', comments.length);
 
-                        const scriptEl = doc.getElementById('temp-script');
-                        if (scriptEl && scriptEl.textContent) {
-                            try {
-                                const jsonText = scriptEl.textContent;
-                                const conf = JSON.parse(atob(jsonText));
-                                if (window.__config__ && window.__config__.postData) {
-                                    window.__config__.postData.comments.push(...conf.postData.comments);
-                                }
-                            } catch (e) {
-                                console.error('[NS助手] 评论数据处理失败:', e);
-                            }
-                        }
-
                         comments.forEach(comment => {
-                            const clonedComment = comment.cloneNode(true);
-                            commentList.appendChild(clonedComment);
+                            const commentId = comment.getAttribute('data-comment-id');
+                            if (!commentList.querySelector(`[data-comment-id="${commentId}"]`)) {
+                                const clonedComment = comment.cloneNode(true);
+                                commentList.appendChild(clonedComment);
+                                console.log('[NS助手] 追加评论:', commentId);
+                            }
                         });
 
                         const vue = document.querySelector('.comment-menu')?.__vue__;
                         if (vue) {
                             const menuItems = document.querySelectorAll('.content-item');
                             menuItems.forEach((item, index) => {
-                                const mount = item.querySelector('.comment-menu-mount');
-                                if (!mount) return;
-                                const newVue = new vue.$root.constructor(vue.$options);
-                                newVue.setIndex(index);
-                                newVue.$mount(mount);
+                                const menu = item.querySelector('.comment-menu');
+                                if (menu && !menu.__vue__) {
+                                    const newVue = new vue.$root.constructor(vue.$options);
+                                    newVue.setIndex(index);
+                                    newVue.$mount(menu);
+                                }
                             });
                         }
+                    } else {
+                        console.log('[NS助手] 未找到评论列表容器');
                     }
                 }
 
@@ -251,5 +247,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.0.8');
+    console.log('[NS助手] autoPage 模块加载完成 v0.0.9');
 })(); 
