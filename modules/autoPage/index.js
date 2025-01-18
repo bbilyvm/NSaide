@@ -214,29 +214,24 @@
                     throw new Error('评论数据格式错误');
                 }
 
-                if (!window.__config__) {
-                    window.__config__ = {};
-                }
-                if (!window.__config__.postData) {
-                    window.__config__.postData = conf.postData;
-                } else {
-                    window.__config__.postData.comments = window.__config__.postData.comments || [];
-                    window.__config__.postData.comments.push(...conf.postData.comments);
-                }
+                const currentComments = document.querySelectorAll('.content-item');
+                let startIndex = currentComments.length;
+
+                const commentMap = new Map();
+                conf.postData.comments.forEach((comment, index) => {
+                    commentMap.set(comment.id, comment);
+                });
 
                 const commentList = document.querySelector('ul.comments');
                 const newComments = doc.querySelector('ul.comments');
 
                 if (commentList && newComments) {
-                    const currentComments = document.querySelectorAll('.content-item');
-                    let startIndex = currentComments.length;
-
                     const validComments = Array.from(newComments.childNodes).filter(node => 
                         node.nodeType === Node.ELEMENT_NODE && 
                         node.classList.contains('content-item')
                     );
                     
-                    validComments.forEach((comment, index) => {
+                    validComments.forEach((comment) => {
                         commentList.appendChild(comment.cloneNode(true));
                     });
 
@@ -261,17 +256,18 @@
                             if (!menuMount) return;
 
                             try {
-                                const commentIndex = startIndex + index;
-                                const commentData = window.__config__.postData.comments[commentIndex];
+                                const commentId = item.getAttribute('data-id');
+                                const commentData = commentMap.get(parseInt(commentId));
+                                
                                 if (!commentData) {
-                                    console.warn(`[NS助手] 未找到索引 ${commentIndex} 的评论数据`);
+                                    console.warn(`[NS助手] 未找到ID为 ${commentId} 的评论数据`);
                                     return;
                                 }
 
                                 let newVue = new vue.$root.constructor(vue.$options);
                                 newVue.$data = {
-                                    ...newVue.$data,
-                                    index: commentIndex,
+                                    ...vue.$data,
+                                    index: startIndex + index,
                                     comment: commentData
                                 };
                                 newVue.$mount(menuMount);
@@ -279,6 +275,17 @@
                                 console.error('[NS助手] 评论菜单挂载失败:', error);
                             }
                         });
+                    }
+
+                    if (!window.__config__) {
+                        window.__config__ = {};
+                    }
+                    if (!window.__config__.postData) {
+                        window.__config__.postData = conf.postData;
+                    } else {
+                        const existingComments = new Set(window.__config__.postData.comments.map(c => c.id));
+                        const newComments = conf.postData.comments.filter(c => !existingComments.has(c.id));
+                        window.__config__.postData.comments.push(...newComments);
                     }
 
                     history.pushState(null, null, nextUrl);
