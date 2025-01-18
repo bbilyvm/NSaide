@@ -184,29 +184,12 @@
 
                         const vue = document.querySelector('.comment-menu')?.__vue__;
                         if (vue && window.__config__) {
-                            Array.from(document.querySelectorAll('.content-item')).forEach(function(item, index) {
+                            Array.from(document.querySelectorAll('.content-item')).forEach(function(item) {
                                 const mount = item.querySelector('.comment-menu-mount');
                                 if (!mount) return;
 
-                                const commentId = item.getAttribute('data-comment-id');
-                                const comment = window.__config__.postData.comments.find(c => c.commentId.toString() === commentId);
-                                if (!comment) return;
-
                                 const instance = new vue.$root.constructor(vue.$options);
-                                instance.$data.logined = true;
-                                instance.$data.commentArrayIndex = index;
-                                instance.$data.isMe = comment.poster.isMe;
-                                instance.$data.floorIndex = comment.floorIndex;
-                                instance.$data.collectionCount = 0;
-                                instance.$data.collected = false;
-                                instance.$data.likeCount = comment.likeCount;
-                                instance.$data.liked = comment.liked;
-                                instance.$data.dislikeCount = comment.dislikeCount;
-                                instance.$data.disliked = comment.disliked;
-                                instance.$data.pined = comment.pined;
-                                instance.$data.canAdmin = false;
-                                instance.$data.canPin = true;
-
+                                instance.setIndex(Array.from(document.querySelectorAll('.content-item')).indexOf(item));
                                 instance.$mount(mount);
                             });
                         } else {
@@ -270,5 +253,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.1.8');
+    console.log('[NS助手] autoPage 模块加载完成 v0.1.9');
 })(); 
