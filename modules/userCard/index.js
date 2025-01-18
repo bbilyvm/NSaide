@@ -231,6 +231,10 @@
                 }
             });
 
+            if (GM_getValue('ns_usercard_enable_level_tag', true)) {
+                this.enhancePageUserLevels();
+            }
+
             console.log('[NS助手] 注册头像点击监听器');
             document.addEventListener('click', async (e) => {
                 const avatarLink = e.target.closest('a[href^="/space/"]');
@@ -241,43 +245,57 @@
                 }
             });
 
-            this.enhancePageUserLevels();
-
             const observer = new MutationObserver((mutations) => {
+                let shouldEnhanceLevels = false;
+                let themeChanged = false;
+
                 mutations.forEach((mutation) => {
                     if (mutation.type === 'childList') {
-                        this.enhancePageUserLevels();
+                        mutation.addedNodes.forEach(node => {
+                            if (node.nodeType === 1 && (
+                                node.classList?.contains('author-info') ||
+                                node.querySelector?.('.author-info')
+                            )) {
+                                shouldEnhanceLevels = true;
+                            }
+                        });
                     } else if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                        const newTheme = document.body.classList.contains('dark-layout') ? 'dark' : 'light';
-                        console.log('[NS助手] 主题切换:', newTheme);
-                        
-                        const cards = document.querySelectorAll('.hover-user-card');
-                        console.log('[NS助手] 找到需要更新的卡片数量:', cards.length);
-                        
-                        cards.forEach(card => {
-                            if (card.classList.contains('enhanced')) {
-                                console.log('[NS助手] 重新渲染卡片以适应新主题');
-                                card.classList.remove('enhanced');
-                                card.classList.remove('ns-usercard-enhanced');
-                                const extension = card.querySelector('.ns-usercard-extension');
-                                if (extension) {
-                                    extension.remove();
-                                }
-                            }
-                        });
-
-                        const levelTags = document.querySelectorAll('.ns-level-tag');
-                        levelTags.forEach(tag => {
-                            if (newTheme === 'dark') {
-                                tag.style.backgroundColor = '#111b26';
-                                tag.style.border = '1px solid #153450';
-                            } else {
-                                tag.style.backgroundColor = '#e6f4ff';
-                                tag.style.border = '1px solid #91d5ff';
-                            }
-                        });
+                        themeChanged = true;
                     }
                 });
+
+                if (shouldEnhanceLevels && GM_getValue('ns_usercard_enable_level_tag', true)) {
+                    this.enhancePageUserLevels();
+                }
+
+                if (themeChanged) {
+                    const newTheme = document.body.classList.contains('dark-layout') ? 'dark' : 'light';
+                    console.log('[NS助手] 主题切换:', newTheme);
+                    
+                    const cards = document.querySelectorAll('.hover-user-card');
+                    cards.forEach(card => {
+                        if (card.classList.contains('enhanced')) {
+                            console.log('[NS助手] 重新渲染卡片以适应新主题');
+                            card.classList.remove('enhanced');
+                            card.classList.remove('ns-usercard-enhanced');
+                            const extension = card.querySelector('.ns-usercard-extension');
+                            if (extension) {
+                                extension.remove();
+                            }
+                        }
+                    });
+
+                    const levelTags = document.querySelectorAll('.ns-level-tag');
+                    levelTags.forEach(tag => {
+                        if (newTheme === 'dark') {
+                            tag.style.backgroundColor = '#111b26';
+                            tag.style.border = '1px solid #153450';
+                        } else {
+                            tag.style.backgroundColor = '#e6f4ff';
+                            tag.style.border = '1px solid #91d5ff';
+                        }
+                    });
+                }
             });
 
             observer.observe(document.body, {
@@ -349,11 +367,10 @@
         async waitAndEnhance(userId) {
             try {
                 console.log('[NS助手] 等待卡片出现...');
-
+                
                 document.querySelectorAll('.hover-user-card').forEach(card => {
                     card.classList.remove('enhanced');
                     card.classList.remove('ns-usercard-enhanced');
-
                     const extension = card.querySelector('.ns-usercard-extension');
                     if (extension) {
                         extension.remove();
@@ -375,11 +392,10 @@
 
                 console.log('[NS助手] 用户数据获取完成，开始增强');
                 this.enhance(card, userInfo);
-              
+
                 if (GM_getValue('ns_usercard_enable_dragging', true)) {
                     this.enableDragging(card);
                 }
-
             } catch (error) {
                 console.error('[NS助手] 等待卡片时出错:', error);
             }
@@ -493,20 +509,22 @@
 
         async enhancePageUserLevels() {
             try {
-
                 if (!GM_getValue('ns_usercard_enable_level_tag', true)) {
                     return;
                 }
 
                 const authorInfoElements = document.querySelectorAll('.author-info');
+                const processedElements = new Set();
                 
                 for (const authorInfo of authorInfoElements) {
-                    if (authorInfo.querySelector('.ns-level-tag')) {
+                    if (authorInfo.hasAttribute('data-ns-level-processed')) {
                         continue;
                     }
 
                     const authorLink = authorInfo.querySelector('a.author-name');
                     if (!authorLink) continue;
+
+                    authorInfo.querySelectorAll('.ns-level-tag').forEach(tag => tag.remove());
 
                     const userId = authorLink.getAttribute('href').split('/').pop();
                     const userInfo = await this.utils.getUserInfo(userId);
@@ -527,6 +545,8 @@
                     }
 
                     authorLink.parentNode.insertBefore(levelTag, authorLink);
+                    
+                    authorInfo.setAttribute('data-ns-level-processed', 'true');
                 }
             } catch (error) {
                 console.error('[NS助手] 增强页面用户等级显示时出错:', error);
