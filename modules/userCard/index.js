@@ -562,6 +562,41 @@
                     levelTag.className = 'nsk-badge role-tag ns-level-tag';
                     levelTag.innerHTML = `Lv.${userInfo.rank}`;
                     levelTag.setAttribute('data-level', userInfo.rank);
+                    levelTag.setAttribute('data-user-id', userId);
+
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'ns-level-tooltip';
+                    tooltip.innerHTML = `
+                        <div class="ns-level-tooltip-item">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                            注册时间：${userInfo.created_at_str}
+                        </div>
+                        <div class="ns-level-tooltip-item">
+                            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-7-2h2v-4h4v-2h-4V7h-2v4H8v2h4z"/></svg>
+                            发帖数量：${userInfo.nPost}
+                        </div>
+                        <div class="ns-level-tooltip-item">
+                            <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+                            评论数量：${userInfo.nComment}
+                        </div>
+                    `;
+                    levelTag.appendChild(tooltip);
+
+                    let tooltipTimeout;
+                    levelTag.addEventListener('mouseenter', () => {
+                        clearTimeout(tooltipTimeout);
+                        const rect = levelTag.getBoundingClientRect();
+                        tooltip.style.left = '50%';
+                        tooltip.style.top = '100%';
+                        tooltip.style.transform = 'translateX(-50%)';
+                        tooltip.classList.add('show');
+                    });
+
+                    levelTag.addEventListener('mouseleave', () => {
+                        tooltipTimeout = setTimeout(() => {
+                            tooltip.classList.remove('show');
+                        }, 200);
+                    });
                     
                     switch (position) {
                         case 'before_name':
