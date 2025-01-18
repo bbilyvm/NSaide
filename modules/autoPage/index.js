@@ -83,6 +83,58 @@
                 return decodeURIComponent(Array.prototype.map.call(atob(str), function(c) {
                     return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
                 }).join(''));
+            },
+
+            processCommentMenus(commentElements) {
+                commentElements.forEach(comment => {
+                    if (comment.querySelector('.comment-menu')) return;
+
+                    const menuDiv = document.createElement('div');
+                    menuDiv.className = 'comment-menu';
+                    menuDiv.setAttribute('data-v-372de460', '');
+
+                    const chickenLegItem = this.createMenuItem('chicken-leg', '加鸡腿', '0');
+                    menuDiv.appendChild(chickenLegItem);
+
+                    const badOneItem = this.createMenuItem('bad-one', '反对', '0');
+                    menuDiv.appendChild(badOneItem);
+
+                    const pinItem = this.createMenuItem('pin', '置顶', '置顶');
+                    menuDiv.appendChild(pinItem);
+
+                    const quoteItem = this.createMenuItem('quote', '引用', '引用');
+                    menuDiv.appendChild(quoteItem);
+
+                    const backItem = this.createMenuItem('back', '回复', '回复');
+                    menuDiv.appendChild(backItem);
+
+                    comment.appendChild(menuDiv);
+                });
+            },
+
+            createMenuItem(iconName, title, text) {
+                const div = document.createElement('div');
+                div.className = 'menu-item';
+                div.setAttribute('data-v-372de460', '');
+                div.setAttribute('title', title);
+
+                const svg = document.createElement('svg');
+                svg.className = 'iconpark-icon';
+                svg.setAttribute('data-v-372de460', '');
+
+                const use = document.createElement('use');
+                use.setAttribute('data-v-372de460', '');
+                use.setAttribute('href', `#${iconName}`);
+                svg.appendChild(use);
+
+                const span = document.createElement('span');
+                span.setAttribute('data-v-372de460', '');
+                span.textContent = text;
+
+                div.appendChild(svg);
+                div.appendChild(span);
+
+                return div;
             }
         },
 
@@ -131,7 +183,13 @@
                                         }
                                     }
 
-                                    document.querySelector(opt.postListSelector).append(...doc.querySelector(opt.postListSelector).childNodes);
+                                    const newComments = Array.from(doc.querySelector(opt.postListSelector).children);
+                                    
+                                    document.querySelector(opt.postListSelector).append(...newComments);
+                                    
+                                    if (_this.config.comment.pathPattern.test(location.pathname)) {
+                                        _this.utils.processCommentMenus(newComments);
+                                    }
                                     
                                     document.querySelector(opt.topPagerSelector).innerHTML = doc.querySelector(opt.topPagerSelector).innerHTML;
                                     document.querySelector(opt.bottomPagerSelector).innerHTML = doc.querySelector(opt.bottomPagerSelector).innerHTML;
@@ -181,5 +239,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.3.2');
+    console.log('[NS助手] autoPage 模块加载完成 v0.3.3');
 })();
