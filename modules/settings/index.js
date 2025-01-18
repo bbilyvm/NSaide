@@ -8,18 +8,31 @@
         name: '设置面板',
         description: '提供统一的设置界面',
 
-        config: {
-            storage: {},
-            autoJump: {
-                enabled: false,
-                init() {
-                    if (!/^\/jump/.test(location.pathname)) return;
-                    const jumpButton = document.querySelector('.btn');
-                    if (jumpButton) {
-                        jumpButton.click();
+        settings: {
+            items: [
+                {
+                    id: 'autojump',
+                    label: '链接自动跳转',
+                    type: 'switch',
+                    default: false,
+                    value: () => GM_getValue('ns_settings_autojump_enabled', false)
+                }
+            ],
+            handleChange(id, value, utils) {
+                if (id === 'autojump') {
+                    GM_setValue('ns_settings_autojump_enabled', value);
+                    if (value && /^\/jump/.test(location.pathname)) {
+                        const jumpButton = document.querySelector('.btn');
+                        if (jumpButton) {
+                            jumpButton.click();
+                        }
                     }
                 }
             }
+        },
+
+        config: {
+            storage: {}
         },
 
         settingsCache: new Map(),
