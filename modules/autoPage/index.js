@@ -182,13 +182,27 @@
                         console.log('[NS助手] 追加评论列表');
 
                         const vue = document.querySelector('.comment-menu').__vue__;
-                        Array.from(document.querySelectorAll('.content-item')).forEach(function(t, e) {
-                            const n = t.querySelector('.comment-menu-mount');
-                            if (!n) return;
-                            let o = new vue.$root.constructor(vue.$options);
-                            o.setIndex(e);
-                            o.$mount(n);
-                        });
+                        if (vue) {
+                            const menuData = {
+                                poster: window.__config__.postData.poster,
+                                comments: window.__config__.postData.comments,
+                                user: window.__config__.user
+                            };
+
+                            Array.from(document.querySelectorAll('.content-item')).forEach(function(t, e) {
+                                const n = t.querySelector('.comment-menu-mount');
+                                if (!n) return;
+                                
+                                let o = new vue.$root.constructor({
+                                    ...vue.$options,
+                                    data: () => ({
+                                        ...menuData,
+                                        index: e
+                                    })
+                                });
+                                o.$mount(n);
+                            });
+                        }
                     } else {
                         console.log('[NS助手] 未找到评论列表容器');
                     }
@@ -247,5 +261,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.1.3');
+    console.log('[NS助手] autoPage 模块加载完成 v0.1.4');
 })(); 
