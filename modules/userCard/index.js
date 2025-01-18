@@ -661,5 +661,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] userCard 模块加载完成 v0.1.0');
+    console.log('[NS助手] userCard 模块加载完成 v0.1.1');
 })();
