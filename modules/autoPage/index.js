@@ -220,23 +220,14 @@
                 if (!window.__config__.postData) {
                     window.__config__.postData = conf.postData;
                 } else {
-                    const existingComments = new Set(window.__config__.postData.comments.map(c => c.id));
-                    const newComments = conf.postData.comments.filter(c => !existingComments.has(c.id));
-                    window.__config__.postData.comments.push(...newComments);
+                    window.__config__.postData.comments.push(...conf.postData.comments);
                 }
 
                 const commentList = document.querySelector('ul.comments');
                 const newComments = doc.querySelector('ul.comments');
 
                 if (commentList && newComments) {
-                    const validComments = Array.from(newComments.childNodes).filter(node => 
-                        node.nodeType === Node.ELEMENT_NODE && 
-                        node.classList.contains('content-item')
-                    );
-                    
-                    validComments.forEach((comment) => {
-                        commentList.appendChild(comment.cloneNode(true));
-                    });
+                    commentList.append(...newComments.childNodes);
 
                     const topPager = document.querySelector('.nsk-pager.post-top-pager');
                     const bottomPager = document.querySelector('.nsk-pager.post-bottom-pager');
@@ -253,33 +244,12 @@
                     const menuElement = document.querySelector('.comment-menu');
                     if (menuElement && menuElement.__vue__) {
                         const vue = menuElement.__vue__;
-                        Array.from(document.querySelectorAll(".content-item")).forEach((item, index) => {
+                        Array.from(document.querySelectorAll(".content-item")).forEach(function(item, index) {
                             const menuMount = item.querySelector(".comment-menu-mount");
                             if (!menuMount) return;
-
-                            try {
-                                const commentId = item.getAttribute('data-comment-id');
-                                if (!commentId) {
-                                    console.warn(`[NS助手] 无法获取评论ID`, item);
-                                    return;
-                                }
-
-                                const commentData = window.__config__.postData.comments.find(c => c.id === parseInt(commentId));
-                                if (!commentData) {
-                                    console.warn(`[NS助手] 未找到ID为 ${commentId} 的评论数据`);
-                                    return;
-                                }
-
-                                let newVue = new vue.$root.constructor(vue.$options);
-                                newVue.$data = {
-                                    ...vue.$data,
-                                    index: index,
-                                    comment: commentData
-                                };
-                                newVue.$mount(menuMount);
-                            } catch (error) {
-                                console.error('[NS助手] 评论菜单挂载失败:', error);
-                            }
+                            let newVue = new vue.$root.constructor(vue.$options);
+                            newVue.setIndex(index);
+                            newVue.$mount(menuMount);
                         });
                     }
 
