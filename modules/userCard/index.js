@@ -23,6 +23,18 @@
                     label: '显示用户等级标签',
                     default: true,
                     value: () => GM_getValue('ns_usercard_enable_level_tag', true)
+                },
+                {
+                    id: 'level_tag_position',
+                    type: 'select',
+                    label: '等级标签位置',
+                    options: [
+                        { value: 'before_name', label: '用户名前' },
+                        { value: 'after_name', label: '用户名后' },
+                        { value: 'after_tags', label: '所有标签后' }
+                    ],
+                    default: 'before_name',
+                    value: () => GM_getValue('ns_usercard_level_tag_position', 'before_name')
                 }
             ],
             
@@ -31,14 +43,14 @@
                     settingsManager.cacheValue('ns_usercard_enable_dragging', value);
                 } else if (settingId === 'enable_level_tag') {
                     settingsManager.cacheValue('ns_usercard_enable_level_tag', value);
-
                     if (!value) {
-
                         document.querySelectorAll('.ns-level-tag').forEach(tag => tag.remove());
                     } else {
-
                         NSUserCard.enhancePageUserLevels();
                     }
+                } else if (settingId === 'level_tag_position') {
+                    settingsManager.cacheValue('ns_usercard_level_tag_position', value);
+                    NSUserCard.enhancePageUserLevels();
                 }
             }
         },
@@ -529,7 +541,7 @@
                 }
 
                 const authorInfoElements = document.querySelectorAll('.author-info');
-                const processedElements = new Set();
+                const position = GM_getValue('ns_usercard_level_tag_position', 'before_name');
                 
                 for (const authorInfo of authorInfoElements) {
                     if (authorInfo.hasAttribute('data-ns-level-processed')) {
@@ -551,7 +563,18 @@
                     levelTag.innerHTML = `Lv.${userInfo.rank}`;
                     levelTag.setAttribute('data-level', userInfo.rank);
                     
-                    authorLink.parentNode.insertBefore(levelTag, authorLink);
+                    switch (position) {
+                        case 'before_name':
+                            authorLink.parentNode.insertBefore(levelTag, authorLink);
+                            break;
+                        case 'after_name':
+                            authorLink.parentNode.insertBefore(levelTag, authorLink.nextSibling);
+                            break;
+                        case 'after_tags':
+                            authorInfo.appendChild(levelTag);
+                            break;
+                    }
+                    
                     authorInfo.setAttribute('data-ns-level-processed', 'true');
                 }
             } catch (error) {
