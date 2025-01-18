@@ -246,7 +246,7 @@
     font-weight: 500;
     transition: all 0.3s ease;
     position: relative;
-    overflow: visible;
+    overflow: hidden;
     margin-right: 4px;
     cursor: pointer;
 }
@@ -255,22 +255,22 @@
     content: '';
     position: absolute;
     top: 0;
-    left: -100%;
-    width: 100%;
+    left: -50%;
+    width: 50%;
     height: 100%;
     background: linear-gradient(
-        120deg,
+        90deg,
         transparent,
         rgba(255, 255, 255, 0.3),
         transparent
     );
-    animation: shine 3s infinite;
+    transform: skewX(-25deg);
+    animation: shine 2s infinite;
 }
 
 @keyframes shine {
-    0% { left: -100%; }
-    20% { left: 100%; }
-    100% { left: 100%; }
+    0% { transform: skewX(-25deg) translateX(-100%); }
+    50%, 100% { transform: skewX(-25deg) translateX(200%); }
 }
 
 .ns-level-tag[data-level="0"] {
