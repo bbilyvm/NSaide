@@ -391,20 +391,15 @@
             try {
                 console.log('[NS助手] 等待卡片出现...');
 
-                const existingCards = document.querySelectorAll('.hover-user-card');
-                existingCards.forEach(card => {
-                    const extension = card.querySelector('.ns-usercard-extension');
-                    if (extension) {
-                        extension.remove();
-                    }
-                    card.classList.remove('enhanced');
-                    card.classList.remove('ns-usercard-enhanced');
-                });
-
                 const card = await this.utils.waitForElement('.hover-user-card');
                 if (!card) {
                     console.log('[NS助手] 未找到卡片');
                     return;
+                }
+
+                if (card.querySelector('.ns-usercard-extension')) {
+                    console.log('[NS助手] 移除旧的扩展内容');
+                    card.querySelector('.ns-usercard-extension').remove();
                 }
 
                 console.log('[NS助手] 找到卡片，获取用户数据...');
@@ -427,22 +422,10 @@
         },
 
         enhance(cardElement, userInfo) {
-            if (cardElement.classList.contains('enhanced')) {
-                console.log('[NS助手] 卡片已增强，跳过');
-                return;
-            }
-
-            console.log('[NS助手] 开始增强卡片');
-            cardElement.classList.add('enhanced');
-            cardElement.classList.add('ns-usercard-enhanced');
-
             try {
+                console.log('[NS助手] 开始增强卡片');
                 const isDarkMode = document.body.classList.contains('dark-layout');
                 console.log('[NS助手] 当前主题模式:', isDarkMode ? 'dark' : 'light');
-
-                if (isDarkMode) {
-                    cardElement.classList.add('dark-layout');
-                }
 
                 const userData = {
                     level: userInfo.rank,
@@ -524,7 +507,14 @@
 
                 extensionDiv.appendChild(nextLevelDiv);
                 extensionDiv.appendChild(activityDiv);
-                cardElement.appendChild(extensionDiv);
+
+                const closeBtn = cardElement.querySelector('.closeBtn');
+                if (closeBtn) {
+                    cardElement.insertBefore(extensionDiv, closeBtn);
+                } else {
+                    cardElement.appendChild(extensionDiv);
+                }
+
                 console.log('[NS助手] 卡片增强完成');
 
             } catch (error) {
@@ -602,5 +592,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] userCard 模块加载完成 v0.0.4');
+    console.log('[NS助手] userCard 模块加载完成 v0.0.5');
 })();
