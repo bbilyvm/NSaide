@@ -277,6 +277,57 @@
         init() {
             console.log('[NS助手] 初始化自动翻页模块');
             this.initAutoLoading();
+        },
+
+        autoLoading() {
+            if (util.getValue(opts.setting.SETTING_AUTO_LOADING_STATUS) === 0) return;
+            let opt = {};
+            if (opts.post.pathPattern.test(location.pathname)) { opt = opts.post; }
+            else if (opts.comment.pathPattern.test(location.pathname)) { opt = opts.comment; }
+            else { return; }
+            let is_requesting = false;
+            let _this = this;
+            this.windowScroll(function (direction, e) {
+                if (direction === 'down') { 
+                    let scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
+                    if (document.documentElement.scrollHeight <= document.documentElement.clientHeight + scrollTop + opt.scrollThreshold && !is_requesting) {
+                        if (!document.querySelector(opt.nextPagerSelector)) return;
+                        let nextUrl = document.querySelector(opt.nextPagerSelector).attributes.href.value;
+                        is_requesting = true;
+                        util.get(nextUrl, {}, 'text').then(function (data) {
+                            let doc = new DOMParser().parseFromString(data, "text/html");
+                            _this.blockPost(doc);
+                            if (opts.comment.pathPattern.test(location.pathname)){
+                                let el = doc.getElementById('temp-script')
+                                let jsonText = el.textContent;
+                                if (jsonText) {
+                                    let conf = JSON.parse(util.b64DecodeUnicode(jsonText))
+                                    unsafeWindow.__config__.postData.comments.push(...conf.postData.comments);
+                                }
+                            }
+                            document.querySelector(opt.postListSelector).append(...doc.querySelector(opt.postListSelector).childNodes);
+                            document.querySelector(opt.topPagerSelector).innerHTML = doc.querySelector(opt.topPagerSelector).innerHTML;
+                            document.querySelector(opt.bottomPagerSelector).innerHTML = doc.querySelector(opt.bottomPagerSelector).innerHTML;
+                            _this.openPostInNewTab();
+                            history.pushState(null, null, nextUrl);
+                            if (opts.comment.pathPattern.test(location.pathname)){
+                                const vue = document.querySelector('.comment-menu').__vue__;
+                                Array.from(document.querySelectorAll(".content-item")).forEach(function (t,e) {
+                                    var n = t.querySelector(".comment-menu-mount");
+                                    if(!n) return;
+                                    let o = new vue.$root.constructor(vue.$options);
+                                    o.setIndex(e);
+                                    o.$mount(n);
+                                });
+                            }
+                            is_requesting = false;
+                        }).catch(function (err) {
+                            is_requesting = false;
+                            util.clog(err);
+                        });
+                    }
+                }
+            });
         }
     };
 
@@ -303,5 +354,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.2.8');
+    console.log('[NS助手] autoPage 模块加载完成 v0.3.0');
 })(); 
