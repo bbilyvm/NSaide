@@ -35,6 +35,25 @@
                     ],
                     default: 'before_name',
                     value: () => GM_getValue('ns_usercard_level_tag_position', 'before_name')
+                },
+                {
+                    id: 'enable_post_level_tag',
+                    type: 'switch',
+                    label: '显示帖子列表等级标签',
+                    default: true,
+                    value: () => GM_getValue('ns_usercard_enable_post_level_tag', true)
+                },
+                {
+                    id: 'post_level_tag_position',
+                    type: 'select',
+                    label: '帖子列表等级标签位置',
+                    options: [
+                        { value: 'before_title', label: '标题前' },
+                        { value: 'before_name', label: '用户名前' },
+                        { value: 'after_name', label: '用户名后' }
+                    ],
+                    default: 'after_name',
+                    value: () => GM_getValue('ns_usercard_post_level_tag_position', 'after_name')
                 }
             ],
             
@@ -51,6 +70,16 @@
                 } else if (settingId === 'level_tag_position') {
                     settingsManager.cacheValue('ns_usercard_level_tag_position', value);
                     NSUserCard.enhancePageUserLevels();
+                } else if (settingId === 'enable_post_level_tag') {
+                    settingsManager.cacheValue('ns_usercard_enable_post_level_tag', value);
+                    if (!value) {
+                        document.querySelectorAll('.ns-post-level-tag').forEach(tag => tag.remove());
+                    } else {
+                        NSUserCard.enhancePostLevels();
+                    }
+                } else if (settingId === 'post_level_tag_position') {
+                    settingsManager.cacheValue('ns_usercard_post_level_tag_position', value);
+                    NSUserCard.enhancePostLevels();
                 }
             }
         },
@@ -248,6 +277,7 @@
             this.enhance = this.enhance.bind(this);
             this.enableDragging = this.enableDragging.bind(this);
             this.enhancePageUserLevels = this.enhancePageUserLevels.bind(this);
+            this.enhancePostLevels = this.enhancePostLevels.bind(this);
 
             console.log('[NS助手] 开始加载用户卡片样式');
             GM_xmlhttpRequest({
@@ -270,6 +300,10 @@
                 this.enhancePageUserLevels();
             }
 
+            if (GM_getValue('ns_usercard_enable_post_level_tag', true)) {
+                this.enhancePostLevels();
+            }
+
             console.log('[NS助手] 注册头像点击监听器');
             document.addEventListener('click', async (e) => {
                 const avatarLink = e.target.closest('a[href^="/space/"]');
@@ -282,16 +316,19 @@
 
             const observer = new MutationObserver((mutations) => {
                 let shouldEnhanceLevels = false;
+                let shouldEnhancePostLevels = false;
                 let themeChanged = false;
 
                 mutations.forEach((mutation) => {
                     if (mutation.type === 'childList') {
                         mutation.addedNodes.forEach(node => {
-                            if (node.nodeType === 1 && (
-                                node.classList?.contains('author-info') ||
-                                node.querySelector?.('.author-info')
-                            )) {
-                                shouldEnhanceLevels = true;
+                            if (node.nodeType === 1) {
+                                if (node.classList?.contains('author-info') || node.querySelector?.('.author-info')) {
+                                    shouldEnhanceLevels = true;
+                                }
+                                if (node.classList?.contains('post-list-content') || node.querySelector?.('.post-list-content')) {
+                                    shouldEnhancePostLevels = true;
+                                }
                             }
                         });
                     } else if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
@@ -301,6 +338,10 @@
 
                 if (shouldEnhanceLevels && GM_getValue('ns_usercard_enable_level_tag', true)) {
                     this.enhancePageUserLevels();
+                }
+
+                if (shouldEnhancePostLevels && GM_getValue('ns_usercard_enable_post_level_tag', true)) {
+                    this.enhancePostLevels();
                 }
 
                 if (themeChanged) {
@@ -589,7 +630,6 @@
                         let left = rect.left + (rect.width - tooltipRect.width) / 2;
                         let top = rect.bottom + 5;
 
-                        // 确保提示框不会超出视口
                         if (left < 10) left = 10;
                         if (left + tooltipRect.width > window.innerWidth - 10) {
                             left = window.innerWidth - tooltipRect.width - 10;
@@ -611,7 +651,6 @@
                         tooltip.classList.remove('show');
                     });
 
-                    // 监听滚动事件，更新提示框位置
                     window.addEventListener('scroll', () => {
                         if (tooltip.classList.contains('show')) {
                             updateTooltipPosition();
@@ -634,6 +673,110 @@
                 }
             } catch (error) {
                 console.error('[NS助手] 增强页面用户等级显示时出错:', error);
+            }
+        },
+
+        async enhancePostLevels() {
+            try {
+                if (!GM_getValue('ns_usercard_enable_post_level_tag', true)) {
+                    return;
+                }
+
+                const postListContents = document.querySelectorAll('.post-list-content');
+                const position = GM_getValue('ns_usercard_post_level_tag_position', 'after_name');
+                
+                for (const postContent of postListContents) {
+                    if (postContent.hasAttribute('data-ns-level-processed')) {
+                        continue;
+                    }
+
+                    const authorLink = postContent.querySelector('.info-author a');
+                    if (!authorLink) continue;
+
+                    postContent.querySelectorAll('.ns-post-level-tag').forEach(tag => tag.remove());
+
+                    const userId = authorLink.getAttribute('href').split('/').pop();
+                    const userInfo = await this.utils.getUserInfo(userId);
+                    
+                    if (!userInfo) continue;
+
+                    const levelTag = document.createElement('span');
+                    levelTag.className = 'nsk-badge role-tag ns-level-tag ns-post-level-tag';
+                    levelTag.innerHTML = `Lv.${userInfo.rank}`;
+                    levelTag.setAttribute('data-level', userInfo.rank);
+                    levelTag.setAttribute('data-user-id', userId);
+
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'ns-level-tooltip';
+                    tooltip.innerHTML = `
+                        <div class="ns-level-tooltip-item">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                            注册时间：${userInfo.created_at_str}
+                        </div>
+                        <div class="ns-level-tooltip-item">
+                            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-7-2h2v-4h4v-2h-4V7h-2v4H8v2h4z"/></svg>
+                            发帖数量：${userInfo.nPost}
+                        </div>
+                        <div class="ns-level-tooltip-item">
+                            <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+                            评论数量：${userInfo.nComment}
+                        </div>
+                    `;
+                    document.body.appendChild(tooltip);
+
+                    const updateTooltipPosition = (e) => {
+                        const rect = levelTag.getBoundingClientRect();
+                        const tooltipRect = tooltip.getBoundingClientRect();
+                        
+                        let left = rect.left + (rect.width - tooltipRect.width) / 2;
+                        let top = rect.bottom + 5;
+
+                        if (left < 10) left = 10;
+                        if (left + tooltipRect.width > window.innerWidth - 10) {
+                            left = window.innerWidth - tooltipRect.width - 10;
+                        }
+                        if (top + tooltipRect.height > window.innerHeight - 10) {
+                            top = rect.top - tooltipRect.height - 5;
+                        }
+
+                        tooltip.style.left = `${left}px`;
+                        tooltip.style.top = `${top}px`;
+                    };
+
+                    levelTag.addEventListener('mouseenter', () => {
+                        tooltip.classList.add('show');
+                        updateTooltipPosition();
+                    });
+
+                    levelTag.addEventListener('mouseleave', () => {
+                        tooltip.classList.remove('show');
+                    });
+
+                    window.addEventListener('scroll', () => {
+                        if (tooltip.classList.contains('show')) {
+                            updateTooltipPosition();
+                        }
+                    }, { passive: true });
+                    
+                    switch (position) {
+                        case 'before_title':
+                            const titleElement = postContent.querySelector('.post-title');
+                            if (titleElement) {
+                                titleElement.insertBefore(levelTag, titleElement.firstChild);
+                            }
+                            break;
+                        case 'before_name':
+                            authorLink.parentNode.insertBefore(levelTag, authorLink);
+                            break;
+                        case 'after_name':
+                            authorLink.parentNode.insertBefore(levelTag, authorLink.nextSibling);
+                            break;
+                    }
+                    
+                    postContent.setAttribute('data-ns-level-processed', 'true');
+                }
+            } catch (error) {
+                console.error('[NS助手] 增强帖子列表等级显示时出错:', error);
             }
         }
     };
@@ -661,5 +804,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] userCard 模块加载完成 v0.1.1');
+    console.log('[NS助手] userCard 模块加载完成 v0.1.2');
 })();
