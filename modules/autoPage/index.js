@@ -183,24 +183,36 @@
                         console.log('[NS助手] 追加评论列表');
 
                         const vue = document.querySelector('.comment-menu')?.__vue__;
-                        if (vue && window.__config__?.postData) {
+                        if (vue && window.__config__) {
                             const { postData, user } = window.__config__;
-                            console.log('[NS助手] 获取到配置数据:', { 
-                                hasPoster: !!postData.poster,
-                                commentsCount: postData.comments?.length,
-                                hasUser: !!user
-                            });
+                            
+                            Array.from(document.querySelectorAll('.content-item')).forEach(function(item, index) {
+                                const mount = item.querySelector('.comment-menu-mount');
+                                if (!mount) return;
 
-                            Array.from(document.querySelectorAll('.content-item')).forEach(function(t, e) {
-                                const n = t.querySelector('.comment-menu-mount');
-                                if (!n) return;
-                                
-                                let o = new vue.$root.constructor(vue.$options);
-                                o.poster = postData.poster;
-                                o.comments = postData.comments;
-                                o.user = user;
-                                o.setIndex(e);
-                                o.$mount(n);
+                                const commentId = item.getAttribute('data-comment-id');
+                                const comment = postData.comments.find(c => c.commentId.toString() === commentId);
+                                if (!comment) return;
+
+                                const instance = new vue.$root.constructor(vue.$options);
+                                Object.assign(instance, {
+                                    poster: comment.poster,
+                                    comment: comment,
+                                    user: user,
+                                    index: index,
+                                    postId: postData.postId,
+                                    isOp: comment.poster.isOp,
+                                    isMe: comment.poster.isMe,
+                                    commentId: comment.commentId,
+                                    liked: comment.liked,
+                                    disliked: comment.disliked,
+                                    likeCount: comment.likeCount,
+                                    dislikeCount: comment.dislikeCount,
+                                    hot: comment.hot,
+                                    pined: comment.pined,
+                                    blocked: comment.blocked
+                                });
+                                instance.$mount(mount);
                             });
                         } else {
                             console.error('[NS助手] 无法获取Vue实例或配置数据');
@@ -263,5 +275,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.1.5');
+    console.log('[NS助手] autoPage 模块加载完成 v0.1.6');
 })(); 
