@@ -6,7 +6,7 @@
     const NSAutoPage = {
         id: 'autoPage',
         name: '自动翻页',
-        description: '浏览列表时自动加载下一页',
+        description: '浏览帖子列表时自动加载下一页',
 
         settings: {
             items: [
@@ -41,9 +41,7 @@
             this._boundScrollHandler = function(e) {
                 const afterScrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
                 const delta = afterScrollTop - _this.beforeScrollTop;
-                
                 if (delta === 0) return false;
-                
                 callback(delta > 0 ? 'down' : 'up', e);
                 _this.beforeScrollTop = afterScrollTop;
             };
@@ -58,13 +56,13 @@
                 console.log('[NS助手] 自动加载已禁用');
                 return;
             }
-            
+
             if (!/^\/($|node\/|search|page-)/.test(location.pathname)) {
-                console.log('[NS助手] 不在目标页面');
+                console.log('[NS助手] 不在帖子列表页面');
                 return;
             }
 
-            console.log('[NS助手] 初始化自动加载');
+            console.log('[NS助手] 初始化帖子列表自动加载');
             let _this = this;
             
             this.windowScroll((direction, e) => {
@@ -101,7 +99,12 @@
                 const newPosts = doc.querySelector('.topic-list');
 
                 if (postList && newPosts) {
-                    postList.append(...newPosts.childNodes);
+                    const posts = Array.from(newPosts.children);
+                    posts.forEach(post => {
+                        if (post.tagName === 'DIV' && !postList.querySelector(`[data-id="${post.dataset.id}"]`)) {
+                            postList.appendChild(post.cloneNode(true));
+                        }
+                    });
 
                     const topPager = document.querySelector('.nsk-pager');
                     const bottomPager = document.querySelector('.nsk-pager.pager-bottom');
@@ -154,5 +157,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.0.2');
+    console.log('[NS助手] autoPage 模块加载完成 v0.0.4');
 })(); 
