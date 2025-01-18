@@ -195,23 +195,21 @@
                                 if (!comment) return;
 
                                 const instance = new vue.$root.constructor(vue.$options);
-                                Object.assign(instance, {
-                                    poster: comment.poster,
-                                    comment: comment,
-                                    user: user,
-                                    index: index,
-                                    postId: postData.postId,
-                                    isOp: comment.poster.isOp,
-                                    isMe: comment.poster.isMe,
-                                    commentId: comment.commentId,
-                                    liked: comment.liked,
-                                    disliked: comment.disliked,
-                                    likeCount: comment.likeCount,
-                                    dislikeCount: comment.dislikeCount,
-                                    hot: comment.hot,
-                                    pined: comment.pined,
-                                    blocked: comment.blocked
-                                });
+                                
+                                instance.$data.logined = true;
+                                instance.$data.commentArrayIndex = index;
+                                instance.$data.isMe = comment.poster.isMe;
+                                instance.$data.floorIndex = comment.floorIndex;
+                                instance.$data.collectionCount = 0;
+                                instance.$data.collected = false;
+                                instance.$data.likeCount = comment.likeCount;
+                                instance.$data.liked = comment.liked;
+                                instance.$data.dislikeCount = comment.dislikeCount;
+                                instance.$data.disliked = comment.disliked;
+                                instance.$data.pined = comment.pined;
+                                instance.$data.canAdmin = false;
+                                instance.$data.canPin = true;
+
                                 instance.$mount(mount);
                             });
                         } else {
@@ -275,5 +273,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.1.6');
+    console.log('[NS助手] autoPage 模块加载完成 v0.1.7');
 })(); 
