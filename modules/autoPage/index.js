@@ -10,8 +10,10 @@
 
         config: {
             storage: {
-                STATUS: 'ns_autopage_status',
-                SCROLL_THRESHOLD: 'ns_autopage_scroll_threshold'
+                POST_STATUS: 'ns_autopage_post_status',
+                POST_THRESHOLD: 'ns_autopage_post_threshold',
+                COMMENT_STATUS: 'ns_autopage_comment_status',
+                COMMENT_THRESHOLD: 'ns_autopage_comment_threshold'
             },
             post: {
                 pathPattern: /^\/(categories\/|page|award|search|$)/,
@@ -23,7 +25,7 @@
             },
             comment: {
                 pathPattern: /^\/post-/,
-                scrollThreshold: 690,
+                scrollThreshold: 200,
                 nextPagerSelector: '.nsk-pager a.pager-next',
                 postListSelector: 'ul.comments',
                 topPagerSelector: 'div.nsk-pager.post-top-pager',
@@ -34,26 +36,49 @@
         settings: {
             items: [
                 {
-                    id: 'status',
+                    id: 'post_status',
                     type: 'switch',
-                    label: '启用自动翻页',
-                    default: true,
-                    value: () => GM_getValue('ns_autopage_status', true)
+                    label: '启用帖子列表自动翻页',
+                    default: false,
+                    value: () => GM_getValue('ns_autopage_post_status', false)
                 },
                 {
-                    id: 'scroll_threshold',
+                    id: 'post_threshold',
                     type: 'number',
-                    label: '滚动触发阈值',
+                    label: '帖子列表滚动触发阈值',
                     default: 200,
-                    value: () => GM_getValue('ns_autopage_scroll_threshold', 200)
+                    value: () => GM_getValue('ns_autopage_post_threshold', 200)
+                },
+                {
+                    id: 'comment_status',
+                    type: 'switch',
+                    label: '启用评论区自动翻页',
+                    default: false,
+                    value: () => GM_getValue('ns_autopage_comment_status', false)
+                },
+                {
+                    id: 'comment_threshold',
+                    type: 'number',
+                    label: '评论区滚动触发阈值',
+                    default: 100,
+                    value: () => GM_getValue('ns_autopage_comment_threshold', 100)
                 }
             ],
             
             handleChange(settingId, value, settingsManager) {
-                if (settingId === 'status') {
-                    settingsManager.cacheValue('ns_autopage_status', value);
-                } else if (settingId === 'scroll_threshold') {
-                    settingsManager.cacheValue('ns_autopage_scroll_threshold', parseInt(value));
+                switch(settingId) {
+                    case 'post_status':
+                        settingsManager.cacheValue('ns_autopage_post_status', value);
+                        break;
+                    case 'post_threshold':
+                        settingsManager.cacheValue('ns_autopage_post_threshold', parseInt(value));
+                        break;
+                    case 'comment_status':
+                        settingsManager.cacheValue('ns_autopage_comment_status', value);
+                        break;
+                    case 'comment_threshold':
+                        settingsManager.cacheValue('ns_autopage_comment_threshold', parseInt(value));
+                        break;
                 }
             }
         },
@@ -105,18 +130,25 @@
         },
 
         autoLoading() {
-            if (GM_getValue(this.config.storage.STATUS, true) === false) return;
-            
             let opt = {};
+            let isEnabled = false;
+            let threshold = 0;
+
             if (this.config.post.pathPattern.test(location.pathname)) { 
-                opt = this.config.post; 
+                opt = this.config.post;
+                isEnabled = GM_getValue(this.config.storage.POST_STATUS, true);
+                threshold = GM_getValue(this.config.storage.POST_THRESHOLD, opt.scrollThreshold);
             }
             else if (this.config.comment.pathPattern.test(location.pathname)) { 
-                opt = this.config.comment; 
+                opt = this.config.comment;
+                isEnabled = GM_getValue(this.config.storage.COMMENT_STATUS, true);
+                threshold = GM_getValue(this.config.storage.COMMENT_THRESHOLD, opt.scrollThreshold);
             }
             else { 
                 return; 
             }
+
+            if (!isEnabled) return;
 
             let is_requesting = false;
             let _this = this;
@@ -124,7 +156,6 @@
             this.utils.windowScroll(function (direction, e) {
                 if (direction === 'down') {
                     let scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
-                    let threshold = GM_getValue(_this.config.storage.SCROLL_THRESHOLD, opt.scrollThreshold);
                     
                     if (document.documentElement.scrollHeight <= document.documentElement.clientHeight + scrollTop + threshold && !is_requesting) {
                         let nextButton = document.querySelector(opt.nextPagerSelector);
@@ -205,5 +236,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.3.4');
+    console.log('[NS助手] autoPage 模块加载完成 v0.3.5');
 })();
