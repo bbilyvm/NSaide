@@ -200,35 +200,43 @@
                 const doc = new DOMParser().parseFromString(text, "text/html");
 
                 const tempScript = doc.getElementById('temp-script');
-                if (tempScript) {
-                    const jsonText = tempScript.textContent;
-                    if (jsonText) {
-                        const conf = JSON.parse(this.b64DecodeUnicode(jsonText));
-                        if (!window.__config__) {
-                            window.__config__ = {};
-                        }
-                        if (!window.__config__.postData) {
-                            window.__config__.postData = {};
-                        }
-                        if (!window.__config__.postData.comments) {
-                            window.__config__.postData.comments = [];
-                        }
-                        if (conf.postData && Array.isArray(conf.postData.comments)) {
-                            window.__config__.postData.comments.push(...conf.postData.comments);
-                        }
-                    }
+                if (!tempScript) {
+                    throw new Error('未找到评论数据脚本');
+                }
+
+                const jsonText = tempScript.textContent;
+                if (!jsonText) {
+                    throw new Error('评论数据为空');
+                }
+
+                const conf = JSON.parse(this.b64DecodeUnicode(jsonText));
+                if (!conf.postData || !Array.isArray(conf.postData.comments)) {
+                    throw new Error('评论数据格式错误');
+                }
+
+                if (!window.__config__) {
+                    window.__config__ = {};
+                }
+                if (!window.__config__.postData) {
+                    window.__config__.postData = conf.postData;
+                } else {
+                    window.__config__.postData.comments = window.__config__.postData.comments || [];
+                    window.__config__.postData.comments.push(...conf.postData.comments);
                 }
 
                 const commentList = document.querySelector('ul.comments');
                 const newComments = doc.querySelector('ul.comments');
 
                 if (commentList && newComments) {
+                    const currentComments = document.querySelectorAll('.content-item');
+                    let startIndex = currentComments.length;
+
                     const validComments = Array.from(newComments.childNodes).filter(node => 
                         node.nodeType === Node.ELEMENT_NODE && 
                         node.classList.contains('content-item')
                     );
                     
-                    validComments.forEach(comment => {
+                    validComments.forEach((comment, index) => {
                         commentList.appendChild(comment.cloneNode(true));
                     });
 
@@ -247,12 +255,25 @@
                     const menuElement = document.querySelector('.comment-menu');
                     if (menuElement && menuElement.__vue__) {
                         const vue = menuElement.__vue__;
-                        Array.from(document.querySelectorAll(".content-item")).forEach((item, index) => {
+                        const newContentItems = Array.from(document.querySelectorAll(".content-item")).slice(startIndex);
+                        newContentItems.forEach((item, index) => {
                             const menuMount = item.querySelector(".comment-menu-mount");
                             if (!menuMount) return;
+
                             try {
+                                const commentIndex = startIndex + index;
+                                const commentData = window.__config__.postData.comments[commentIndex];
+                                if (!commentData) {
+                                    console.warn(`[NS助手] 未找到索引 ${commentIndex} 的评论数据`);
+                                    return;
+                                }
+
                                 let newVue = new vue.$root.constructor(vue.$options);
-                                newVue.setIndex(index);
+                                newVue.$data = {
+                                    ...newVue.$data,
+                                    index: commentIndex,
+                                    comment: commentData
+                                };
                                 newVue.$mount(menuMount);
                             } catch (error) {
                                 console.error('[NS助手] 评论菜单挂载失败:', error);
