@@ -182,18 +182,19 @@
                         commentList.append(...newComments.childNodes);
                         console.log('[NS助手] 追加评论列表');
 
-                        const vue = document.querySelector('.comment-menu')?.__vue__;
-                        if (vue && window.__config__) {
-                            Array.from(document.querySelectorAll('.content-item')).forEach(function(item) {
+                        const vue = document.querySelector('.comment-menu').__vue__;
+                        if (vue) {
+                            Array.from(document.querySelectorAll('.content-item')).forEach(function(item, index) {
                                 const mount = item.querySelector('.comment-menu-mount');
                                 if (!mount) return;
 
-                                const instance = new vue.$root.constructor(vue.$options);
-                                instance.setIndex(Array.from(document.querySelectorAll('.content-item')).indexOf(item));
-                                instance.$mount(mount);
+                                let o = new vue.$root.constructor(vue.$options);
+                                o.setIndex(index);
+                                o.$mount(mount);
                             });
+                            console.log('[NS助手] 评论菜单已重新挂载');
                         } else {
-                            console.error('[NS助手] 无法获取Vue实例或配置数据');
+                            console.error('[NS助手] 无法获取Vue实例');
                         }
                     } else {
                         console.log('[NS助手] 未找到评论列表容器');
