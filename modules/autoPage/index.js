@@ -214,13 +214,19 @@
                     throw new Error('评论数据格式错误');
                 }
 
+                if (!window.__config__) {
+                    window.__config__ = {};
+                }
+                if (!window.__config__.postData) {
+                    window.__config__.postData = conf.postData;
+                } else {
+                    const existingComments = new Set(window.__config__.postData.comments.map(c => c.id));
+                    const newComments = conf.postData.comments.filter(c => !existingComments.has(c.id));
+                    window.__config__.postData.comments.push(...newComments);
+                }
+
                 const currentComments = document.querySelectorAll('.content-item');
                 let startIndex = currentComments.length;
-
-                const commentMap = new Map();
-                conf.postData.comments.forEach(comment => {
-                    commentMap.set(comment.id, comment);
-                });
 
                 const commentList = document.querySelector('ul.comments');
                 const newComments = doc.querySelector('ul.comments');
@@ -256,33 +262,13 @@
                             if (!menuMount) return;
 
                             try {
-                                let commentId = null;
-                                
-                                commentId = item.getAttribute('data-comment-id');
-                                
-                                if (!commentId) {
-                                    const commentLink = item.querySelector('a[href^="/post-"]');
-                                    if (commentLink) {
-                                        const match = commentLink.href.match(/post-(\d+)-(\d+)#(\d+)/);
-                                        if (match) {
-                                            commentId = match[3];
-                                        }
-                                    }
-                                }
-                                
-                                if (!commentId) {
-                                    const hiddenField = item.querySelector('input[type="hidden"][name="comment_id"]');
-                                    if (hiddenField) {
-                                        commentId = hiddenField.value;
-                                    }
-                                }
-
+                                const commentId = item.getAttribute('data-comment-id');
                                 if (!commentId) {
                                     console.warn(`[NS助手] 无法获取评论ID`, item);
                                     return;
                                 }
 
-                                const commentData = commentMap.get(parseInt(commentId));
+                                const commentData = window.__config__.postData.comments.find(c => c.id === parseInt(commentId));
                                 if (!commentData) {
                                     console.warn(`[NS助手] 未找到ID为 ${commentId} 的评论数据`);
                                     return;
@@ -299,17 +285,6 @@
                                 console.error('[NS助手] 评论菜单挂载失败:', error);
                             }
                         });
-                    }
-
-                    if (!window.__config__) {
-                        window.__config__ = {};
-                    }
-                    if (!window.__config__.postData) {
-                        window.__config__.postData = conf.postData;
-                    } else {
-                        const existingComments = new Set(window.__config__.postData.comments.map(c => c.id));
-                        const newComments = conf.postData.comments.filter(c => !existingComments.has(c.id));
-                        window.__config__.postData.comments.push(...newComments);
                     }
 
                     history.pushState(null, null, nextUrl);
