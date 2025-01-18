@@ -6,328 +6,155 @@
     const NSAutoPage = {
         id: 'autoPage',
         name: '自动翻页',
-        description: '浏览帖子列表和评论区时自动加载下一页',
+        description: '自动加载下一页内容，支持帖子列表和评论列表',
+
+        config: {
+            storage: {
+                STATUS: 'ns_autopage_status',
+                SCROLL_THRESHOLD: 'ns_autopage_scroll_threshold'
+            },
+            post: {
+                pathPattern: /^\/(categories\/|page|award|search|$)/,
+                scrollThreshold: 200,
+                nextPagerSelector: '.nsk-pager a.pager-next',
+                postListSelector: 'ul.post-list',
+                topPagerSelector: 'div.nsk-pager.pager-top',
+                bottomPagerSelector: 'div.nsk-pager.pager-bottom'
+            },
+            comment: {
+                pathPattern: /^\/post-/,
+                scrollThreshold: 690,
+                nextPagerSelector: '.nsk-pager a.pager-next',
+                postListSelector: 'ul.comments',
+                topPagerSelector: 'div.nsk-pager.post-top-pager',
+                bottomPagerSelector: 'div.nsk-pager.post-bottom-pager'
+            }
+        },
 
         settings: {
             items: [
                 {
-                    id: 'postList',
-                    label: '帖子列表',
+                    id: 'status',
                     type: 'switch',
-                    default: false,
-                    value: () => GM_getValue('autoPage_postList_enabled', false)
+                    label: '启用自动翻页',
+                    default: true,
+                    value: () => GM_getValue('ns_autopage_status', true)
                 },
                 {
-                    id: 'comments',
-                    label: '评论区',
-                    type: 'switch',
-                    default: false,
-                    value: () => GM_getValue('autoPage_comments_enabled', false)
-                },
-                {
-                    id: 'scrollThreshold',
-                    label: '触发距离',
+                    id: 'scroll_threshold',
                     type: 'number',
+                    label: '滚动触发阈值',
                     default: 200,
-                    value: () => GM_getValue('autoPage_scroll_threshold', 200)
+                    value: () => GM_getValue('ns_autopage_scroll_threshold', 200)
                 }
             ],
-            handleChange(id, value) {
-                if (id === 'postList') {
-                    GM_setValue('autoPage_postList_enabled', value);
-                    if (!value) {
-                        window.removeEventListener('scroll', NSAutoPage._boundScrollHandler);
-                    } else {
-                        NSAutoPage.initAutoLoading();
-                    }
-                } else if (id === 'comments') {
-                    GM_setValue('autoPage_comments_enabled', value);
-                    if (!value) {
-                        window.removeEventListener('scroll', NSAutoPage._boundScrollHandler);
-                    } else {
-                        NSAutoPage.initAutoLoading();
-                    }
-                } else if (id === 'scrollThreshold') {
-                    const threshold = parseInt(value) || 200;
-                    GM_setValue('autoPage_scroll_threshold', threshold);
-                    console.log('[NS助手] 更新滚动触发距离:', threshold);
+            
+            handleChange(settingId, value, settingsManager) {
+                if (settingId === 'status') {
+                    settingsManager.cacheValue('ns_autopage_status', value);
+                } else if (settingId === 'scroll_threshold') {
+                    settingsManager.cacheValue('ns_autopage_scroll_threshold', parseInt(value));
                 }
             }
         },
 
-        isRequesting: false,
-        _boundScrollHandler: null,
-        beforeScrollTop: 0,
-
-        windowScroll(fn1) {
-            this.beforeScrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
+        utils: {
+            windowScroll(callback) {
+                let lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                let ticking = false;
             
-            this._boundScrollHandler = (e) => {
-                const afterScrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
-                const delta = afterScrollTop - this.beforeScrollTop;
-                if (delta === 0) return false;
-                fn1(delta > 0 ? 'down' : 'up', e);
-                this.beforeScrollTop = afterScrollTop;
-            };
+                window.addEventListener('scroll', function(e) {
+                    let currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    
+                    if (!ticking) {
+                        window.requestAnimationFrame(function() {
+                            let direction = currentScrollTop > lastScrollTop ? 'down' : 'up';
+                            callback(direction, e);
+                            lastScrollTop = currentScrollTop;
+                            ticking = false;
+                        });
+                        
+                        ticking = true;
+                    }
+                }, { passive: true });
+            },
 
-            setTimeout(() => {
-                window.addEventListener('scroll', this._boundScrollHandler, false);
-                console.log('[NS助手] 滚动监听已启动');
-            }, 1000);
+            b64DecodeUnicode(str) {
+                return decodeURIComponent(Array.prototype.map.call(atob(str), function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+            }
         },
 
-        initAutoLoading() {
-            const postListEnabled = GM_getValue('autoPage_postList_enabled', false);
-            const commentsEnabled = GM_getValue('autoPage_comments_enabled', false);
-
-            if (!postListEnabled && !commentsEnabled) {
-                console.log('[NS助手] 自动加载已禁用');
-                return;
-            }
-
-            const isPostList = /^\/($|node\/|search|page-)/.test(location.pathname);
-            const isComments = /^\/post-/.test(location.pathname);
-
-            if (!isPostList && !isComments) {
-                console.log('[NS助手] 不在帖子列表或评论页面');
-                return;
-            }
-
-            if (isPostList && !postListEnabled) {
-                console.log('[NS助手] 帖子列表自动加载已禁用');
-                return;
-            }
-
-            if (isComments && !commentsEnabled) {
-                console.log('[NS助手] 评论区自动加载已禁用');
-                return;
-            }
-
-            console.log('[NS助手] 初始化自动加载');
+        autoLoading() {
+            if (GM_getValue(this.config.storage.STATUS, true) === false) return;
             
-            this.windowScroll((direction, e) => {
+            let opt = {};
+            if (this.config.post.pathPattern.test(location.pathname)) { 
+                opt = this.config.post; 
+            }
+            else if (this.config.comment.pathPattern.test(location.pathname)) { 
+                opt = this.config.comment; 
+            }
+            else { 
+                return; 
+            }
+
+            let is_requesting = false;
+            let _this = this;
+
+            this.utils.windowScroll(function (direction, e) {
                 if (direction === 'down') {
-                    const scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
-                    const scrollHeight = document.documentElement.scrollHeight;
-                    const clientHeight = document.documentElement.clientHeight;
-                    const threshold = GM_getValue('autoPage_scroll_threshold', 200);
+                    let scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
+                    let threshold = GM_getValue(_this.config.storage.SCROLL_THRESHOLD, opt.scrollThreshold);
                     
-                    if (scrollHeight <= clientHeight + scrollTop + threshold && !this.isRequesting) {
-                        console.log('[NS助手] 触发加载下一页, 阈值:', threshold);
-                        if (isPostList) {
-                            this.loadNextPage();
-                        } else if (isComments) {
-                            this.loadNextComments();
-                        }
+                    if (document.documentElement.scrollHeight <= document.documentElement.clientHeight + scrollTop + threshold && !is_requesting) {
+                        let nextButton = document.querySelector(opt.nextPagerSelector);
+                        if (!nextButton) return;
+                        
+                        let nextUrl = nextButton.attributes.href.value;
+                        is_requesting = true;
+
+                        GM_xmlhttpRequest({
+                            method: 'GET',
+                            url: nextUrl,
+                            onload: function(response) {
+                                if (response.status === 200) {
+                                    let doc = new DOMParser().parseFromString(response.responseText, "text/html");
+                                    
+                                    if (_this.config.comment.pathPattern.test(location.pathname)){
+                                        let el = doc.getElementById('temp-script')
+                                        let jsonText = el.textContent;
+                                        if (jsonText) {
+                                            let conf = JSON.parse(_this.utils.b64DecodeUnicode(jsonText))
+                                            unsafeWindow.__config__.postData.comments.push(...conf.postData.comments);
+                                        }
+                                    }
+
+                                    document.querySelector(opt.postListSelector).append(...doc.querySelector(opt.postListSelector).childNodes);
+                                    
+                                    document.querySelector(opt.topPagerSelector).innerHTML = doc.querySelector(opt.topPagerSelector).innerHTML;
+                                    document.querySelector(opt.bottomPagerSelector).innerHTML = doc.querySelector(opt.bottomPagerSelector).innerHTML;
+                                    
+                                    history.pushState(null, null, nextUrl);
+                                    
+                                    is_requesting = false;
+                                }
+                            },
+                            onerror: function(error) {
+                                is_requesting = false;
+                                console.error('[NS助手] 自动加载下一页失败:', error);
+                            }
+                        });
                     }
                 }
             });
-        },
-
-        async loadNextPage() {
-            const nextPageLink = document.querySelector('.nsk-pager .pager-next');
-            if (!nextPageLink || !nextPageLink.href) {
-                console.log('[NS助手] 没有下一页');
-                return;
-            }
-
-            const nextUrl = nextPageLink.href;
-            this.isRequesting = true;
-            console.log('[NS助手] 开始加载下一页:', nextUrl);
-
-            try {
-                const response = await fetch(nextUrl);
-                const text = await response.text();
-                const doc = new DOMParser().parseFromString(text, "text/html");
-
-                const postList = document.querySelector('.post-list');
-                const newPosts = doc.querySelector('.post-list');
-
-                if (postList && newPosts) {
-                    const posts = Array.from(newPosts.children).filter(post => post.classList.contains('post-list-item'));
-                    console.log('[NS助手] 找到新帖子数量:', posts.length);
-
-                    posts.forEach(post => {
-                        const postTitle = post.querySelector('.post-title a');
-                        if (postTitle) {
-                            const postHref = postTitle.getAttribute('href');
-                            if (!postList.querySelector(`.post-title a[href="${postHref}"]`)) {
-                                const clonedPost = post.cloneNode(true);
-                                postList.appendChild(clonedPost);
-                                console.log('[NS助手] 追加帖子:', postHref);
-                            }
-                        }
-                    });
-
-                    const pagers = document.querySelectorAll('.nsk-pager');
-                    const newPagers = doc.querySelectorAll('.nsk-pager');
-                    
-                    pagers.forEach((pager, index) => {
-                        if (newPagers[index]) {
-                            pager.innerHTML = newPagers[index].innerHTML;
-                        }
-                    });
-
-                    history.pushState(null, null, nextUrl);
-                    console.log('[NS助手] 下一页加载完成');
-                } else {
-                    console.log('[NS助手] 未找到帖子列表容器');
-                }
-            } catch (error) {
-                console.error('[NS助手] 加载下一页失败:', error);
-            } finally {
-                setTimeout(() => {
-                    this.isRequesting = false;
-                    console.log('[NS助手] 重置请求状态');
-                }, 500);
-            }
-        },
-
-        async loadNextComments() {
-            const nextPageLink = document.querySelector('.nsk-pager.post-bottom-pager .pager-next');
-            if (!nextPageLink || !nextPageLink.href) {
-                console.log('[NS助手] 没有下一页评论');
-                return;
-            }
-
-            const nextUrl = nextPageLink.href;
-            this.isRequesting = true;
-            console.log('[NS助手] 开始加载下一页评论:', nextUrl);
-
-            try {
-                const response = await fetch(nextUrl);
-                const text = await response.text();
-                const doc = new DOMParser().parseFromString(text, "text/html");
-
-                const tempScript = doc.getElementById('temp-script');
-                if (!tempScript) {
-                    throw new Error('未找到评论数据脚本');
-                }
-
-                const jsonText = tempScript.textContent;
-                if (!jsonText) {
-                    throw new Error('评论数据为空');
-                }
-
-                const conf = JSON.parse(this.b64DecodeUnicode(jsonText));
-                if (!conf.postData || !Array.isArray(conf.postData.comments)) {
-                    throw new Error('评论数据格式错误');
-                }
-
-                if (!window.__config__) {
-                    window.__config__ = {};
-                }
-                if (!window.__config__.postData) {
-                    window.__config__.postData = conf.postData;
-                } else {
-                    window.__config__.postData.comments.push(...conf.postData.comments);
-                }
-
-                const commentList = document.querySelector('ul.comments');
-                const newComments = doc.querySelector('ul.comments');
-
-                if (commentList && newComments) {
-                    commentList.append(...newComments.childNodes);
-
-                    const topPager = document.querySelector('.nsk-pager.post-top-pager');
-                    const bottomPager = document.querySelector('.nsk-pager.post-bottom-pager');
-                    const newTopPager = doc.querySelector('.nsk-pager.post-top-pager');
-                    const newBottomPager = doc.querySelector('.nsk-pager.post-bottom-pager');
-
-                    if (topPager && newTopPager) {
-                        topPager.innerHTML = newTopPager.innerHTML;
-                    }
-                    if (bottomPager && newBottomPager) {
-                        bottomPager.innerHTML = newBottomPager.innerHTML;
-                    }
-
-                    const menuElement = document.querySelector('.comment-menu');
-                    if (menuElement && menuElement.__vue__) {
-                        const vue = menuElement.__vue__;
-                        Array.from(document.querySelectorAll(".content-item")).forEach(function(item, index) {
-                            const menuMount = item.querySelector(".comment-menu-mount");
-                            if (!menuMount) return;
-                            let newVue = new vue.$root.constructor(vue.$options);
-                            newVue.setIndex(index);
-                            newVue.$mount(menuMount);
-                        });
-                    }
-
-                    history.pushState(null, null, nextUrl);
-                    console.log('[NS助手] 下一页评论加载完成');
-                } else {
-                    console.log('[NS助手] 未找到评论列表容器');
-                }
-            } catch (error) {
-                console.error('[NS助手] 加载下一页评论失败:', error);
-            } finally {
-                setTimeout(() => {
-                    this.isRequesting = false;
-                    console.log('[NS助手] 重置请求状态');
-                }, 500);
-            }
-        },
-
-        b64DecodeUnicode(str) {
-            return decodeURIComponent(atob(str).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
         },
 
         init() {
             console.log('[NS助手] 初始化自动翻页模块');
             this.autoLoading();
-        },
-
-        autoLoading() {
-            if (util.getValue(opts.setting.SETTING_AUTO_LOADING_STATUS) === 0) return;
-            let opt = {};
-            if (opts.post.pathPattern.test(location.pathname)) { opt = opts.post; }
-            else if (opts.comment.pathPattern.test(location.pathname)) { opt = opts.comment; }
-            else { return; }
-            let is_requesting = false;
-            let _this = this;
-            this.windowScroll(function (direction, e) {
-                if (direction === 'down') {
-                    let scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
-                    if (document.documentElement.scrollHeight <= document.documentElement.clientHeight + scrollTop + opt.scrollThreshold && !is_requesting) {
-                        if (!document.querySelector(opt.nextPagerSelector)) return;
-                        let nextUrl = document.querySelector(opt.nextPagerSelector).attributes.href.value;
-                        is_requesting = true;
-                        util.get(nextUrl, {}, 'text').then(function (data) {
-                            let doc = new DOMParser().parseFromString(data, "text/html");
-                            _this.blockPost(doc);
-                            if (opts.comment.pathPattern.test(location.pathname)){
-                                let el = doc.getElementById('temp-script')
-                                let jsonText = el.textContent;
-                                if (jsonText) {
-                                    let conf = JSON.parse(util.b64DecodeUnicode(jsonText))
-                                    unsafeWindow.__config__.postData.comments.push(...conf.postData.comments);
-                                }
-                            }
-                            document.querySelector(opt.postListSelector).append(...doc.querySelector(opt.postListSelector).childNodes);
-                            document.querySelector(opt.topPagerSelector).innerHTML = doc.querySelector(opt.topPagerSelector).innerHTML;
-                            document.querySelector(opt.bottomPagerSelector).innerHTML = doc.querySelector(opt.bottomPagerSelector).innerHTML;
-                            _this.openPostInNewTab();
-                            history.pushState(null, null, nextUrl);
-                            if (opts.comment.pathPattern.test(location.pathname)){
-                                const vue = document.querySelector('.comment-menu').__vue__;
-                                Array.from(document.querySelectorAll(".content-item")).forEach(function (t,e) {
-                                    var n = t.querySelector(".comment-menu-mount");
-                                    if(!n) return;
-                                    let o = new vue.$root.constructor(vue.$options);
-                                    o.setIndex(e);
-                                    o.$mount(n);
-                                });
-                            }
-                            is_requesting = false;
-                        }).catch(function (err) {
-                            is_requesting = false;
-                            util.clog(err);
-                        });
-                    }
-                }
-            });
+            console.log('[NS助手] 自动翻页模块初始化完成');
         }
     };
 
@@ -354,5 +181,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.3.1');
-})(); 
+    console.log('[NS助手] autoPage 模块加载完成 v0.3.2');
+})();
