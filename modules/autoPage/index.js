@@ -157,8 +157,9 @@
                         try {
                             const jsonText = scriptEl.textContent;
                             const conf = JSON.parse(atob(jsonText));
-                            if (window.__config__ && window.__config__.postData) {
+                            if (window.__config__?.postData?.comments) {
                                 window.__config__.postData.comments.push(...conf.postData.comments);
+                                console.log('[NS助手] 评论数据已更新');
                             }
                         } catch (e) {
                             console.error('[NS助手] 评论数据处理失败:', e);
@@ -181,27 +182,28 @@
                         commentList.append(...newComments.childNodes);
                         console.log('[NS助手] 追加评论列表');
 
-                        const vue = document.querySelector('.comment-menu').__vue__;
-                        if (vue) {
-                            const menuData = {
-                                poster: window.__config__.postData.poster,
-                                comments: window.__config__.postData.comments,
-                                user: window.__config__.user
-                            };
+                        const vue = document.querySelector('.comment-menu')?.__vue__;
+                        if (vue && window.__config__?.postData) {
+                            const { postData, user } = window.__config__;
+                            console.log('[NS助手] 获取到配置数据:', { 
+                                hasPoster: !!postData.poster,
+                                commentsCount: postData.comments?.length,
+                                hasUser: !!user
+                            });
 
                             Array.from(document.querySelectorAll('.content-item')).forEach(function(t, e) {
                                 const n = t.querySelector('.comment-menu-mount');
                                 if (!n) return;
                                 
-                                let o = new vue.$root.constructor({
-                                    ...vue.$options,
-                                    data: () => ({
-                                        ...menuData,
-                                        index: e
-                                    })
-                                });
+                                let o = new vue.$root.constructor(vue.$options);
+                                o.poster = postData.poster;
+                                o.comments = postData.comments;
+                                o.user = user;
+                                o.setIndex(e);
                                 o.$mount(n);
                             });
+                        } else {
+                            console.error('[NS助手] 无法获取Vue实例或配置数据');
                         }
                     } else {
                         console.log('[NS助手] 未找到评论列表容器');
@@ -261,5 +263,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.1.4');
+    console.log('[NS助手] autoPage 模块加载完成 v0.1.5');
 })(); 
