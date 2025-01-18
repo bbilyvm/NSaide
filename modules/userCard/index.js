@@ -390,11 +390,10 @@
         async waitAndEnhance(userId) {
             try {
                 console.log('[NS助手] 等待卡片出现...');
-                
-                document.querySelectorAll('.hover-user-card').forEach(card => {
-                    if (card.classList.contains('enhanced')) {
-                        card.remove();
-                    }
+
+                const existingCards = document.querySelectorAll('.hover-user-card');
+                existingCards.forEach(card => {
+                    card.remove();
                 });
 
                 const card = await this.utils.waitForElement('.hover-user-card');
@@ -412,10 +411,11 @@
 
                 console.log('[NS助手] 用户数据获取完成，开始增强');
                 this.enhance(card, userInfo);
-
+              
                 if (GM_getValue('ns_usercard_enable_dragging', true)) {
                     this.enableDragging(card);
                 }
+
             } catch (error) {
                 console.error('[NS助手] 等待卡片时出错:', error);
             }
@@ -597,5 +597,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] userCard 模块加载完成 v0.0.2');
+    console.log('[NS助手] userCard 模块加载完成 v0.0.3');
 })();
