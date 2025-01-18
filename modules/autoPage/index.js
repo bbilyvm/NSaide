@@ -184,18 +184,15 @@
 
                         const vue = document.querySelector('.comment-menu')?.__vue__;
                         if (vue && window.__config__) {
-                            const { postData, user } = window.__config__;
-                            
                             Array.from(document.querySelectorAll('.content-item')).forEach(function(item, index) {
                                 const mount = item.querySelector('.comment-menu-mount');
                                 if (!mount) return;
 
                                 const commentId = item.getAttribute('data-comment-id');
-                                const comment = postData.comments.find(c => c.commentId.toString() === commentId);
+                                const comment = window.__config__.postData.comments.find(c => c.commentId.toString() === commentId);
                                 if (!comment) return;
 
                                 const instance = new vue.$root.constructor(vue.$options);
-                                
                                 instance.$data.logined = true;
                                 instance.$data.commentArrayIndex = index;
                                 instance.$data.isMe = comment.poster.isMe;
@@ -273,5 +270,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.1.7');
+    console.log('[NS助手] autoPage 模块加载完成 v0.1.8');
 })(); 
