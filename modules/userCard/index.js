@@ -393,7 +393,12 @@
 
                 const existingCards = document.querySelectorAll('.hover-user-card');
                 existingCards.forEach(card => {
-                    card.remove();
+                    const extension = card.querySelector('.ns-usercard-extension');
+                    if (extension) {
+                        extension.remove();
+                    }
+                    card.classList.remove('enhanced');
+                    card.classList.remove('ns-usercard-enhanced');
                 });
 
                 const card = await this.utils.waitForElement('.hover-user-card');
