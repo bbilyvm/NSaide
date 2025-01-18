@@ -163,7 +163,11 @@
                             }
                         } catch (e) {
                             console.error('[NS助手] 评论数据处理失败:', e);
+                            return;
                         }
+                    } else {
+                        console.error('[NS助手] 未找到评论数据脚本');
+                        return;
                     }
 
                     const commentList = document.querySelector('.comments');
@@ -182,20 +186,29 @@
                         commentList.append(...newComments.childNodes);
                         console.log('[NS助手] 追加评论列表');
 
-                        const vue = document.querySelector('.comment-menu').__vue__;
-                        if (vue) {
-                            Array.from(document.querySelectorAll('.content-item')).forEach(function(item, index) {
-                                const mount = item.querySelector('.comment-menu-mount');
-                                if (!mount) return;
+                        setTimeout(() => {
+                            const vue = document.querySelector('.comment-menu').__vue__;
+                            if (vue) {
+                                const comments = window.__config__.postData.comments;
+                                Array.from(document.querySelectorAll('.content-item')).forEach(function(item, index) {
+                                    const mount = item.querySelector('.comment-menu-mount');
+                                    if (!mount) return;
 
-                                let o = new vue.$root.constructor(vue.$options);
-                                o.setIndex(index);
-                                o.$mount(mount);
-                            });
-                            console.log('[NS助手] 评论菜单已重新挂载');
-                        } else {
-                            console.error('[NS助手] 无法获取Vue实例');
-                        }
+                                    const commentId = item.getAttribute('data-comment-id');
+                                    if (!commentId) return;
+
+                                    const commentIndex = comments.findIndex(c => c.commentId.toString() === commentId);
+                                    if (commentIndex === -1) return;
+
+                                    let o = new vue.$root.constructor(vue.$options);
+                                    o.setIndex(commentIndex);
+                                    o.$mount(mount);
+                                });
+                                console.log('[NS助手] 评论菜单已重新挂载');
+                            } else {
+                                console.error('[NS助手] 无法获取Vue实例');
+                            }
+                        }, 100);
                     } else {
                         console.log('[NS助手] 未找到评论列表容器');
                     }
