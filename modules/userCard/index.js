@@ -549,18 +549,9 @@
                     const levelTag = document.createElement('span');
                     levelTag.className = 'nsk-badge role-tag ns-level-tag';
                     levelTag.innerHTML = `Lv.${userInfo.rank}`;
-                    levelTag.style.marginRight = '4px';
-                    levelTag.style.backgroundColor = '#e6f4ff';
-                    levelTag.style.color = '#1890ff';
-                    levelTag.style.border = '1px solid #91d5ff';
+                    levelTag.setAttribute('data-level', userInfo.rank);
                     
-                    if (document.body.classList.contains('dark-layout')) {
-                        levelTag.style.backgroundColor = '#111b26';
-                        levelTag.style.border = '1px solid #153450';
-                    }
-
                     authorLink.parentNode.insertBefore(levelTag, authorLink);
-                    
                     authorInfo.setAttribute('data-ns-level-processed', 'true');
                 }
             } catch (error) {
@@ -592,5 +583,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] userCard 模块加载完成 v0.0.5');
+    console.log('[NS助手] userCard 模块加载完成 v0.0.6');
 })();
