@@ -22,9 +22,9 @@
                 if (id === 'postList') {
                     GM_setValue('autoPage_postList_enabled', value);
                     if (!value) {
-                        window.removeEventListener('scroll', this._boundScrollHandler);
+                        window.removeEventListener('scroll', NSAutoPage._boundScrollHandler);
                     } else {
-                        this.initAutoLoading();
+                        NSAutoPage.initAutoLoading();
                     }
                 }
             }
@@ -34,20 +34,20 @@
         _boundScrollHandler: null,
         beforeScrollTop: 0,
 
-        windowScroll(callback) {
-            let _this = this;
+        windowScroll(fn1) {
             this.beforeScrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
             
-            this._boundScrollHandler = function(e) {
+            this._boundScrollHandler = (e) => {
                 const afterScrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
-                const delta = afterScrollTop - _this.beforeScrollTop;
+                const delta = afterScrollTop - this.beforeScrollTop;
                 if (delta === 0) return false;
-                callback(delta > 0 ? 'down' : 'up', e);
-                _this.beforeScrollTop = afterScrollTop;
+                fn1(delta > 0 ? 'down' : 'up', e);
+                this.beforeScrollTop = afterScrollTop;
             };
 
             setTimeout(() => {
                 window.addEventListener('scroll', this._boundScrollHandler, false);
+                console.log('[NS助手] 滚动监听已启动');
             }, 1000);
         },
 
@@ -63,7 +63,6 @@
             }
 
             console.log('[NS助手] 初始化帖子列表自动加载');
-            let _this = this;
             
             this.windowScroll((direction, e) => {
                 if (direction === 'down') {
@@ -71,9 +70,9 @@
                     const scrollHeight = document.documentElement.scrollHeight;
                     const clientHeight = document.documentElement.clientHeight;
                     
-                    if (scrollHeight <= clientHeight + scrollTop + 200 && !_this.isRequesting) {
+                    if (scrollHeight <= clientHeight + scrollTop + 200 && !this.isRequesting) {
                         console.log('[NS助手] 触发加载下一页');
-                        _this.loadNextPage();
+                        this.loadNextPage();
                     }
                 }
             });
@@ -99,16 +98,21 @@
                 const newPosts = doc.querySelector('.topic-list');
 
                 if (postList && newPosts) {
-                    const posts = Array.from(newPosts.children);
+                    const posts = Array.from(newPosts.children).filter(post => post.tagName === 'DIV');
+                    console.log('[NS助手] 找到新帖子数量:', posts.length);
+
                     posts.forEach(post => {
-                        if (post.tagName === 'DIV' && !postList.querySelector(`[data-id="${post.dataset.id}"]`)) {
-                            postList.appendChild(post.cloneNode(true));
+                        const postId = post.getAttribute('data-id');
+                        if (postId && !postList.querySelector(`[data-id="${postId}"]`)) {
+                            const clonedPost = post.cloneNode(true);
+                            postList.insertBefore(clonedPost, postList.lastElementChild);
+                            console.log('[NS助手] 追加帖子:', postId);
                         }
                     });
 
-                    const topPager = document.querySelector('.nsk-pager');
+                    const topPager = document.querySelector('.nsk-pager:not(.pager-bottom)');
                     const bottomPager = document.querySelector('.nsk-pager.pager-bottom');
-                    const newTopPager = doc.querySelector('.nsk-pager');
+                    const newTopPager = doc.querySelector('.nsk-pager:not(.pager-bottom)');
                     const newBottomPager = doc.querySelector('.nsk-pager.pager-bottom');
 
                     if (topPager && newTopPager) {
@@ -120,11 +124,16 @@
 
                     history.pushState(null, null, nextUrl);
                     console.log('[NS助手] 下一页加载完成');
+                } else {
+                    console.log('[NS助手] 未找到帖子列表容器');
                 }
             } catch (error) {
                 console.error('[NS助手] 加载下一页失败:', error);
             } finally {
-                this.isRequesting = false;
+                setTimeout(() => {
+                    this.isRequesting = false;
+                    console.log('[NS助手] 重置请求状态');
+                }, 500);
             }
         },
 
@@ -157,5 +166,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.0.4');
+    console.log('[NS助手] autoPage 模块加载完成 v0.0.5');
 })(); 
