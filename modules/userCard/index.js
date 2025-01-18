@@ -16,12 +16,29 @@
                     label: '启用卡片拖拽',
                     default: true,
                     value: () => GM_getValue('ns_usercard_enable_dragging', true)
+                },
+                {
+                    id: 'enable_level_tag',
+                    type: 'switch',
+                    label: '显示用户等级标签',
+                    default: true,
+                    value: () => GM_getValue('ns_usercard_enable_level_tag', true)
                 }
             ],
             
             handleChange(settingId, value, settingsManager) {
                 if (settingId === 'enable_dragging') {
                     settingsManager.cacheValue('ns_usercard_enable_dragging', value);
+                } else if (settingId === 'enable_level_tag') {
+                    settingsManager.cacheValue('ns_usercard_enable_level_tag', value);
+
+                    if (!value) {
+
+                        document.querySelectorAll('.ns-level-tag').forEach(tag => tag.remove());
+                    } else {
+
+                        NSUserCard.enhancePageUserLevels();
+                    }
                 }
             }
         },
@@ -476,6 +493,11 @@
 
         async enhancePageUserLevels() {
             try {
+
+                if (!GM_getValue('ns_usercard_enable_level_tag', true)) {
+                    return;
+                }
+
                 const authorInfoElements = document.querySelectorAll('.author-info');
                 
                 for (const authorInfo of authorInfoElements) {
@@ -535,5 +557,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] userCard 模块加载完成');
+    console.log('[NS助手] userCard 模块加载完成 v0.0.2');
 })();
