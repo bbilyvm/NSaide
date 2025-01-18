@@ -195,6 +195,7 @@
             this.waitAndEnhance = this.waitAndEnhance.bind(this);
             this.enhance = this.enhance.bind(this);
             this.enableDragging = this.enableDragging.bind(this);
+            this.enhancePageUserLevels = this.enhancePageUserLevels.bind(this);
 
             console.log('[NS助手] 开始加载用户卡片样式');
             GM_xmlhttpRequest({
@@ -223,12 +224,13 @@
                 }
             });
 
-            const currentTheme = document.body.classList.contains('dark-layout') ? 'dark' : 'light';
-            console.log('[NS助手] 当前主题模式:', currentTheme);
+            this.enhancePageUserLevels();
 
             const observer = new MutationObserver((mutations) => {
                 mutations.forEach((mutation) => {
-                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    if (mutation.type === 'childList') {
+                        this.enhancePageUserLevels();
+                    } else if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                         const newTheme = document.body.classList.contains('dark-layout') ? 'dark' : 'light';
                         console.log('[NS助手] 主题切换:', newTheme);
                         
@@ -246,11 +248,24 @@
                                 }
                             }
                         });
+
+                        const levelTags = document.querySelectorAll('.ns-level-tag');
+                        levelTags.forEach(tag => {
+                            if (newTheme === 'dark') {
+                                tag.style.backgroundColor = '#111b26';
+                                tag.style.border = '1px solid #153450';
+                            } else {
+                                tag.style.backgroundColor = '#e6f4ff';
+                                tag.style.border = '1px solid #91d5ff';
+                            }
+                        });
                     }
                 });
             });
 
             observer.observe(document.body, {
+                childList: true,
+                subtree: true,
                 attributes: true,
                 attributeFilter: ['class']
             });
@@ -456,6 +471,43 @@
 
             } catch (error) {
                 console.error('[NS助手] 数据处理错误:', error);
+            }
+        },
+
+        async enhancePageUserLevels() {
+            try {
+                const authorInfoElements = document.querySelectorAll('.author-info');
+                
+                for (const authorInfo of authorInfoElements) {
+                    if (authorInfo.querySelector('.ns-level-tag')) {
+                        continue;
+                    }
+
+                    const authorLink = authorInfo.querySelector('a.author-name');
+                    if (!authorLink) continue;
+
+                    const userId = authorLink.getAttribute('href').split('/').pop();
+                    const userInfo = await this.utils.getUserInfo(userId);
+                    
+                    if (!userInfo) continue;
+
+                    const levelTag = document.createElement('span');
+                    levelTag.className = 'nsk-badge role-tag ns-level-tag';
+                    levelTag.innerHTML = `Lv.${userInfo.rank}`;
+                    levelTag.style.marginRight = '4px';
+                    levelTag.style.backgroundColor = '#e6f4ff';
+                    levelTag.style.color = '#1890ff';
+                    levelTag.style.border = '1px solid #91d5ff';
+                    
+                    if (document.body.classList.contains('dark-layout')) {
+                        levelTag.style.backgroundColor = '#111b26';
+                        levelTag.style.border = '1px solid #153450';
+                    }
+
+                    authorLink.parentNode.insertBefore(levelTag, authorLink);
+                }
+            } catch (error) {
+                console.error('[NS助手] 增强页面用户等级显示时出错:', error);
             }
         }
     };
