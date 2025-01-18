@@ -146,50 +146,41 @@
                     const newPosts = doc.querySelector('.post-list');
 
                     if (postList && newPosts) {
-                        const posts = Array.from(newPosts.children).filter(post => post.classList.contains('post-list-item'));
-                        console.log('[NS助手] 找到新帖子数量:', posts.length);
-
-                        posts.forEach(post => {
-                            const postTitle = post.querySelector('.post-title a');
-                            if (postTitle) {
-                                const postHref = postTitle.getAttribute('href');
-                                if (!postList.querySelector(`.post-title a[href="${postHref}"]`)) {
-                                    const clonedPost = post.cloneNode(true);
-                                    postList.appendChild(clonedPost);
-                                    console.log('[NS助手] 追加帖子:', postHref);
-                                }
-                            }
-                        });
+                        postList.append(...newPosts.childNodes);
+                        console.log('[NS助手] 追加帖子列表');
                     } else {
                         console.log('[NS助手] 未找到帖子列表容器');
                     }
                 } else {
+                    const scriptEl = doc.getElementById('temp-script');
+                    if (scriptEl && scriptEl.textContent) {
+                        try {
+                            const jsonText = scriptEl.textContent;
+                            const conf = JSON.parse(atob(jsonText));
+                            if (window.__config__ && window.__config__.postData) {
+                                window.__config__.postData.comments.push(...conf.postData.comments);
+                            }
+                        } catch (e) {
+                            console.error('[NS助手] 评论数据处理失败:', e);
+                        }
+                    }
+
                     const commentList = document.querySelector('.comments');
                     const newComments = doc.querySelector('.comments');
 
                     if (commentList && newComments) {
-                        const comments = Array.from(newComments.children).filter(comment => comment.classList.contains('content-item'));
-                        console.log('[NS助手] 找到新评论数量:', comments.length);
-
-                        comments.forEach(comment => {
-                            const commentId = comment.getAttribute('data-comment-id');
-                            if (!commentList.querySelector(`[data-comment-id="${commentId}"]`)) {
-                                const clonedComment = comment.cloneNode(true);
-                                commentList.appendChild(clonedComment);
-                                console.log('[NS助手] 追加评论:', commentId);
-                            }
-                        });
+                        commentList.append(...newComments.childNodes);
+                        console.log('[NS助手] 追加评论列表');
 
                         const vue = document.querySelector('.comment-menu')?.__vue__;
                         if (vue) {
-                            const menuItems = document.querySelectorAll('.content-item');
-                            menuItems.forEach((item, index) => {
-                                const menu = item.querySelector('.comment-menu');
-                                if (menu && !menu.__vue__) {
-                                    const newVue = new vue.$root.constructor(vue.$options);
-                                    newVue.setIndex(index);
-                                    newVue.$mount(menu);
-                                }
+                            const items = document.querySelectorAll('.content-item');
+                            items.forEach((item, index) => {
+                                const mount = item.querySelector('.comment-menu-mount');
+                                if (!mount) return;
+                                const newVue = new vue.$root.constructor(vue.$options);
+                                newVue.setIndex(index);
+                                newVue.$mount(mount);
                             });
                         }
                     } else {
@@ -197,14 +188,17 @@
                     }
                 }
 
-                const pagers = document.querySelectorAll('.nsk-pager');
-                const newPagers = doc.querySelectorAll('.nsk-pager');
-                
-                pagers.forEach((pager, index) => {
-                    if (newPagers[index]) {
-                        pager.innerHTML = newPagers[index].innerHTML;
-                    }
-                });
+                const topPager = document.querySelector('.post-top-pager');
+                const bottomPager = document.querySelector('.post-bottom-pager');
+                const newTopPager = doc.querySelector('.post-top-pager');
+                const newBottomPager = doc.querySelector('.post-bottom-pager');
+
+                if (topPager && newTopPager) {
+                    topPager.innerHTML = newTopPager.innerHTML;
+                }
+                if (bottomPager && newBottomPager) {
+                    bottomPager.innerHTML = newBottomPager.innerHTML;
+                }
 
                 history.pushState(null, null, nextUrl);
                 console.log('[NS助手] 下一页加载完成');
@@ -247,5 +241,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.0.9');
+    console.log('[NS助手] autoPage 模块加载完成 v0.1.1');
 })(); 
