@@ -181,22 +181,14 @@
                         commentList.append(...newComments.childNodes);
                         console.log('[NS助手] 追加评论列表');
 
-                        const vue = document.querySelector('.comment-menu')?.__vue__;
-                        if (vue) {
-                            const menuMounts = document.querySelectorAll('.comment-menu-mount');
-                            menuMounts.forEach((mount, index) => {
-                                if (!mount.__vue__) {
-                                    const newVue = new vue.$root.constructor({
-                                        ...vue.$options,
-                                        propsData: {
-                                            ...vue.$props,
-                                            index: index
-                                        }
-                                    });
-                                    newVue.$mount(mount);
-                                }
-                            });
-                        }
+                        const vue = document.querySelector('.comment-menu').__vue__;
+                        Array.from(document.querySelectorAll('.content-item')).forEach(function(t, e) {
+                            const n = t.querySelector('.comment-menu-mount');
+                            if (!n) return;
+                            let o = new vue.$root.constructor(vue.$options);
+                            o.setIndex(e);
+                            o.$mount(n);
+                        });
                     } else {
                         console.log('[NS助手] 未找到评论列表容器');
                     }
@@ -255,5 +247,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.1.2');
+    console.log('[NS助手] autoPage 模块加载完成 v0.1.3');
 })(); 
