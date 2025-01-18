@@ -6,7 +6,7 @@
     const NSAutoPage = {
         id: 'autoPage',
         name: '自动翻页',
-        description: '浏览帖子列表时自动加载下一页',
+        description: '浏览列表时自动加载下一页',
 
         settings: {
             items: [
@@ -14,7 +14,7 @@
                     id: 'postList',
                     label: '帖子列表',
                     type: 'switch',
-                    default: true,
+                    default: false,
                     value: () => GM_getValue('autoPage_postList_enabled', true)
                 }
             ],
@@ -33,16 +33,52 @@
         isRequesting: false,
         scrollHandler: null,
 
+        createLoadingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'ns-loading-indicator';
+            indicator.innerHTML = '<div class="ns-loading-spinner"></div>';
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                .ns-loading-indicator {
+                    text-align: center;
+                    padding: 20px;
+                    display: none;
+                }
+                .ns-loading-spinner {
+                    display: inline-block;
+                    width: 30px;
+                    height: 30px;
+                    border: 3px solid #f3f3f3;
+                    border-top: 3px solid #3498db;
+                    border-radius: 50%;
+                    animation: ns-spin 1s linear infinite;
+                }
+                @keyframes ns-spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(style);
+            return indicator;
+        },
+
         initAutoLoading() {
             if (!GM_getValue('autoPage_postList_enabled', true)) return;
             
-            if (!/^\/($|node\/|search)/.test(location.pathname)) return;
+            if (!/^\/($|node\/|search|page-)/.test(location.pathname)) return;
+
+            const topicList = document.querySelector('.topic-list');
+            if (topicList) {
+                this.loadingIndicator = this.createLoadingIndicator();
+                topicList.parentNode.insertBefore(this.loadingIndicator, topicList.nextSibling);
+            }
 
             const threshold = 200;
             this.scrollHandler = this.handleScroll.bind(this);
             
             setTimeout(() => {
-                window.addEventListener('scroll', this.scrollHandler, false);
+                window.addEventListener('scroll', this.scrollHandler, { passive: true });
             }, 1000);
         },
 
@@ -59,13 +95,17 @@
         },
 
         async loadNextPage() {
-            const nextPageLink = document.querySelector('.pagination a[rel="next"]');
-            if (!nextPageLink) return;
+            const nextPageLink = document.querySelector('.nsk-pager .pager-next');
+            if (!nextPageLink || !nextPageLink.href) return;
 
             const nextUrl = nextPageLink.href;
             this.isRequesting = true;
 
             try {
+                if (this.loadingIndicator) {
+                    this.loadingIndicator.style.display = 'block';
+                }
+
                 const response = await fetch(nextUrl);
                 const text = await response.text();
                 const parser = new DOMParser();
@@ -75,23 +115,29 @@
                 const newPosts = doc.querySelector('.topic-list');
 
                 if (postList && newPosts) {
+                    const existingIds = new Set(Array.from(postList.children).map(post => post.getAttribute('data-id')));
+                    const newPostNodes = Array.from(newPosts.children).filter(post => {
+                        const postId = post.getAttribute('data-id');
+                        return !existingIds.has(postId);
+                    });
                     
-                    const newPostNodes = Array.from(newPosts.children);
                     postList.append(...newPostNodes);
 
-                    const pagination = document.querySelector('.pagination');
-                    const newPagination = doc.querySelector('.pagination');
+                    const pagination = document.querySelector('.nsk-pager');
+                    const newPagination = doc.querySelector('.nsk-pager');
                     if (pagination && newPagination) {
                         pagination.innerHTML = newPagination.innerHTML;
                     }
 
-                    
                     history.pushState(null, null, nextUrl);
                 }
             } catch (error) {
                 console.error('[NS助手] 加载下一页失败:', error);
             } finally {
                 this.isRequesting = false;
+                if (this.loadingIndicator) {
+                    this.loadingIndicator.style.display = 'none';
+                }
             }
         },
 
@@ -124,5 +170,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成');
+    console.log('[NS助手] autoPage 模块加载完成 v0.0.1');
 })(); 
