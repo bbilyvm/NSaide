@@ -86,55 +86,21 @@
             },
 
             processCommentMenus(commentElements) {
-                commentElements.forEach(comment => {
-                    if (comment.querySelector('.comment-menu')) return;
+                const existingMenu = document.querySelector('.comment-menu');
+                if (!existingMenu || !existingMenu.__vue__) return;
 
-                    const menuDiv = document.createElement('div');
-                    menuDiv.className = 'comment-menu';
-                    menuDiv.setAttribute('data-v-372de460', '');
+                const vue = existingMenu.__vue__;
+                let startIndex = document.querySelectorAll('.content-item').length - commentElements.length;
 
-                    const chickenLegItem = this.createMenuItem('chicken-leg', '加鸡腿', '0');
-                    menuDiv.appendChild(chickenLegItem);
+                commentElements.forEach((comment, index) => {
+                    const menuMount = document.createElement('div');
+                    menuMount.className = 'comment-menu-mount';
+                    comment.appendChild(menuMount);
 
-                    const badOneItem = this.createMenuItem('bad-one', '反对', '0');
-                    menuDiv.appendChild(badOneItem);
-
-                    const pinItem = this.createMenuItem('pin', '置顶', '置顶');
-                    menuDiv.appendChild(pinItem);
-
-                    const quoteItem = this.createMenuItem('quote', '引用', '引用');
-                    menuDiv.appendChild(quoteItem);
-
-                    const backItem = this.createMenuItem('back', '回复', '回复');
-                    menuDiv.appendChild(backItem);
-
-                    comment.appendChild(menuDiv);
+                    let menuInstance = new vue.$root.constructor(vue.$options);
+                    menuInstance.setIndex(startIndex + index);
+                    menuInstance.$mount(menuMount);
                 });
-            },
-
-            createMenuItem(iconName, title, text) {
-                const div = document.createElement('div');
-                div.className = 'menu-item';
-                div.setAttribute('data-v-372de460', '');
-                div.setAttribute('title', title);
-
-                const svg = document.createElement('svg');
-                svg.className = 'iconpark-icon';
-                svg.setAttribute('data-v-372de460', '');
-
-                const use = document.createElement('use');
-                use.setAttribute('data-v-372de460', '');
-                use.setAttribute('href', `#${iconName}`);
-                svg.appendChild(use);
-
-                const span = document.createElement('span');
-                span.setAttribute('data-v-372de460', '');
-                span.textContent = text;
-
-                div.appendChild(svg);
-                div.appendChild(span);
-
-                return div;
             }
         },
 
@@ -239,5 +205,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.3.3');
+    console.log('[NS助手] autoPage 模块加载完成 v0.3.4');
 })();
