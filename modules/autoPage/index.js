@@ -276,7 +276,7 @@
 
         init() {
             console.log('[NS助手] 初始化自动翻页模块');
-            this.initAutoLoading();
+            this.autoLoading();
         },
 
         autoLoading() {
@@ -288,7 +288,7 @@
             let is_requesting = false;
             let _this = this;
             this.windowScroll(function (direction, e) {
-                if (direction === 'down') { 
+                if (direction === 'down') {
                     let scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
                     if (document.documentElement.scrollHeight <= document.documentElement.clientHeight + scrollTop + opt.scrollThreshold && !is_requesting) {
                         if (!document.querySelector(opt.nextPagerSelector)) return;
