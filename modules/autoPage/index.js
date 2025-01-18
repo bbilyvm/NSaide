@@ -16,6 +16,13 @@
                     type: 'switch',
                     default: false,
                     value: () => GM_getValue('autoPage_postList_enabled', true)
+                },
+                {
+                    id: 'scrollThreshold',
+                    label: '滚动触发距离(像素)',
+                    type: 'number',
+                    default: 200,
+                    value: () => GM_getValue('autoPage_scroll_threshold', 200)
                 }
             ],
             handleChange(id, value) {
@@ -26,6 +33,10 @@
                     } else {
                         NSAutoPage.initAutoLoading();
                     }
+                } else if (id === 'scrollThreshold') {
+                    const threshold = parseInt(value) || 200;
+                    GM_setValue('autoPage_scroll_threshold', threshold);
+                    console.log('[NS助手] 更新滚动触发距离:', threshold);
                 }
             }
         },
@@ -69,9 +80,10 @@
                     const scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
                     const scrollHeight = document.documentElement.scrollHeight;
                     const clientHeight = document.documentElement.clientHeight;
+                    const threshold = GM_getValue('autoPage_scroll_threshold', 200);
                     
-                    if (scrollHeight <= clientHeight + scrollTop + 200 && !this.isRequesting) {
-                        console.log('[NS助手] 触发加载下一页');
+                    if (scrollHeight <= clientHeight + scrollTop + threshold && !this.isRequesting) {
+                        console.log('[NS助手] 触发加载下一页, 阈值:', threshold);
                         this.loadNextPage();
                     }
                 }
@@ -166,5 +178,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.0.6');
+    console.log('[NS助手] autoPage 模块加载完成 v0.0.7');
 })(); 
