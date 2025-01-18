@@ -485,6 +485,16 @@
         init() {
             console.log('[NS助手] 初始化设置面板模块');
             
+            // 初始化自动跳转功能
+            if (GM_getValue('ns_settings_autojump_enabled', false)) {
+                if (/^\/jump/.test(location.pathname)) {
+                    const jumpButton = document.querySelector('.btn');
+                    if (jumpButton) {
+                        jumpButton.click();
+                    }
+                }
+            }
+
             const styles = `
                 .ns-settings-button {
                     min-width: 88px;
@@ -568,41 +578,12 @@
                 }
             });
 
-            this.config.autoJump.enabled = GM_getValue('ns_settings_autojump_enabled', false);
-            if (this.config.autoJump.enabled) {
-                this.config.autoJump.init();
-            }
-
             const boundCreateSettingsPanel = this.utils.createSettingsPanel.bind(this.utils);
             const boundRenderModuleSettings = this.utils.renderModuleSettings.bind(this.utils);
 
             GM_registerMenuCommand('⚙️ 打开设置面板', () => {
                 const panel = boundCreateSettingsPanel();
                 boundRenderModuleSettings();
-                
-                const modulesContainer = panel.querySelector('.ns-settings-content-modules');
-                if (modulesContainer) {
-                    const autoJumpModule = document.createElement('div');
-                    autoJumpModule.className = 'ns-settings-module';
-                    autoJumpModule.innerHTML = `
-                        <div class="ns-settings-module-header">
-                            <h3 class="ns-settings-module-title">自动跳转</h3>
-                            ${this.components.createSwitch(
-                                'ns_settings_autojump_enabled',
-                                this.config.autoJump.enabled,
-                                (checked) => {
-                                    this.config.autoJump.enabled = checked;
-                                    GM_setValue('ns_settings_autojump_enabled', checked);
-                                    if (checked) {
-                                        this.config.autoJump.init();
-                                    }
-                                }
-                            ).outerHTML}
-                        </div>
-                        <p class="ns-settings-module-desc">链接自动跳转</p>
-                    `;
-                    modulesContainer.appendChild(autoJumpModule);
-                }
             });
 
             console.log('[NS助手] 设置面板模块初始化完成v0.0.4');
