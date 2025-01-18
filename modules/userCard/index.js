@@ -44,6 +44,21 @@
         },
 
         utils: {
+            userDataCache: new Map(),
+            maxCacheSize: 100,
+
+            clearOldCache() {
+                console.log('[NS助手] 检查缓存大小:', this.userDataCache.size);
+                if (this.userDataCache.size > this.maxCacheSize) {
+                    console.log('[NS助手] 清理过期缓存');
+                    const entries = Array.from(this.userDataCache.entries());
+                    const halfSize = Math.floor(this.maxCacheSize / 2);
+                    entries.slice(0, entries.length - halfSize).forEach(([key]) => {
+                        this.userDataCache.delete(key);
+                    });
+                }
+            },
+
             async waitForElement(selector, parent = document, timeout = 10000) {
                 const element = parent.querySelector(selector);
                 if (element) return element;
@@ -71,6 +86,12 @@
 
             async getUserInfo(userId) {
                 try {
+                    if (this.userDataCache.has(userId)) {
+                        console.log(`[NS助手] 使用缓存的用户数据: ${userId}`);
+                        return this.userDataCache.get(userId);
+                    }
+
+                    console.log(`[NS助手] 获取用户数据: ${userId}`);
                     const response = await fetch(`https://www.nodeseek.com/api/account/getInfo/${userId}`, {
                         method: 'GET',
                         credentials: 'include',
@@ -88,6 +109,8 @@
                         throw new Error('Failed to get user info');
                     }
                     
+                    this.clearOldCache();
+                    this.userDataCache.set(userId, data.detail);
                     return data.detail;
                 } catch (error) {
                     console.error('[NS助手] 获取用户信息失败:', error);
@@ -369,11 +392,8 @@
                 console.log('[NS助手] 等待卡片出现...');
                 
                 document.querySelectorAll('.hover-user-card').forEach(card => {
-                    card.classList.remove('enhanced');
-                    card.classList.remove('ns-usercard-enhanced');
-                    const extension = card.querySelector('.ns-usercard-extension');
-                    if (extension) {
-                        extension.remove();
+                    if (card.classList.contains('enhanced')) {
+                        card.remove();
                     }
                 });
 
@@ -416,7 +436,7 @@
                 console.log('[NS助手] 当前主题模式:', isDarkMode ? 'dark' : 'light');
 
                 if (isDarkMode) {
-                    cardElement.closest('.hover-user-card').classList.add('dark-layout');
+                    cardElement.classList.add('dark-layout');
                 }
 
                 const userData = {
