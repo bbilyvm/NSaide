@@ -218,7 +218,7 @@
                 let startIndex = currentComments.length;
 
                 const commentMap = new Map();
-                conf.postData.comments.forEach((comment, index) => {
+                conf.postData.comments.forEach(comment => {
                     commentMap.set(comment.id, comment);
                 });
 
@@ -256,9 +256,33 @@
                             if (!menuMount) return;
 
                             try {
-                                const commentId = item.getAttribute('data-id');
-                                const commentData = commentMap.get(parseInt(commentId));
+                                let commentId = null;
                                 
+                                commentId = item.getAttribute('data-comment-id');
+                                
+                                if (!commentId) {
+                                    const commentLink = item.querySelector('a[href^="/post-"]');
+                                    if (commentLink) {
+                                        const match = commentLink.href.match(/post-(\d+)-(\d+)#(\d+)/);
+                                        if (match) {
+                                            commentId = match[3];
+                                        }
+                                    }
+                                }
+                                
+                                if (!commentId) {
+                                    const hiddenField = item.querySelector('input[type="hidden"][name="comment_id"]');
+                                    if (hiddenField) {
+                                        commentId = hiddenField.value;
+                                    }
+                                }
+
+                                if (!commentId) {
+                                    console.warn(`[NS助手] 无法获取评论ID`, item);
+                                    return;
+                                }
+
+                                const commentData = commentMap.get(parseInt(commentId));
                                 if (!commentData) {
                                     console.warn(`[NS助手] 未找到ID为 ${commentId} 的评论数据`);
                                     return;
