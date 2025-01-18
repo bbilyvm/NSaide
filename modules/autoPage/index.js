@@ -38,28 +38,28 @@
                 {
                     id: 'post_status',
                     type: 'switch',
-                    label: '启用帖子列表自动翻页',
+                    label: '帖子列表',
                     default: false,
                     value: () => GM_getValue('ns_autopage_post_status', false)
                 },
                 {
                     id: 'post_threshold',
                     type: 'number',
-                    label: '帖子列表滚动触发阈值',
+                    label: '帖子触发阈值',
                     default: 200,
                     value: () => GM_getValue('ns_autopage_post_threshold', 200)
                 },
                 {
                     id: 'comment_status',
                     type: 'switch',
-                    label: '启用评论区自动翻页',
+                    label: '评论区',
                     default: false,
                     value: () => GM_getValue('ns_autopage_comment_status', false)
                 },
                 {
                     id: 'comment_threshold',
                     type: 'number',
-                    label: '评论区滚动触发阈值',
+                    label: '评论区触发阈值',
                     default: 100,
                     value: () => GM_getValue('ns_autopage_comment_threshold', 100)
                 }
