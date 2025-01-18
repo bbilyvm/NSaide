@@ -225,9 +225,6 @@
                     window.__config__.postData.comments.push(...newComments);
                 }
 
-                const currentComments = document.querySelectorAll('.content-item');
-                let startIndex = currentComments.length;
-
                 const commentList = document.querySelector('ul.comments');
                 const newComments = doc.querySelector('ul.comments');
 
@@ -256,8 +253,7 @@
                     const menuElement = document.querySelector('.comment-menu');
                     if (menuElement && menuElement.__vue__) {
                         const vue = menuElement.__vue__;
-                        const newContentItems = Array.from(document.querySelectorAll(".content-item")).slice(startIndex);
-                        newContentItems.forEach((item, index) => {
+                        Array.from(document.querySelectorAll(".content-item")).forEach((item, index) => {
                             const menuMount = item.querySelector(".comment-menu-mount");
                             if (!menuMount) return;
 
@@ -277,7 +273,7 @@
                                 let newVue = new vue.$root.constructor(vue.$options);
                                 newVue.$data = {
                                     ...vue.$data,
-                                    index: startIndex + index,
+                                    index: index,
                                     comment: commentData
                                 };
                                 newVue.$mount(menuMount);
@@ -337,5 +333,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.2.7');
+    console.log('[NS助手] autoPage 模块加载完成 v0.2.8');
 })(); 
