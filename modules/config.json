@@ -25,6 +25,11 @@
             "name": "UI美化",
             "id": "uiEnhance",
             "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/uiEnhance/index.js"
+        },
+        {
+            "name": "自动翻页",
+            "id": "autoPage",
+            "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/autoPage/index.js"
         }
     ]
 } 
