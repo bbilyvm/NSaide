@@ -134,7 +134,6 @@
                 
                 document.body.appendChild(dialog);
                 
-                // 聚焦到取消按钮，这样用户可以直接按 ESC 或 Enter 关闭弹窗
                 cancelBtn.focus();
             },
 
@@ -381,5 +380,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] quickReply 模块加载完成 v0.0.5');
+    console.log('[NS助手] quickReply 模块加载完成 v0.0.6');
 })(); 
