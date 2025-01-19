@@ -6,14 +6,18 @@
     const NSAutoPage = {
         id: 'autoPage',
         name: '自动翻页',
-        description: '自动加载下一页内容，支持帖子列表和评论列表',
+        description: '自动加载下一页内容，支持无缝加载和普通跳转两种模式',
 
         config: {
             storage: {
                 POST_STATUS: 'ns_autopage_post_status',
                 POST_THRESHOLD: 'ns_autopage_post_threshold',
                 COMMENT_STATUS: 'ns_autopage_comment_status',
-                COMMENT_THRESHOLD: 'ns_autopage_comment_threshold'
+                COMMENT_THRESHOLD: 'ns_autopage_comment_threshold',
+                NORMAL_POST_STATUS: 'ns_autopage_normal_post_status',
+                NORMAL_POST_THRESHOLD: 'ns_autopage_normal_post_threshold',
+                NORMAL_COMMENT_STATUS: 'ns_autopage_normal_comment_status',
+                NORMAL_COMMENT_THRESHOLD: 'ns_autopage_normal_comment_threshold'
             },
             post: {
                 pathPattern: /^\/(categories\/|page|award|search|$)/,
@@ -22,7 +26,7 @@
                 postListSelector: 'ul.post-list',
                 topPagerSelector: 'div.nsk-pager.pager-top',
                 bottomPagerSelector: 'div.nsk-pager.pager-bottom',
-                type: '帖子列表'
+                type: '【无缝】帖子列表'
             },
             comment: {
                 pathPattern: /^\/post-/,
@@ -31,7 +35,19 @@
                 postListSelector: 'ul.comments',
                 topPagerSelector: 'div.nsk-pager.post-top-pager',
                 bottomPagerSelector: 'div.nsk-pager.post-bottom-pager',
-                type: '评论区'
+                type: '【无缝】评论区'
+            },
+            normalPost: {
+                pathPattern: /^\/(categories\/|page|award|search|$)/,
+                scrollThreshold: 300,
+                nextPagerSelector: '.nsk-pager a.pager-next',
+                type: '【普通】帖子列表'
+            },
+            normalComment: {
+                pathPattern: /^\/post-/,
+                scrollThreshold: 300,
+                nextPagerSelector: '.nsk-pager a.pager-next',
+                type: '【普通】评论区'
             }
         },
 
@@ -40,30 +56,58 @@
                 {
                     id: 'post_status',
                     type: 'switch',
-                    label: '帖子列表',
+                    label: '无缝帖子列表',
                     default: false,
                     value: () => GM_getValue('ns_autopage_post_status', false)
                 },
                 {
                     id: 'post_threshold',
                     type: 'number',
-                    label: '帖子触发阈值',
+                    label: '无缝帖子触发阈值',
                     default: 200,
                     value: () => GM_getValue('ns_autopage_post_threshold', 200)
                 },
                 {
                     id: 'comment_status',
                     type: 'switch',
-                    label: '评论区',
+                    label: '无缝评论区',
                     default: false,
                     value: () => GM_getValue('ns_autopage_comment_status', false)
                 },
                 {
                     id: 'comment_threshold',
                     type: 'number',
-                    label: '评论区触发阈值',
+                    label: '无缝评论区触发阈值',
                     default: 100,
                     value: () => GM_getValue('ns_autopage_comment_threshold', 100)
+                },
+                {
+                    id: 'normal_post_status',
+                    type: 'switch',
+                    label: '普通帖子列表',
+                    default: false,
+                    value: () => GM_getValue('ns_autopage_normal_post_status', false)
+                },
+                {
+                    id: 'normal_post_threshold',
+                    type: 'number',
+                    label: '普通帖子触发阈值',
+                    default: 300,
+                    value: () => GM_getValue('ns_autopage_normal_post_threshold', 300)
+                },
+                {
+                    id: 'normal_comment_status',
+                    type: 'switch',
+                    label: '普通评论区',
+                    default: false,
+                    value: () => GM_getValue('ns_autopage_normal_comment_status', false)
+                },
+                {
+                    id: 'normal_comment_threshold',
+                    type: 'number',
+                    label: '普通评论区触发阈值',
+                    default: 300,
+                    value: () => GM_getValue('ns_autopage_normal_comment_threshold', 300)
                 }
             ],
             
@@ -72,19 +116,35 @@
                 switch(settingId) {
                     case 'post_status':
                         settingsManager.cacheValue('ns_autopage_post_status', value);
-                        console.log(`[NS助手] 帖子列表自动翻页已${value ? '启用' : '禁用'}`);
+                        console.log(`[NS助手] 无缝帖子列表自动翻页已${value ? '启用' : '禁用'}`);
                         break;
                     case 'post_threshold':
                         settingsManager.cacheValue('ns_autopage_post_threshold', parseInt(value));
-                        console.log(`[NS助手] 帖子列表触发阈值已设置为: ${value}px`);
+                        console.log(`[NS助手] 无缝帖子列表触发阈值已设置为: ${value}px`);
                         break;
                     case 'comment_status':
                         settingsManager.cacheValue('ns_autopage_comment_status', value);
-                        console.log(`[NS助手] 评论区自动翻页已${value ? '启用' : '禁用'}`);
+                        console.log(`[NS助手] 无缝评论区自动翻页已${value ? '启用' : '禁用'}`);
                         break;
                     case 'comment_threshold':
                         settingsManager.cacheValue('ns_autopage_comment_threshold', parseInt(value));
-                        console.log(`[NS助手] 评论区触发阈值已设置为: ${value}px`);
+                        console.log(`[NS助手] 无缝评论区触发阈值已设置为: ${value}px`);
+                        break;
+                    case 'normal_post_status':
+                        settingsManager.cacheValue('ns_autopage_normal_post_status', value);
+                        console.log(`[NS助手] 普通帖子列表自动翻页已${value ? '启用' : '禁用'}`);
+                        break;
+                    case 'normal_post_threshold':
+                        settingsManager.cacheValue('ns_autopage_normal_post_threshold', parseInt(value));
+                        console.log(`[NS助手] 普通帖子列表触发阈值已设置为: ${value}px`);
+                        break;
+                    case 'normal_comment_status':
+                        settingsManager.cacheValue('ns_autopage_normal_comment_status', value);
+                        console.log(`[NS助手] 普通评论区自动翻页已${value ? '启用' : '禁用'}`);
+                        break;
+                    case 'normal_comment_threshold':
+                        settingsManager.cacheValue('ns_autopage_normal_comment_threshold', parseInt(value));
+                        console.log(`[NS助手] 普通评论区触发阈值已设置为: ${value}px`);
                         break;
                 }
             }
@@ -140,6 +200,53 @@
                 });
                 console.log(`[NS助手] 成功处理 ${commentElements.length} 个评论菜单`);
             }
+        },
+
+        normalAutoLoading() {
+            let opt = {};
+            let isEnabled = false;
+            let threshold = 0;
+
+            if (this.config.normalPost.pathPattern.test(location.pathname)) { 
+                opt = this.config.normalPost;
+                isEnabled = GM_getValue(this.config.storage.NORMAL_POST_STATUS, false);
+                threshold = GM_getValue(this.config.storage.NORMAL_POST_THRESHOLD, opt.scrollThreshold);
+                console.log(`[NS助手] 当前页面类型: ${opt.type}, 自动翻页状态: ${isEnabled ? '开启' : '关闭'}, 触发阈值: ${threshold}px`);
+            }
+            else if (this.config.normalComment.pathPattern.test(location.pathname)) { 
+                opt = this.config.normalComment;
+                isEnabled = GM_getValue(this.config.storage.NORMAL_COMMENT_STATUS, false);
+                threshold = GM_getValue(this.config.storage.NORMAL_COMMENT_THRESHOLD, opt.scrollThreshold);
+                console.log(`[NS助手] 当前页面类型: ${opt.type}, 自动翻页状态: ${isEnabled ? '开启' : '关闭'}, 触发阈值: ${threshold}px`);
+            }
+            else { 
+                return; 
+            }
+
+            if (!isEnabled) {
+                console.log('[NS助手] 普通自动翻页功能未启用，跳过初始化');
+                return;
+            }
+
+            let is_requesting = false;
+
+            this.utils.windowScroll((direction, e) => {
+                if (direction === 'down') {
+                    let scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
+                    
+                    if (document.documentElement.scrollHeight <= document.documentElement.clientHeight + scrollTop + threshold && !is_requesting) {
+                        let nextButton = document.querySelector(opt.nextPagerSelector);
+                        if (!nextButton) {
+                            console.log('[NS助手] 已到达最后一页');
+                            return;
+                        }
+                        
+                        let nextUrl = nextButton.attributes.href.value;
+                        console.log(`[NS助手] 普通翻页：跳转到下一页: ${nextUrl}`);
+                        window.location.href = nextUrl;
+                    }
+                }
+            });
         },
 
         autoLoading() {
@@ -238,6 +345,7 @@
         init() {
             console.log('[NS助手] 初始化自动翻页模块');
             this.autoLoading();
+            this.normalAutoLoading();
             console.log('[NS助手] 自动翻页模块初始化完成');
         }
     };
@@ -265,5 +373,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.3.6');
+    console.log('[NS助手] autoPage 模块加载完成 v0.4.0');
 })();
