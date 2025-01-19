@@ -32,14 +32,7 @@
         cloneToolbar.querySelector('span').innerHTML = '<svg width="16" height="16" viewBox="0 0 48 48" fill="none"><path d="M8 8L40 40" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 40L40 8" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
         
         cloneToolbar.addEventListener("click", function (e) {
-            const mdEditor = document.querySelector('.md-editor');
-            mdEditor.style = "";
-            const moveEl = mdEditor.querySelector('.tab-select.window_header');
-            moveEl.style.cursor = "";
-            moveEl.removeEventListener('mousedown', startDrag);
-
-            this.remove();
-            NSEditorEnhance.is_show_quick_comment = false;
+            NSEditorEnhance.resetEditor();
         });
         
         fullScreenToolbar.after(cloneToolbar);
@@ -441,7 +434,6 @@
 
             const mdEditor = document.querySelector('.md-editor');
             
-            // 将编辑器移到body下，避免被容器限制
             document.body.appendChild(mdEditor);
             
             const clientHeight = document.documentElement.clientHeight;
@@ -449,7 +441,7 @@
             const mdHeight = mdEditor.clientHeight;
             const mdWidth = mdEditor.clientWidth;
             
-            const top = Math.max(0, (clientHeight - mdHeight) / 2);
+            const top = Math.max(0, clientHeight * 0.33 - (mdHeight / 2));
             const left = Math.max(0, (clientWidth - mdWidth) / 2);
             
             mdEditor.style.cssText = `
@@ -470,6 +462,31 @@
             
             addEditorCloseButton();
             this.is_show_quick_comment = true;
+        },
+
+        resetEditor() {
+            const mdEditor = document.querySelector('.md-editor');
+            if (!mdEditor) return;
+
+            mdEditor.style = "";
+            const moveEl = mdEditor.querySelector('.tab-select.window_header');
+            if (moveEl) {
+                moveEl.style.cursor = "";
+                moveEl.removeEventListener('mousedown', startDrag);
+            }
+
+            const container = document.querySelector('.topic-select');
+            if (container) {
+                container.before(mdEditor);
+            }
+
+            
+            const closeBtn = mdEditor.querySelector('.window_header .editor-top-button:last-child');
+            if (closeBtn) {
+                closeBtn.remove();
+            }
+
+            this.is_show_quick_comment = false;
         },
     };
 
@@ -496,5 +513,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] editorEnhance 模块加载完成 v0.0.9');
+    console.log('[NS助手] editorEnhance 模块加载完成 v0.1.0');
 })(); 
