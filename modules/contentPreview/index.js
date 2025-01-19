@@ -341,5 +341,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] contentPreview 模块加载完成 v0.0.5');
+    console.log('[NS助手] contentPreview 模块加载完成 v0.0.6');
 })(); 
