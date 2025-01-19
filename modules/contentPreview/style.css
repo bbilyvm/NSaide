@@ -236,28 +236,67 @@
     color: #666;
     font-size: 12px;
     margin-left: 10px;
-    padding: 2px 6px;
-    border-radius: 3px;
-    transition: all 0.3s;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    user-select: none;
 }
 
 .ns-preview-toggle:hover {
-    background: rgba(0, 0, 0, 0.1);
+    background: #e8e8e8;
+    border-color: #d0d0d0;
+}
+
+.ns-preview-toggle:active {
+    transform: translateY(1px);
 }
 
 .ns-preview-toggle.loading {
-    color: #999;
+    color: #0066cc;
+    background: #f0f7ff;
+    border-color: #cce4ff;
     pointer-events: none;
+    position: relative;
+    padding-left: 24px;
+}
+
+.ns-preview-toggle.loading::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #0066cc;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: ns-preview-spin 0.8s linear infinite;
 }
 
 .ns-preview-toggle.error {
     color: #ff4444;
+    background: #fff0f0;
+    border-color: #ffd7d7;
 }
 
 .ns-preview-status {
     font-size: 12px;
     color: #666;
     margin-left: 10px;
+    opacity: 0.8;
+}
+
+@keyframes ns-preview-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .ns-preview-pagination {
@@ -322,11 +361,35 @@
 }
 
 .dark-layout .ns-preview-toggle {
-    color: #999;
+    background: #2a2a2a;
+    border-color: #404040;
+    color: #bbb;
 }
 
 .dark-layout .ns-preview-toggle:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: #333;
+    border-color: #505050;
+}
+
+.dark-layout .ns-preview-toggle.loading {
+    background: #1a2533;
+    border-color: #234;
+    color: #3399ff;
+}
+
+.dark-layout .ns-preview-toggle.loading::before {
+    border-color: #3399ff;
+    border-right-color: transparent;
+}
+
+.dark-layout .ns-preview-toggle.error {
+    background: #331a1a;
+    border-color: #432323;
+    color: #ff6666;
+}
+
+.dark-layout .ns-preview-status {
+    color: #999;
 }
 
 .dark-layout .ns-preview-page-btn {

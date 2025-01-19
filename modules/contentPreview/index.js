@@ -33,7 +33,20 @@
                 }
             ],
             handleChange(settingId, value, settingsManager) {
-                settingsManager.cacheValue(`ns_content_preview_${settingId}`, value);
+                const storageKey = `ns_content_preview_${settingId}`;
+                GM_setValue(storageKey, value);
+                console.log(`[NS助手] 保存设置 ${storageKey} = ${value}`);
+                
+                if (settingId === 'enabled') {
+                    if (!value) {
+                        document.querySelectorAll('.ns-preview-content').forEach(container => {
+                            container.style.display = 'none';
+                        });
+                        document.querySelectorAll('.ns-preview-toggle').forEach(btn => {
+                            btn.textContent = '显示预览';
+                        });
+                    }
+                }
             }
         },
 
@@ -319,5 +332,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] contentPreview 模块加载完成 v0.0.3');
+    console.log('[NS助手] contentPreview 模块加载完成 v0.0.4');
 })(); 
