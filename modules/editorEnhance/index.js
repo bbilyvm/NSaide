@@ -478,13 +478,11 @@
             const mdEditor = document.querySelector('.md-editor');
             if (!mdEditor) return;
 
-            
             const closeBtn = mdEditor.querySelector('.window_header .editor-top-button:last-child');
             if (closeBtn) {
                 closeBtn.remove();
             }
 
-            
             mdEditor.style = "";
             const moveEl = mdEditor.querySelector('.tab-select.window_header');
             if (moveEl) {
@@ -492,10 +490,11 @@
                 moveEl.removeEventListener('mousedown', startDrag);
             }
 
-            
-            const container = document.querySelector('.topic-select');
-            if (container && container.parentNode && mdEditor.parentNode !== container.parentNode) {
-                container.parentNode.insertBefore(mdEditor, container);
+            const originalContainer = document.querySelector('.topic-select');
+            if (originalContainer && originalContainer.parentNode) {
+                if (mdEditor.parentNode === document.body) {
+                    originalContainer.parentNode.insertBefore(mdEditor, originalContainer);
+                }
             }
 
             this.is_show_quick_comment = false;
@@ -525,5 +524,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] editorEnhance 模块加载完成 v0.1.1');
+    console.log('[NS助手] editorEnhance 模块加载完成 v0.1.2');
 })(); 
