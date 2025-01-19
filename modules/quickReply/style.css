@@ -11,10 +11,10 @@
     align-items: center;
     gap: 6px;
     padding: 6px 12px;
-    border: 1px solid var(--border-color);
+    border: 1px solid #e5e5e5;
     border-radius: 6px;
-    background: var(--bg-normal);
-    color: var(--text-normal);
+    background: #ffffff;
+    color: #333333;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 13px;
@@ -24,9 +24,9 @@
 }
 
 .ns-quick-reply-btn:hover {
-    background: var(--bg-hover);
-    border-color: var(--primary-color);
-    color: var(--primary-color);
+    background: #f5f5f5;
+    border-color: #1890ff;
+    color: #1890ff;
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -55,10 +55,11 @@
     align-items: center;
     justify-content: center;
     z-index: 99999;
+    backdrop-filter: blur(2px);
 }
 
 .ns-quick-reply-modal-content {
-    background: var(--bg-normal);
+    background: #ffffff;
     border-radius: 8px;
     padding: 20px;
     width: 90%;
@@ -74,7 +75,7 @@
     font-weight: 500;
     margin-bottom: 20px;
     padding-right: 24px;
-    color: var(--text-normal);
+    color: #333333;
 }
 
 .ns-quick-reply-modal-close {
@@ -84,7 +85,7 @@
     font-size: 24px;
     line-height: 1;
     cursor: pointer;
-    color: var(--text-normal);
+    color: #999999;
     opacity: 0.6;
     transition: opacity 0.2s;
 }
@@ -106,24 +107,26 @@
     gap: 8px;
     align-items: center;
     padding: 8px;
-    background: var(--bg-hover);
+    background: #f5f5f5;
     border-radius: 6px;
+    border: 1px solid #e5e5e5;
 }
 
 .ns-quick-reply-input {
     padding: 6px 8px;
-    border: 1px solid var(--border-color);
+    border: 1px solid #d9d9d9;
     border-radius: 4px;
-    background: var(--bg-normal);
-    color: var(--text-normal);
+    background: #ffffff;
+    color: #333333;
     font-size: 13px;
     line-height: 1.5;
     width: 100%;
 }
 
 .ns-quick-reply-input:focus {
-    border-color: var(--primary-color);
+    border-color: #1890ff;
     outline: none;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
 }
 
 .ns-quick-reply-input.icon {
@@ -133,27 +136,27 @@
 
 .ns-quick-reply-delete-btn {
     padding: 4px 8px;
-    border: 1px solid var(--error-color, #ff4d4f);
+    border: 1px solid #ff4d4f;
     border-radius: 4px;
     background: transparent;
-    color: var(--error-color, #ff4d4f);
+    color: #ff4d4f;
     cursor: pointer;
     transition: all 0.2s;
     font-size: 13px;
 }
 
 .ns-quick-reply-delete-btn:hover {
-    background: var(--error-color, #ff4d4f);
-    color: #fff;
+    background: #ff4d4f;
+    color: #ffffff;
 }
 
 .ns-quick-reply-add-btn,
 .ns-quick-reply-reset-btn {
     padding: 8px 16px;
-    border: 1px solid var(--primary-color);
+    border: 1px solid #1890ff;
     border-radius: 6px;
     background: transparent;
-    color: var(--primary-color);
+    color: #1890ff;
     cursor: pointer;
     transition: all 0.2s;
     font-size: 14px;
@@ -161,16 +164,56 @@
 }
 
 .ns-quick-reply-add-btn:hover {
-    background: var(--primary-color);
-    color: #fff;
+    background: #1890ff;
+    color: #ffffff;
 }
 
 .ns-quick-reply-reset-btn {
-    border-color: var(--warning-color, #faad14);
-    color: var(--warning-color, #faad14);
+    border-color: #faad14;
+    color: #faad14;
 }
 
 .ns-quick-reply-reset-btn:hover {
-    background: var(--warning-color, #faad14);
-    color: #fff;
+    background: #faad14;
+    color: #ffffff;
+}
+
+/* 暗色模式 */
+@media (prefers-color-scheme: dark) {
+    .ns-quick-reply-btn {
+        background: #1f1f1f;
+        border-color: #434343;
+        color: #d9d9d9;
+    }
+
+    .ns-quick-reply-btn:hover {
+        background: #2d2d2d;
+    }
+
+    .ns-quick-reply-modal-content {
+        background: #1f1f1f;
+    }
+
+    .ns-quick-reply-modal-title {
+        color: #d9d9d9;
+    }
+
+    .ns-quick-reply-modal-close {
+        color: #d9d9d9;
+    }
+
+    .ns-quick-reply-preset-item {
+        background: #2d2d2d;
+        border-color: #434343;
+    }
+
+    .ns-quick-reply-input {
+        background: #1f1f1f;
+        border-color: #434343;
+        color: #d9d9d9;
+    }
+
+    .ns-quick-reply-input:focus {
+        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    }
 } 
