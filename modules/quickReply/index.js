@@ -11,9 +11,10 @@
         config: {
             storage: {
                 ENABLE_QUICK_FILL: 'ns_quick_reply_enable_fill',
-                ENABLE_QUICK_SEND: 'ns_quick_reply_enable_send'
+                ENABLE_QUICK_SEND: 'ns_quick_reply_enable_send',
+                CUSTOM_PRESETS: 'ns_quick_reply_presets'
             },
-            presets: [
+            defaultPresets: [
                 { text: '感谢分享', label: '感谢', icon: '👍' },
                 { text: '顶一下', label: '顶', icon: '⬆️' },
                 { text: '收藏了，谢谢', label: '收藏', icon: '⭐' },
@@ -36,6 +37,14 @@
                     label: '启用快速发送',
                     default: false,
                     value: () => GM_getValue('ns_quick_reply_enable_send', false)
+                },
+                {
+                    id: 'manage_presets',
+                    type: 'button',
+                    label: '管理快捷回复',
+                    onClick: () => {
+                        NSQuickReply.utils.showPresetsManager();
+                    }
                 }
             ],
             
@@ -74,11 +83,135 @@
                 });
             },
 
+            getPresets() {
+                const savedPresets = GM_getValue(NSQuickReply.config.storage.CUSTOM_PRESETS);
+                return savedPresets ? JSON.parse(savedPresets) : NSQuickReply.config.defaultPresets;
+            },
+
+            savePresets(presets) {
+                GM_setValue(NSQuickReply.config.storage.CUSTOM_PRESETS, JSON.stringify(presets));
+            },
+
+            showPresetsManager() {
+                const modal = document.createElement('div');
+                modal.className = 'ns-quick-reply-modal';
+                
+                const content = document.createElement('div');
+                content.className = 'ns-quick-reply-modal-content';
+                
+                const title = document.createElement('div');
+                title.className = 'ns-quick-reply-modal-title';
+                title.textContent = '管理快捷回复';
+                
+                const closeBtn = document.createElement('div');
+                closeBtn.className = 'ns-quick-reply-modal-close';
+                closeBtn.textContent = '×';
+                closeBtn.onclick = () => modal.remove();
+                
+                const presetsList = document.createElement('div');
+                presetsList.className = 'ns-quick-reply-presets-list';
+                
+                const presets = this.getPresets();
+                
+                const renderPreset = (preset, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'ns-quick-reply-preset-item';
+                    
+                    const iconInput = document.createElement('input');
+                    iconInput.type = 'text';
+                    iconInput.className = 'ns-quick-reply-input icon';
+                    iconInput.value = preset.icon;
+                    iconInput.placeholder = '图标';
+                    
+                    const labelInput = document.createElement('input');
+                    labelInput.type = 'text';
+                    labelInput.className = 'ns-quick-reply-input label';
+                    labelInput.value = preset.label;
+                    labelInput.placeholder = '按钮文字';
+                    
+                    const textInput = document.createElement('input');
+                    textInput.type = 'text';
+                    textInput.className = 'ns-quick-reply-input text';
+                    textInput.value = preset.text;
+                    textInput.placeholder = '回复内容';
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'ns-quick-reply-delete-btn';
+                    deleteBtn.textContent = '删除';
+                    deleteBtn.onclick = () => {
+                        presets.splice(index, 1);
+                        this.savePresets(presets);
+                        item.remove();
+                    };
+                    
+                    [iconInput, labelInput, textInput].forEach(input => {
+                        input.onchange = () => {
+                            presets[index] = {
+                                icon: iconInput.value,
+                                label: labelInput.value,
+                                text: textInput.value
+                            };
+                            this.savePresets(presets);
+                        };
+                    });
+                    
+                    item.appendChild(iconInput);
+                    item.appendChild(labelInput);
+                    item.appendChild(textInput);
+                    item.appendChild(deleteBtn);
+                    
+                    return item;
+                };
+                
+                presets.forEach((preset, index) => {
+                    presetsList.appendChild(renderPreset(preset, index));
+                });
+                
+                const addBtn = document.createElement('button');
+                addBtn.className = 'ns-quick-reply-add-btn';
+                addBtn.textContent = '添加快捷回复';
+                addBtn.onclick = () => {
+                    const newPreset = { icon: '💬', label: '新按钮', text: '新回复内容' };
+                    presets.push(newPreset);
+                    this.savePresets(presets);
+                    presetsList.appendChild(renderPreset(newPreset, presets.length - 1));
+                };
+                
+                const resetBtn = document.createElement('button');
+                resetBtn.className = 'ns-quick-reply-reset-btn';
+                resetBtn.textContent = '恢复默认';
+                resetBtn.onclick = () => {
+                    if (confirm('确定要恢复默认快捷回复吗？当前的自定义内容将被清除。')) {
+                        this.savePresets(NSQuickReply.config.defaultPresets);
+                        presetsList.innerHTML = '';
+                        NSQuickReply.config.defaultPresets.forEach((preset, index) => {
+                            presetsList.appendChild(renderPreset(preset, index));
+                        });
+                    }
+                };
+                
+                content.appendChild(title);
+                content.appendChild(closeBtn);
+                content.appendChild(presetsList);
+                content.appendChild(addBtn);
+                content.appendChild(resetBtn);
+                modal.appendChild(content);
+                
+                document.body.appendChild(modal);
+                
+                modal.onclick = (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                    }
+                };
+            },
+
             createQuickReplyButtons() {
                 const buttonsContainer = document.createElement('div');
                 buttonsContainer.className = 'ns-quick-reply-buttons';
                 
-                NSQuickReply.config.presets.forEach(preset => {
+                const presets = this.getPresets();
+                presets.forEach(preset => {
                     const button = document.createElement('button');
                     button.className = 'ns-quick-reply-btn';
                     button.innerHTML = `<span class="ns-quick-reply-icon">${preset.icon}</span>${preset.label}`;
@@ -190,5 +323,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] quickReply 模块加载完成 v0.0.3');
+    console.log('[NS助手] quickReply 模块加载完成 v0.0.4');
 })(); 
