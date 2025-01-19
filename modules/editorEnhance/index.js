@@ -440,17 +440,18 @@
             e.preventDefault();
 
             const mdEditor = document.querySelector('.md-editor');
-            const clientHeight = document.documentElement.clientHeight, 
-                  clientWidth = document.documentElement.clientWidth;
-            const mdHeight = mdEditor.clientHeight, 
-                  mdWidth = mdEditor.clientWidth;
-            const top = (clientHeight / 2) - (mdHeight / 2), 
-                  left = (clientWidth / 2) - (mdWidth / 2);
-                  
+            const clientHeight = document.documentElement.clientHeight;
+            const clientWidth = document.documentElement.clientWidth;
+            const mdHeight = mdEditor.clientHeight;
+            const mdWidth = mdEditor.clientWidth;
+            
+            const top = (clientHeight / 2) - (mdHeight / 2);
+            const left = (clientWidth / 2) - (mdWidth / 2);
+            
             mdEditor.style.cssText = `position: fixed; top: ${top}px; left: ${left}px; margin: 30px 0px; width: 100%; max-width: ${mdWidth}px; z-index: 999;`;
             
             const moveEl = mdEditor.querySelector('.tab-select.window_header');
-            moveEl.style.cursor = "move";
+            moveEl.style.cursor = 'move';
             moveEl.addEventListener('mousedown', startDrag);
             
             addEditorCloseButton();
@@ -481,5 +482,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] editorEnhance 模块加载完成 v0.0.7');
+    console.log('[NS助手] editorEnhance 模块加载完成 v0.0.8');
 })(); 
