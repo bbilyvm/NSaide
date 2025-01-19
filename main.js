@@ -17,7 +17,9 @@
 // @grant        unsafeWindow
 // @run-at       document-start
 // ==/UserScript==
-
+//官方交流群/反馈群：https://t.me/NSaide
+//官方频道：https://t.me/NSaide_channel
+//官方greasyfork安装地址： https://greasyfork.org/zh-CN/scripts/523819
 (function() {
     'use strict';
     
