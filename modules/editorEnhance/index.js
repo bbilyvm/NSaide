@@ -3,6 +3,27 @@
     
     console.log('[NS助手] editorEnhance 模块开始加载');
 
+    function startDrag(event) {
+        if (event.button !== 0) return;
+
+        const draggableElement = document.querySelector('.md-editor');
+        const parentMarginTop = parseInt(window.getComputedStyle(draggableElement).marginTop);
+        const initialX = event.clientX - draggableElement.offsetLeft;
+        const initialY = event.clientY - draggableElement.offsetTop + parentMarginTop;
+        
+        document.onmousemove = function (event) {
+            const newX = event.clientX - initialX;
+            const newY = event.clientY - initialY;
+            draggableElement.style.left = newX + 'px';
+            draggableElement.style.top = newY + 'px';
+        };
+        
+        document.onmouseup = function () {
+            document.onmousemove = null;
+            document.onmouseup = null;
+        };
+    }
+
     const NSEditorEnhance = {
         id: 'editorEnhance',
         name: '编辑器增强',
@@ -379,7 +400,6 @@
             commentDiv.id = 'back-to-comment';
             commentDiv.innerHTML = '<svg class="iconpark-icon" style="width: 24px; height: 24px;"><use href="#comments"></use></svg>';
             commentDiv.addEventListener("click", this.handleQuickComment.bind(this));
-            
             document.querySelector('#back-to-parent').before(commentDiv);
 
             document.querySelectorAll('.nsk-post .comment-menu,.comment-container .comments')
@@ -396,8 +416,6 @@
             if (this.is_show_quick_comment) return;
             e.preventDefault();
 
-            console.log('[NS助手] 准备显示快捷回复窗口');
-
             const mdEditor = document.querySelector('.md-editor');
             if (!mdEditor) return;
 
@@ -413,7 +431,7 @@
             const moveEl = mdEditor.querySelector('.tab-select.window_header');
             if (moveEl) {
                 moveEl.style.cursor = "move";
-                moveEl.addEventListener('mousedown', this.startDrag);
+                moveEl.addEventListener('mousedown', startDrag);
             }
 
             this.addEditorCloseButton();
@@ -436,7 +454,7 @@
                 const moveEl = mdEditor.querySelector('.tab-select.window_header');
                 if (moveEl) {
                     moveEl.style.cursor = "";
-                    moveEl.removeEventListener('mousedown', _this.startDrag);
+                    moveEl.removeEventListener('mousedown', startDrag);
                 }
 
                 this.remove();
@@ -444,27 +462,6 @@
             });
             
             fullScreenToolbar.after(cloneToolbar);
-        },
-
-        startDrag(event) {
-            if (event.button !== 0) return;
-
-            const draggableElement = document.querySelector('.md-editor');
-            const parentMarginTop = parseInt(window.getComputedStyle(draggableElement).marginTop);
-            const initialX = event.clientX - draggableElement.offsetLeft;
-            const initialY = event.clientY - draggableElement.offsetTop + parentMarginTop;
-            
-            document.onmousemove = function (event) {
-                const newX = event.clientX - initialX;
-                const newY = event.clientY - initialY;
-                draggableElement.style.left = newX + 'px';
-                draggableElement.style.top = newY + 'px';
-            };
-            
-            document.onmouseup = function () {
-                document.onmousemove = null;
-                document.onmouseup = null;
-            };
         },
     };
 
@@ -491,5 +488,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] editorEnhance 模块加载完成 v0.0.5');
+    console.log('[NS助手] editorEnhance 模块加载完成 v0.0.6');
 })(); 
