@@ -1,0 +1,30 @@
+.ns-quick-reply-buttons {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+    padding: 0 8px;
+}
+
+.ns-quick-reply-btn {
+    padding: 4px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-normal);
+    color: var(--text-normal);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+.ns-quick-reply-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.ns-quick-reply-btn:active {
+    transform: translateY(1px);
+} 

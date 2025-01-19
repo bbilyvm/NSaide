@@ -35,6 +35,11 @@
             "name": "等级标签",
             "id": "levelTag",
             "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/levelTag/index.js"
+        },
+        {
+            "name": "快捷回复",
+            "id": "quickReply",
+            "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/quickReply/index.js"
         }
     ]
 } 

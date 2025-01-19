@@ -197,10 +197,8 @@
                 toast.textContent = message;
                 document.body.appendChild(toast);
                 
-                // Force reflow
                 toast.offsetHeight;
                 
-                // Show toast
                 requestAnimationFrame(() => {
                     toast.classList.add('ns-editor-toast-show');
                     
