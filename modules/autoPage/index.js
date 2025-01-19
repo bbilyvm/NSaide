@@ -17,7 +17,8 @@
                 NORMAL_POST_STATUS: 'ns_autopage_normal_post_status',
                 NORMAL_POST_THRESHOLD: 'ns_autopage_normal_post_threshold',
                 NORMAL_COMMENT_STATUS: 'ns_autopage_normal_comment_status',
-                NORMAL_COMMENT_THRESHOLD: 'ns_autopage_normal_comment_threshold'
+                NORMAL_COMMENT_THRESHOLD: 'ns_autopage_normal_comment_threshold',
+                SCROLL_DELAY: 'ns_autopage_scroll_delay'
             },
             post: {
                 pathPattern: /^\/(categories\/|page|award|search|$)/,
@@ -108,6 +109,13 @@
                     label: '普通评论区触发阈值',
                     default: 300,
                     value: () => GM_getValue('ns_autopage_normal_comment_threshold', 300)
+                },
+                {
+                    id: 'scroll_delay',
+                    type: 'number',
+                    label: '滚动延迟(毫秒)',
+                    default: 1000,
+                    value: () => GM_getValue('ns_autopage_scroll_delay', 1000)
                 }
             ],
             
@@ -146,6 +154,10 @@
                         settingsManager.cacheValue('ns_autopage_normal_comment_threshold', parseInt(value));
                         console.log(`[NS助手] 普通评论区触发阈值已设置为: ${value}px`);
                         break;
+                    case 'scroll_delay':
+                        settingsManager.cacheValue('ns_autopage_scroll_delay', parseInt(value));
+                        console.log(`[NS助手] 滚动延迟已设置为: ${value}ms`);
+                        break;
                 }
             }
         },
@@ -154,22 +166,31 @@
             windowScroll(callback) {
                 let lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
                 let ticking = false;
+                let scrollTimeout = null;
+                let scrollDelay = GM_getValue('ns_autopage_scroll_delay', 1000);
             
                 window.addEventListener('scroll', function(e) {
                     let currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
                     
                     if (!ticking) {
                         window.requestAnimationFrame(function() {
-                            let direction = currentScrollTop > lastScrollTop ? 'down' : 'up';
-                            callback(direction, e);
-                            lastScrollTop = currentScrollTop;
+                            if (scrollTimeout) {
+                                clearTimeout(scrollTimeout);
+                            }
+                            
+                            scrollTimeout = setTimeout(() => {
+                                let direction = currentScrollTop > lastScrollTop ? 'down' : 'up';
+                                callback(direction, e);
+                                lastScrollTop = currentScrollTop;
+                            }, scrollDelay);
+                            
                             ticking = false;
                         });
                         
                         ticking = true;
                     }
                 }, { passive: true });
-                console.log('[NS助手] 滚动监听器已启动');
+                console.log(`[NS助手] 滚动监听器已启动，延迟: ${scrollDelay}ms`);
             },
 
             b64DecodeUnicode(str) {
@@ -373,5 +394,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.4.0');
+    console.log('[NS助手] autoPage 模块加载完成 v0.4.1');
 })();
