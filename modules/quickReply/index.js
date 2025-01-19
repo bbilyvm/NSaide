@@ -283,7 +283,20 @@
                     button.className = 'ns-quick-reply-btn';
                     button.innerHTML = `<span class="ns-quick-reply-icon">${preset.icon}</span>${preset.label}`;
                     button.title = preset.text;
-                    button.onclick = async () => {
+                    button.onclick = async (e) => {
+                        
+                        const contentItem = e.target.closest('.content-item');
+                        if (!contentItem) return;
+
+                        
+                        const replyBtn = contentItem.querySelector('.comment-menu .menu-item:last-child');
+                        if (!replyBtn) return;
+                        replyBtn.click();
+
+                        
+                        await new Promise(resolve => setTimeout(resolve, 100));
+
+                        
                         const codeMirror = document.querySelector('.CodeMirror');
                         if (!codeMirror || !codeMirror.CodeMirror) return;
                         
@@ -407,5 +420,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] quickReply 模块加载完成 v0.0.7');
+    console.log('[NS助手] quickReply 模块加载完成 v0.0.8');
 })(); 
