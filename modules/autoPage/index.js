@@ -21,7 +21,8 @@
                 nextPagerSelector: '.nsk-pager a.pager-next',
                 postListSelector: 'ul.post-list',
                 topPagerSelector: 'div.nsk-pager.pager-top',
-                bottomPagerSelector: 'div.nsk-pager.pager-bottom'
+                bottomPagerSelector: 'div.nsk-pager.pager-bottom',
+                type: '帖子列表'
             },
             comment: {
                 pathPattern: /^\/post-/,
@@ -29,7 +30,8 @@
                 nextPagerSelector: '.nsk-pager a.pager-next',
                 postListSelector: 'ul.comments',
                 topPagerSelector: 'div.nsk-pager.post-top-pager',
-                bottomPagerSelector: 'div.nsk-pager.post-bottom-pager'
+                bottomPagerSelector: 'div.nsk-pager.post-bottom-pager',
+                type: '评论区'
             }
         },
 
@@ -66,18 +68,23 @@
             ],
             
             handleChange(settingId, value, settingsManager) {
+                console.log(`[NS助手] 自动翻页设置变更: ${settingId} = ${value}`);
                 switch(settingId) {
                     case 'post_status':
                         settingsManager.cacheValue('ns_autopage_post_status', value);
+                        console.log(`[NS助手] 帖子列表自动翻页已${value ? '启用' : '禁用'}`);
                         break;
                     case 'post_threshold':
                         settingsManager.cacheValue('ns_autopage_post_threshold', parseInt(value));
+                        console.log(`[NS助手] 帖子列表触发阈值已设置为: ${value}px`);
                         break;
                     case 'comment_status':
                         settingsManager.cacheValue('ns_autopage_comment_status', value);
+                        console.log(`[NS助手] 评论区自动翻页已${value ? '启用' : '禁用'}`);
                         break;
                     case 'comment_threshold':
                         settingsManager.cacheValue('ns_autopage_comment_threshold', parseInt(value));
+                        console.log(`[NS助手] 评论区触发阈值已设置为: ${value}px`);
                         break;
                 }
             }
@@ -102,6 +109,7 @@
                         ticking = true;
                     }
                 }, { passive: true });
+                console.log('[NS助手] 滚动监听器已启动');
             },
 
             b64DecodeUnicode(str) {
@@ -112,10 +120,14 @@
 
             processCommentMenus(commentElements) {
                 const existingMenu = document.querySelector('.comment-menu');
-                if (!existingMenu || !existingMenu.__vue__) return;
+                if (!existingMenu || !existingMenu.__vue__) {
+                    console.warn('[NS助手] 未找到评论菜单Vue实例');
+                    return;
+                }
 
                 const vue = existingMenu.__vue__;
                 let startIndex = document.querySelectorAll('.content-item').length - commentElements.length;
+                console.log(`[NS助手] 开始处理新加载的评论菜单，起始索引: ${startIndex}`);
 
                 commentElements.forEach((comment, index) => {
                     const menuMount = document.createElement('div');
@@ -126,6 +138,7 @@
                     menuInstance.setIndex(startIndex + index);
                     menuInstance.$mount(menuMount);
                 });
+                console.log(`[NS助手] 成功处理 ${commentElements.length} 个评论菜单`);
             }
         },
 
@@ -136,22 +149,29 @@
 
             if (this.config.post.pathPattern.test(location.pathname)) { 
                 opt = this.config.post;
-                isEnabled = GM_getValue(this.config.storage.POST_STATUS, true);
+                isEnabled = GM_getValue(this.config.storage.POST_STATUS, false);
                 threshold = GM_getValue(this.config.storage.POST_THRESHOLD, opt.scrollThreshold);
+                console.log(`[NS助手] 当前页面类型: ${opt.type}, 自动翻页状态: ${isEnabled ? '开启' : '关闭'}, 触发阈值: ${threshold}px`);
             }
             else if (this.config.comment.pathPattern.test(location.pathname)) { 
                 opt = this.config.comment;
-                isEnabled = GM_getValue(this.config.storage.COMMENT_STATUS, true);
+                isEnabled = GM_getValue(this.config.storage.COMMENT_STATUS, false);
                 threshold = GM_getValue(this.config.storage.COMMENT_THRESHOLD, opt.scrollThreshold);
+                console.log(`[NS助手] 当前页面类型: ${opt.type}, 自动翻页状态: ${isEnabled ? '开启' : '关闭'}, 触发阈值: ${threshold}px`);
             }
             else { 
+                console.log('[NS助手] 当前页面不支持自动翻页');
                 return; 
             }
 
-            if (!isEnabled) return;
+            if (!isEnabled) {
+                console.log('[NS助手] 自动翻页功能未启用，跳过初始化');
+                return;
+            }
 
             let is_requesting = false;
             let _this = this;
+            let loadCount = 0;
 
             this.utils.windowScroll(function (direction, e) {
                 if (direction === 'down') {
@@ -159,16 +179,22 @@
                     
                     if (document.documentElement.scrollHeight <= document.documentElement.clientHeight + scrollTop + threshold && !is_requesting) {
                         let nextButton = document.querySelector(opt.nextPagerSelector);
-                        if (!nextButton) return;
+                        if (!nextButton) {
+                            console.log('[NS助手] 已到达最后一页');
+                            return;
+                        }
                         
                         let nextUrl = nextButton.attributes.href.value;
                         is_requesting = true;
+                        console.log(`[NS助手] 开始加载下一页: ${nextUrl}`);
 
                         GM_xmlhttpRequest({
                             method: 'GET',
                             url: nextUrl,
                             onload: function(response) {
                                 if (response.status === 200) {
+                                    loadCount++;
+                                    console.log(`[NS助手] 第 ${loadCount} 次加载成功`);
                                     let doc = new DOMParser().parseFromString(response.responseText, "text/html");
                                     
                                     if (_this.config.comment.pathPattern.test(location.pathname)){
@@ -177,10 +203,12 @@
                                         if (jsonText) {
                                             let conf = JSON.parse(_this.utils.b64DecodeUnicode(jsonText))
                                             unsafeWindow.__config__.postData.comments.push(...conf.postData.comments);
+                                            console.log(`[NS助手] 成功合并 ${conf.postData.comments.length} 条评论数据`);
                                         }
                                     }
 
                                     const newComments = Array.from(doc.querySelector(opt.postListSelector).children);
+                                    console.log(`[NS助手] 获取到 ${newComments.length} 个新内容`);
                                     
                                     document.querySelector(opt.postListSelector).append(...newComments);
                                     
@@ -192,6 +220,7 @@
                                     document.querySelector(opt.bottomPagerSelector).innerHTML = doc.querySelector(opt.bottomPagerSelector).innerHTML;
                                     
                                     history.pushState(null, null, nextUrl);
+                                    console.log('[NS助手] 页面状态更新完成');
                                     
                                     is_requesting = false;
                                 }
@@ -236,5 +265,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.3.5');
+    console.log('[NS助手] autoPage 模块加载完成 v0.3.6');
 })();
