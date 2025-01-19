@@ -30,6 +30,11 @@
             "name": "自动翻页",
             "id": "autoPage",
             "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/autoPage/index.js"
+        },
+        {
+            "name": "等级标签",
+            "id": "levelTag",
+            "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/levelTag/index.js"
         }
     ]
 } 
