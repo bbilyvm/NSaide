@@ -236,30 +236,17 @@
     color: #666;
     font-size: 12px;
     margin-left: 10px;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    background: #f5f5f5;
-    border: 1px solid #e0e0e0;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    user-select: none;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: all 0.3s;
 }
 
 .ns-preview-toggle:hover {
-    background: #e8e8e8;
-    border-color: #d0d0d0;
-}
-
-.ns-preview-toggle:active {
-    transform: translateY(1px);
+    background: rgba(0, 0, 0, 0.1);
 }
 
 .ns-preview-toggle.loading {
-    color: #0066cc;
-    background: #f0f7ff;
-    border-color: #cce4ff;
+    color: #999;
     pointer-events: none;
     position: relative;
     padding-left: 24px;
@@ -279,15 +266,12 @@
 
 .ns-preview-toggle.error {
     color: #ff4444;
-    background: #fff0f0;
-    border-color: #ffd7d7;
 }
 
 .ns-preview-status {
     font-size: 12px;
     color: #666;
     margin-left: 10px;
-    opacity: 0.8;
 }
 
 @keyframes ns-preview-spin {
@@ -361,20 +345,11 @@
 }
 
 .dark-layout .ns-preview-toggle {
-    background: #2a2a2a;
-    border-color: #404040;
-    color: #bbb;
+    color: #999;
 }
 
 .dark-layout .ns-preview-toggle:hover {
-    background: #333;
-    border-color: #505050;
-}
-
-.dark-layout .ns-preview-toggle.loading {
-    background: #1a2533;
-    border-color: #234;
-    color: #3399ff;
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .dark-layout .ns-preview-toggle.loading::before {
@@ -383,8 +358,6 @@
 }
 
 .dark-layout .ns-preview-toggle.error {
-    background: #331a1a;
-    border-color: #432323;
     color: #ff6666;
 }
 
