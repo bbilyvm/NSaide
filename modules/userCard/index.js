@@ -422,20 +422,23 @@
 
                 if (GM_getValue('ns_usercard_enable_block', true)) {
                     console.log('[NS助手] 添加屏蔽按钮');
-                    const actionArea = cardElement.querySelector('.user-card-action');
+                    const actionArea = cardElement.querySelector('div[style*="text-align: right"]');
                     if (actionArea) {
                         const blockBtn = document.createElement('a');
                         blockBtn.className = 'btn';
-                        blockBtn.style.cssText = 'float:left; background-color:rgba(0,0,0,.3); margin-right: 5px;';
+                        blockBtn.style.cssText = 'margin-right: 6px; background-color: rgba(0,0,0,.3) !important;';
                         blockBtn.textContent = '屏蔽';
-                        blockBtn.href = '#';
+                        blockBtn.href = 'javascript:void(0)';
                         blockBtn.onclick = async (e) => {
                             e.preventDefault();
-                            if (confirm(`确定要屏蔽用户 "${userInfo.username}" 吗？\n你可以在设置=>屏蔽用户中解除屏蔽`)) {
-                                await this.utils.blockUser(userInfo.username);
+                            const username = cardElement.querySelector('a.Username').textContent;
+                            if (confirm(`确定要屏蔽用户 "${username}" 吗？\n你可以在设置=>屏蔽用户中解除屏蔽`)) {
+                                await this.utils.blockUser(username);
                             }
                         };
                         actionArea.insertBefore(blockBtn, actionArea.firstChild);
+                    } else {
+                        console.log('[NS助手] 未找到操作区域');
                     }
                 }
 
