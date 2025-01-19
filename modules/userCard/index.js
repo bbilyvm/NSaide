@@ -39,47 +39,6 @@
         utils: {
             userDataCache: new Map(),
             maxCacheSize: 100,
-            cardTemplate: null,
-            
-            createCardTemplate() {
-                if (this.cardTemplate) return;
-                
-                const template = document.createElement('template');
-                template.innerHTML = `
-                    <div class="ns-usercard-extension">
-                        <div class="ns-usercard-userid"></div>
-                        <div class="ns-usercard-next-level"></div>
-                        <div class="ns-usercard-activity"></div>
-                    </div>
-                `;
-                this.cardTemplate = template;
-                console.log('[NS助手] 创建卡片模板');
-            },
-
-            getCardContent() {
-                return this.cardTemplate.content.cloneNode(true);
-            },
-
-            preloadUserData(userId) {
-                if (this.userDataCache.has(userId)) return;
-                
-                fetch(`https://www.nodeseek.com/api/account/getInfo/${userId}`, {
-                    method: 'GET',
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                }).then(async response => {
-                    if (!response.ok) return;
-                    const data = await response.json();
-                    if (data.success) {
-                        this.userDataCache.set(userId, data.detail);
-                        this.clearOldCache();
-                    }
-                }).catch(error => {
-                    console.error('[NS助手] 预加载用户数据失败:', error);
-                });
-            },
 
             showConfirm(title, content) {
                 return new Promise((resolve) => {
@@ -346,27 +305,26 @@
         init() {
             console.log('[NS助手] 初始化用户卡片增强功能');
             
-            this.utils.createCardTemplate();
-            
-            const preloadUserData = (e) => {
-                const avatarLink = e.target.closest('a[href^="/space/"]');
-                if (avatarLink && avatarLink.querySelector('img.avatar-normal')) {
-                    const userId = avatarLink.getAttribute('href').split('/').pop();
-                    this.utils.preloadUserData(userId);
-                }
-            };
-
-            document.addEventListener('mouseover', preloadUserData, { passive: true });
-            
             this.waitAndEnhance = this.waitAndEnhance.bind(this);
             this.enhance = this.enhance.bind(this);
             this.enableDragging = this.enableDragging.bind(this);
 
             console.log('[NS助手] 开始加载用户卡片样式');
-            const styleLink = document.createElement('link');
-            styleLink.rel = 'stylesheet';
-            styleLink.href = 'https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/userCard/style.css';
-            document.head.appendChild(styleLink);
+            GM_xmlhttpRequest({
+                method: 'GET',
+                url: 'https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/userCard/style.css',
+                onload: (response) => {
+                    if (response.status === 200) {
+                        console.log('[NS助手] 用户卡片样式加载成功');
+                        GM_addStyle(response.responseText);
+                    } else {
+                        console.error('[NS助手] 加载用户卡片样式失败:', response.status);
+                    }
+                },
+                onerror: (error) => {
+                    console.error('[NS助手] 加载用户卡片样式出错:', error);
+                }
+            });
 
             console.log('[NS助手] 注册头像点击监听器');
             document.addEventListener('click', async (e) => {
@@ -376,31 +334,39 @@
                     const userId = avatarLink.getAttribute('href').split('/').pop();
                     this.waitAndEnhance(userId);
                 }
-            }, { passive: true });
+            });
 
             const observer = new MutationObserver((mutations) => {
                 let themeChanged = false;
-                for (const mutation of mutations) {
+
+                mutations.forEach((mutation) => {
                     if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                         themeChanged = true;
-                        break;
                     }
-                }
+                });
 
                 if (themeChanged) {
+                    const newTheme = document.body.classList.contains('dark-layout') ? 'dark' : 'light';
+                    console.log('[NS助手] 主题切换:', newTheme);
+                    
                     const cards = document.querySelectorAll('.hover-user-card');
-                    for (const card of cards) {
+                    cards.forEach(card => {
                         if (card.classList.contains('enhanced')) {
+                            console.log('[NS助手] 重新渲染卡片以适应新主题');
                             card.classList.remove('enhanced');
                             card.classList.remove('ns-usercard-enhanced');
                             const extension = card.querySelector('.ns-usercard-extension');
-                            if (extension) extension.remove();
+                            if (extension) {
+                                extension.remove();
+                            }
                         }
-                    }
+                    });
                 }
             });
 
             observer.observe(document.body, {
+                childList: true,
+                subtree: true,
                 attributes: true,
                 attributeFilter: ['class']
             });
@@ -501,16 +467,11 @@
         enhance(cardElement, userInfo) {
             try {
                 console.log('[NS助手] 开始增强卡片');
-                
-                if (cardElement.classList.contains('enhanced')) {
-                    console.log('[NS助手] 卡片已增强，跳过');
-                    return;
-                }
-
-                const fragment = this.utils.getCardContent();
-                const extension = fragment.querySelector('.ns-usercard-extension');
+                const isDarkMode = document.body.classList.contains('dark-layout');
+                console.log('[NS助手] 当前主题模式:', isDarkMode ? 'dark' : 'light');
 
                 if (GM_getValue('ns_usercard_enable_block', true)) {
+                    console.log('[NS助手] 添加屏蔽按钮');
                     const actionArea = cardElement.querySelector('div[style*="text-align: right"]');
                     if (actionArea) {
                         const blockBtn = document.createElement('a');
@@ -536,6 +497,8 @@
                         };
                         
                         actionArea.insertBefore(blockBtn, actionArea.firstChild);
+                    } else {
+                        console.log('[NS助手] 未找到操作区域');
                     }
                 }
 
@@ -548,6 +511,8 @@
                     memberId: userInfo.member_id
                 };
 
+                console.log('[NS助手] 提取的用户数据:', userData);
+
                 const nextLevelInfo = this.utils.calculateNextLevelInfo(userData.level, userData.chickenLegs);
                 const activity = this.utils.calculateActivity(
                     userData.joinDays,
@@ -558,29 +523,42 @@
                     userInfo.bio
                 );
 
-                const userIdDiv = extension.querySelector('.ns-usercard-userid');
-                userIdDiv.textContent = `🆔 用户ID：${userData.memberId}`;
+                const extensionDiv = document.createElement('div');
+                extensionDiv.className = 'ns-usercard-extension';
 
-                const nextLevelDiv = extension.querySelector('.ns-usercard-next-level');
+                const userIdDiv = document.createElement('div');
+                userIdDiv.className = 'ns-usercard-userid';
+                userIdDiv.innerHTML = `🆔 用户ID：${userData.memberId}`;
+                extensionDiv.appendChild(userIdDiv);
+
+                const nextLevelDiv = document.createElement('div');
+                nextLevelDiv.className = nextLevelInfo.isMaxLevel ?
+                    'ns-usercard-next-level ns-usercard-max-level' :
+                    'ns-usercard-next-level';
+
                 if (nextLevelInfo.isMaxLevel) {
-                    nextLevelDiv.className = 'ns-usercard-next-level ns-usercard-max-level';
                     nextLevelDiv.innerHTML = `
                         <div class="ns-usercard-next-level-title">🌟 最高等级</div>
-                        <div class="ns-usercard-next-level-detail">此用户已达到最高等级 Lv.6</div>
+                        <div class="ns-usercard-next-level-detail">
+                            此用户已达到最高等级 Lv.6
+                        </div>
                     `;
                 } else {
                     nextLevelDiv.innerHTML = `
                         <div class="ns-usercard-next-level-title">⭐ 等级进度</div>
-                        <div class="ns-usercard-next-level-detail">距离 Lv.${nextLevelInfo.nextLevel} 还需 ${nextLevelInfo.remaining} 鸡腿</div>
+                        <div class="ns-usercard-next-level-detail">
+                            距离 Lv.${nextLevelInfo.nextLevel} 还需 ${nextLevelInfo.remaining} 鸡腿
+                        </div>
                         <div class="ns-usercard-next-level-progress">
                             <div class="ns-usercard-next-level-progress-bar" style="width: ${nextLevelInfo.progress}%"></div>
                         </div>
                     `;
                 }
 
-                const activityDiv = extension.querySelector('.ns-usercard-activity');
+                const activityDiv = document.createElement('div');
                 activityDiv.className = `ns-usercard-activity ns-usercard-activity-${activity.level}`;
-                activityDiv.innerHTML = `
+
+                let activityHtml = `
                     <div class="ns-usercard-activity-title">
                         ${activity.level === 'high' ? '🔥' : activity.level === 'medium' ? '⭐' : '💫'}
                         可靠性指数
@@ -600,14 +578,18 @@
                     </div>
                 `;
 
+                activityDiv.innerHTML = activityHtml;
+
+                extensionDiv.appendChild(nextLevelDiv);
+                extensionDiv.appendChild(activityDiv);
+
                 const closeBtn = cardElement.querySelector('.closeBtn');
                 if (closeBtn) {
-                    cardElement.insertBefore(extension, closeBtn);
+                    cardElement.insertBefore(extensionDiv, closeBtn);
                 } else {
-                    cardElement.appendChild(extension);
+                    cardElement.appendChild(extensionDiv);
                 }
 
-                cardElement.classList.add('enhanced');
                 console.log('[NS助手] 卡片增强完成');
 
             } catch (error) {
@@ -639,5 +621,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] userCard 模块加载完成 v0.1.6');
+    console.log('[NS助手] userCard 模块加载完成 v0.1.5');
 })();
