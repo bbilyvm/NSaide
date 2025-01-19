@@ -586,7 +586,7 @@
                 boundRenderModuleSettings();
             });
 
-            console.log('[NS助手] 设置面板模块初始化完成v0.0.4');
+            console.log('[NS助手] 设置面板模块初始化完成');
         }
     };
 
@@ -613,5 +613,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] settings 模块加载完成');
+    console.log('[NS助手] settings 模块加载完成 v0.0.5');
 })(); 
