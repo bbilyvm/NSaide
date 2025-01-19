@@ -260,7 +260,6 @@ graph TD
 
 本项目采用 [GPL-3.0](LICENSE) 许可证。
 
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fstardeep925%2FNSaide.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fstardeep925%2FNSaide?ref=badge_large)
 
 </td>
 </tr>
