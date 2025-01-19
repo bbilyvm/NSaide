@@ -143,6 +143,9 @@
                 
                 const content = document.createElement('div');
                 content.className = 'ns-quick-reply-modal-content';
+                if (document.body.classList.contains('dark-layout')) {
+                    content.classList.add('dark');
+                }
                 
                 const title = document.createElement('div');
                 title.className = 'ns-quick-reply-modal-title';
@@ -161,6 +164,9 @@
                 const renderPreset = (preset, index) => {
                     const item = document.createElement('div');
                     item.className = 'ns-quick-reply-preset-item';
+                    
+                    const inputsContainer = document.createElement('div');
+                    inputsContainer.className = 'ns-quick-reply-inputs-container';
                     
                     const iconInput = document.createElement('input');
                     iconInput.type = 'text';
@@ -207,9 +213,10 @@
                         };
                     });
                     
-                    item.appendChild(iconInput);
-                    item.appendChild(labelInput);
-                    item.appendChild(textInput);
+                    inputsContainer.appendChild(iconInput);
+                    inputsContainer.appendChild(labelInput);
+                    inputsContainer.appendChild(textInput);
+                    item.appendChild(inputsContainer);
                     item.appendChild(deleteBtn);
                     
                     return item;
@@ -266,6 +273,9 @@
             createQuickReplyButtons() {
                 const buttonsContainer = document.createElement('div');
                 buttonsContainer.className = 'ns-quick-reply-buttons';
+                if (document.body.classList.contains('dark-layout')) {
+                    buttonsContainer.classList.add('dark');
+                }
                 
                 const presets = this.getPresets();
                 presets.forEach(preset => {
@@ -339,13 +349,30 @@
                     }
                 });
                 
-                const observer = new MutationObserver(() => {
+                const observer = new MutationObserver((mutations) => {
+                    let themeChanged = false;
+                    mutations.forEach((mutation) => {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                            themeChanged = true;
+                        }
+                    });
+
+                    if (themeChanged) {
+                        const isDarkMode = document.body.classList.contains('dark-layout');
+                        const buttons = document.querySelectorAll('.ns-quick-reply-buttons');
+                        buttons.forEach(btn => {
+                            btn.classList.toggle('dark', isDarkMode);
+                        });
+                    }
+
                     this.utils.addQuickReplyButtons();
                 });
                 
                 observer.observe(document.body, {
                     childList: true,
-                    subtree: true
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['class']
                 });
                 
                 this.utils.addQuickReplyButtons();
@@ -380,5 +407,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] quickReply 模块加载完成 v0.0.6');
+    console.log('[NS助手] quickReply 模块加载完成 v0.0.7');
 })(); 
