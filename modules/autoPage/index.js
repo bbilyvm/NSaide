@@ -153,40 +153,47 @@
         utils: {
             windowScroll(callback) {
                 let lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                let lastScrollTime = Date.now();
                 let ticking = false;
-                let isAutoScrolling = false;
+                let userInteracting = false;
+                let interactionTimeout = null;
+                
+                const setUserInteracting = () => {
+                    userInteracting = true;
+                    if (interactionTimeout) {
+                        clearTimeout(interactionTimeout);
+                    }
+                    interactionTimeout = setTimeout(() => {
+                        userInteracting = false;
+                    }, 500);
+                };
+                
+                window.addEventListener('wheel', setUserInteracting, { passive: true });
+                window.addEventListener('touchstart', setUserInteracting, { passive: true });
+                window.addEventListener('touchmove', setUserInteracting, { passive: true });
+                window.addEventListener('keydown', (e) => {
+                    if (e.key === 'PageDown' || e.key === 'PageUp' || 
+                        e.key === 'ArrowDown' || e.key === 'ArrowUp' || 
+                        e.key === 'Home' || e.key === 'End' || 
+                        e.key === ' ') {
+                        setUserInteracting();
+                    }
+                }, { passive: true });
             
                 window.addEventListener('scroll', function(e) {
                     let currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                    let currentTime = Date.now();
-                    let scrollDelta = Math.abs(currentScrollTop - lastScrollTop);
-                    let timeDelta = currentTime - lastScrollTime;
-                    let scrollSpeed = scrollDelta / timeDelta;
                     
-                    if (scrollSpeed > 2) {
-                        isAutoScrolling = true;
-                        setTimeout(() => {
-                            isAutoScrolling = false;
-                        }, 1000);
-                        lastScrollTop = currentScrollTop;
-                        lastScrollTime = currentTime;
-                        return;
-                    }
-                    
-                    if (!ticking && !isAutoScrolling) {
+                    if (!ticking && userInteracting) {
                         window.requestAnimationFrame(function() {
                             let direction = currentScrollTop > lastScrollTop ? 'down' : 'up';
                             callback(direction, e);
                             lastScrollTop = currentScrollTop;
-                            lastScrollTime = currentTime;
                             ticking = false;
                         });
                         
                         ticking = true;
                     }
                 }, { passive: true });
-                console.log('[NS助手] 滚动监听器已启动，已启用自动滚动检测');
+                console.log('[NS助手] 滚动监听器已启动，已启用用户交互检测');
             },
 
             b64DecodeUnicode(str) {
@@ -390,5 +397,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] autoPage 模块加载完成 v0.4.1');
+    console.log('[NS助手] autoPage 模块加载完成 v0.4.2');
 })();
