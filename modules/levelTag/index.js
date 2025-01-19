@@ -447,7 +447,7 @@
                 attributeFilter: ['class']
             });
 
-            console.log('[NS助手] 等级标签模块初始化完成 v0.1.0');
+            console.log('[NS助手] 等级标签模块初始化完成');
         }
     };
 
@@ -474,5 +474,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] levelTag 模块加载完成');
+    console.log('[NS助手] levelTag 模块加载完成 v0.1.1');
 })(); 
