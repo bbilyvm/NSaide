@@ -3,41 +3,6 @@
     
     console.log('[NS助手] editorEnhance 模块开始加载');
 
-    function startDrag(event) {
-        if (event.button !== 0) return;
-
-        const draggableElement = document.querySelector('.md-editor');
-        const parentMarginTop = parseInt(window.getComputedStyle(draggableElement).marginTop);
-        const initialX = event.clientX - draggableElement.offsetLeft;
-        const initialY = event.clientY - draggableElement.offsetTop + parentMarginTop;
-        
-        document.onmousemove = function (event) {
-            const newX = event.clientX - initialX;
-            const newY = event.clientY - initialY;
-            draggableElement.style.left = newX + 'px';
-            draggableElement.style.top = newY + 'px';
-        };
-        
-        document.onmouseup = function () {
-            document.onmousemove = null;
-            document.onmouseup = null;
-        };
-    }
-
-    function addEditorCloseButton() {
-        const fullScreenToolbar = document.querySelector('#editor-body .window_header > :last-child');
-        const cloneToolbar = fullScreenToolbar.cloneNode(true);
-        cloneToolbar.setAttribute('title', '关闭');
-        cloneToolbar.querySelector('span').classList.replace('i-icon-full-screen-one', 'i-icon-close');
-        cloneToolbar.querySelector('span').innerHTML = '<svg width="16" height="16" viewBox="0 0 48 48" fill="none"><path d="M8 8L40 40" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 40L40 8" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
-        
-        cloneToolbar.addEventListener("click", function (e) {
-            NSEditorEnhance.resetEditor();
-        });
-        
-        fullScreenToolbar.after(cloneToolbar);
-    }
-
     const NSEditorEnhance = {
         id: 'editorEnhance',
         name: '编辑器增强',
@@ -413,8 +378,13 @@
             const commentDiv = document.querySelector('#fast-nav-button-group #back-to-parent').cloneNode(true);
             commentDiv.id = 'back-to-comment';
             commentDiv.innerHTML = '<svg class="iconpark-icon" style="width: 24px; height: 24px;"><use href="#comments"></use></svg>';
+            commentDiv.setAttribute('title', '快捷回复');
+            
             commentDiv.addEventListener("click", this.handleQuickComment.bind(this));
+            
+            
             document.querySelector('#back-to-parent').before(commentDiv);
+
 
             document.querySelectorAll('.nsk-post .comment-menu,.comment-container .comments')
                 .forEach(x => x.addEventListener("click", 
@@ -433,71 +403,100 @@
             e.preventDefault();
 
             const mdEditor = document.querySelector('.md-editor');
+            if (!mdEditor) return;
+
             
-            document.body.appendChild(mdEditor);
+            const overlay = document.createElement('div');
+            overlay.className = 'ns-editor-overlay';
+            document.body.appendChild(overlay);
+
             
-            const clientHeight = window.innerHeight;
-            const clientWidth = window.innerWidth;
-            const mdWidth = 724;
+            const editorClone = mdEditor.cloneNode(true);
+            editorClone.classList.add('ns-editor-floating');
+            document.body.appendChild(editorClone);
+
             
-            mdEditor.style.cssText = `
-                position: fixed;
-                width: 100%;
-                max-width: ${mdWidth}px;
-                margin: 0;
-                visibility: hidden;
-            `;
+            mdEditor.style.display = 'none';
+
+            const clientHeight = document.documentElement.clientHeight, 
+                  clientWidth = document.documentElement.clientWidth;
+            const mdHeight = editorClone.clientHeight, 
+                  mdWidth = editorClone.clientWidth;
+            const top = (clientHeight / 2) - (mdHeight / 2), 
+                  left = (clientWidth / 2) - (mdWidth / 2);
+                  
+            editorClone.style.cssText = `position: fixed; top: ${top}px; left: ${left}px; margin: 30px 0px; width: 100%; max-width: ${mdWidth}px; z-index: 1000;`;
             
-            const mdHeight = mdEditor.offsetHeight;
             
-            const top = Math.max(20, (clientHeight * 0.33) - (mdHeight / 2));
-            const left = Math.max(0, (clientWidth - mdWidth) / 2);
+            const moveEl = editorClone.querySelector('.tab-select.window_header');
+            if (moveEl) {
+                moveEl.style.cursor = "move";
+                moveEl.addEventListener('mousedown', this.startDrag);
+            }
+
             
-            mdEditor.style.cssText = `
-                position: fixed;
-                top: ${top}px;
-                left: ${left}px;
-                margin: 0;
-                width: 100%;
-                max-width: ${mdWidth}px;
-                z-index: 999999;
-                background: var(--nsk-bg-normal);
-                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-                visibility: visible;
-            `;
+            const textArea = editorClone.querySelector('textarea');
+            if (textArea) {
+                const originalCM = document.querySelector('.CodeMirror').CodeMirror;
+                const options = originalCM.options;
+                const content = originalCM.getValue();
+                
+                const newCM = CodeMirror.fromTextArea(textArea, options);
+                newCM.setValue(content);
+                newCM.setOption('extraKeys', originalCM.getOption('extraKeys'));
+            }
             
-            const moveEl = mdEditor.querySelector('.tab-select.window_header');
-            moveEl.style.cursor = 'move';
-            moveEl.addEventListener('mousedown', startDrag);
-            
-            addEditorCloseButton();
+            this.addEditorCloseButton(editorClone, overlay, mdEditor);
             this.is_show_quick_comment = true;
         },
 
-        resetEditor() {
-            const mdEditor = document.querySelector('.md-editor');
-            if (!mdEditor) return;
+        addEditorCloseButton(editorClone, overlay, originalEditor) {
+            const fullScreenToolbar = editorClone.querySelector('#editor-body .window_header > :last-child');
+            if (!fullScreenToolbar) return;
 
-            const closeBtn = mdEditor.querySelector('.window_header .editor-top-button:last-child');
-            if (closeBtn) {
-                closeBtn.remove();
+            const cloneToolbar = fullScreenToolbar.cloneNode(true);
+            cloneToolbar.setAttribute('title', '关闭');
+            cloneToolbar.querySelector('span').classList.replace('i-icon-full-screen-one', 'i-icon-close');
+            cloneToolbar.querySelector('span').innerHTML = '<svg width="16" height="16" viewBox="0 0 48 48" fill="none"><path d="M8 8L40 40" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 40L40 8" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+            
+            const _this = this;
+            cloneToolbar.addEventListener("click", function (e) {
+                
+                originalEditor.style.display = '';
+                
+                
+                editorClone.remove();
+                overlay.remove();
+
+                _this.is_show_quick_comment = false;
+            });
+            
+            fullScreenToolbar.after(cloneToolbar);
+        },
+
+        startDrag(event) {
+            if (event.button !== 0) return;
+
+            const draggableElement = document.querySelector('.ns-editor-floating');
+            if (!draggableElement) return;
+
+            const initialX = event.clientX - draggableElement.offsetLeft;
+            const initialY = event.clientY - draggableElement.offsetTop;
+            
+            function onMouseMove(event) {
+                const newX = event.clientX - initialX;
+                const newY = event.clientY - initialY;
+                draggableElement.style.left = newX + 'px';
+                draggableElement.style.top = newY + 'px';
             }
-
-            mdEditor.style = "";
-            const moveEl = mdEditor.querySelector('.tab-select.window_header');
-            if (moveEl) {
-                moveEl.style.cursor = "";
-                moveEl.removeEventListener('mousedown', startDrag);
+            
+            function onMouseUp() {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
             }
-
-            const originalContainer = document.querySelector('.topic-select');
-            if (originalContainer && originalContainer.parentNode) {
-                if (mdEditor.parentNode === document.body) {
-                    originalContainer.parentNode.insertBefore(mdEditor, originalContainer);
-                }
-            }
-
-            this.is_show_quick_comment = false;
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
         },
     };
 
@@ -524,5 +523,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] editorEnhance 模块加载完成 v0.1.2');
+    console.log('[NS助手] editorEnhance 模块加载完成 v0.0.2');
 })(); 
