@@ -40,6 +40,11 @@
             "name": "快捷回复",
             "id": "quickReply",
             "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/quickReply/index.js"
+        },
+        {
+            "name": "内容预览",
+            "id": "contentPreview",
+            "url": "https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/contentPreview/index.js"
         }
     ]
 } 
