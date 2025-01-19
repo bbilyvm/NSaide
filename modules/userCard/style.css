@@ -234,4 +234,248 @@
     background: #3b3b3b !important;
     border: 1px solid rgba(24,144,255,0.2);
     color: #40a9ff;
+}
+
+.ns-block-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 6px;
+    padding: 4px 12px;
+    font-size: 13px;
+    color: #fff !important;
+    background: linear-gradient(135deg, #ff4d4d 0%, #f33 100%) !important;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.ns-block-btn:hover {
+    background: linear-gradient(135deg, #ff6666 0%, #ff4d4d 100%) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(255,77,77,0.3);
+}
+
+.ns-block-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.ns-block-btn::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(135deg, #ff6666 0%, #ff3333 100%);
+    border-radius: 6px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.ns-block-btn:hover::before {
+    opacity: 0.4;
+}
+
+.ns-block-tooltip {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    font-size: 12px;
+    color: #fff;
+    background: rgba(0,0,0,0.8);
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+.ns-block-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid rgba(0,0,0,0.8);
+}
+
+.ns-block-btn:hover .ns-block-tooltip {
+    opacity: 1;
+    visibility: visible;
+    top: -35px;
+}
+
+.dark-layout .ns-block-btn {
+    background: linear-gradient(135deg, #ff3333 0%, #e60000 100%) !important;
+}
+
+.dark-layout .ns-block-btn:hover {
+    background: linear-gradient(135deg, #ff4d4d 0%, #ff3333 100%) !important;
+}
+
+.ns-confirm-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+    z-index: 9999;
+    min-width: 300px;
+    max-width: 90%;
+    animation: ns-dialog-in 0.3s ease;
+}
+
+.dark-layout .ns-confirm-dialog {
+    background: #283046;
+    color: #d0d2d6;
+}
+
+@keyframes ns-dialog-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+.ns-confirm-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.dark-layout .ns-confirm-title {
+    color: #d0d2d6;
+}
+
+.ns-confirm-content {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.dark-layout .ns-confirm-content {
+    color: #b4b7bd;
+}
+
+.ns-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.ns-confirm-btn {
+    padding: 6px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.ns-confirm-btn-cancel {
+    background: #f5f5f5;
+    color: #666;
+}
+
+.dark-layout .ns-confirm-btn-cancel {
+    background: #404656;
+    color: #b4b7bd;
+}
+
+.ns-confirm-btn-confirm {
+    background: #ff4d4d;
+    color: #fff;
+}
+
+.ns-confirm-btn:hover {
+    transform: translateY(-1px);
+}
+
+.ns-confirm-btn:active {
+    transform: translateY(0);
+}
+
+.ns-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 9998;
+    animation: ns-overlay-in 0.3s ease;
+}
+
+@keyframes ns-overlay-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.ns-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: ns-alert-in 0.3s ease;
+    max-width: 90%;
+}
+
+.dark-layout .ns-alert {
+    background: #283046;
+    color: #d0d2d6;
+}
+
+@keyframes ns-alert-in {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.ns-alert-icon {
+    font-size: 18px;
+}
+
+.ns-alert-content {
+    font-size: 14px;
+    color: #333;
+}
+
+.dark-layout .ns-alert-content {
+    color: #d0d2d6;
+}
+
+.ns-alert-success {
+    border-left: 4px solid #52c41a;
+}
+
+.ns-alert-error {
+    border-left: 4px solid #ff4d4d;
 } 

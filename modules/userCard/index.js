@@ -40,6 +40,56 @@
             userDataCache: new Map(),
             maxCacheSize: 100,
 
+            showConfirm(title, content) {
+                return new Promise((resolve) => {
+                    const overlay = document.createElement('div');
+                    overlay.className = 'ns-confirm-overlay';
+                    
+                    const dialog = document.createElement('div');
+                    dialog.className = 'ns-confirm-dialog';
+                    
+                    dialog.innerHTML = `
+                        <div class="ns-confirm-title">${title}</div>
+                        <div class="ns-confirm-content">${content}</div>
+                        <div class="ns-confirm-actions">
+                            <button class="ns-confirm-btn ns-confirm-btn-cancel">取消</button>
+                            <button class="ns-confirm-btn ns-confirm-btn-confirm">确定</button>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(overlay);
+                    document.body.appendChild(dialog);
+                    
+                    const close = (result) => {
+                        overlay.remove();
+                        dialog.remove();
+                        resolve(result);
+                    };
+                    
+                    dialog.querySelector('.ns-confirm-btn-cancel').onclick = () => close(false);
+                    dialog.querySelector('.ns-confirm-btn-confirm').onclick = () => close(true);
+                    overlay.onclick = () => close(false);
+                });
+            },
+
+            showAlert(message, type = 'success') {
+                const alert = document.createElement('div');
+                alert.className = `ns-alert ns-alert-${type}`;
+                
+                alert.innerHTML = `
+                    <span class="ns-alert-icon">${type === 'success' ? '✓' : '✕'}</span>
+                    <span class="ns-alert-content">${message}</span>
+                `;
+                
+                document.body.appendChild(alert);
+                
+                setTimeout(() => {
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateX(20px)';
+                    setTimeout(() => alert.remove(), 300);
+                }, 3000);
+            },
+
             async blockUser(userName) {
                 console.log('[NS助手] 尝试屏蔽用户:', userName);
                 try {
@@ -57,15 +107,15 @@
                     const data = await response.json();
                     if (data.success) {
                         console.log('[NS助手] 用户屏蔽成功:', userName);
-                        unsafeWindow.mscAlert('用户 ' + userName + ' 已被屏蔽');
+                        this.showAlert(`用户 ${userName} 已被屏蔽`, 'success');
                     } else {
                         console.error('[NS助手] 用户屏蔽失败:', data.message);
-                        unsafeWindow.mscAlert('屏蔽失败: ' + data.message);
+                        this.showAlert(`屏蔽失败: ${data.message}`, 'error');
                     }
                     return data.success;
                 } catch (error) {
                     console.error('[NS助手] 屏蔽请求失败:', error);
-                    unsafeWindow.mscAlert('屏蔽请求失败');
+                    this.showAlert('屏蔽请求失败', 'error');
                     return false;
                 }
             },
@@ -425,17 +475,27 @@
                     const actionArea = cardElement.querySelector('div[style*="text-align: right"]');
                     if (actionArea) {
                         const blockBtn = document.createElement('a');
-                        blockBtn.className = 'btn';
-                        blockBtn.style.cssText = 'margin-right: 6px; background-color: rgba(0,0,0,.3) !important;';
+                        blockBtn.className = 'btn ns-block-btn';
                         blockBtn.textContent = '屏蔽';
                         blockBtn.href = 'javascript:void(0)';
+                        
+                        const tooltip = document.createElement('span');
+                        tooltip.className = 'ns-block-tooltip';
+                        tooltip.textContent = '将此用户加入屏蔽列表';
+                        blockBtn.appendChild(tooltip);
+                        
                         blockBtn.onclick = async (e) => {
                             e.preventDefault();
                             const username = cardElement.querySelector('a.Username').textContent;
-                            if (confirm(`确定要屏蔽用户 "${username}" 吗？\n你可以在设置=>屏蔽用户中解除屏蔽`)) {
+                            const confirmed = await this.utils.showConfirm(
+                                '确认屏蔽',
+                                `确定要将用户 "${username}" 加入屏蔽列表吗？<br>你可以在设置=>屏蔽用户中解除屏蔽`
+                            );
+                            if (confirmed) {
                                 await this.utils.blockUser(username);
                             }
                         };
+                        
                         actionArea.insertBefore(blockBtn, actionArea.firstChild);
                     } else {
                         console.log('[NS助手] 未找到操作区域');
@@ -561,5 +621,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] userCard 模块加载完成 v0.1.4');
+    console.log('[NS助手] userCard 模块加载完成 v0.1.5');
 })();
