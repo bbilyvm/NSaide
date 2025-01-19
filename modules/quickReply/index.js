@@ -12,6 +12,7 @@
             storage: {
                 ENABLE_QUICK_FILL: 'ns_quick_reply_enable_fill',
                 ENABLE_QUICK_SEND: 'ns_quick_reply_enable_send',
+                ENABLE_AUTO_REPLY: 'ns_quick_reply_enable_auto_reply',
                 CUSTOM_PRESETS: 'ns_quick_reply_presets'
             },
             defaultPresets: [
@@ -39,6 +40,13 @@
                     value: () => GM_getValue('ns_quick_reply_enable_send', false)
                 },
                 {
+                    id: 'enable_auto_reply',
+                    type: 'switch',
+                    label: '自动点击回复',
+                    default: true,
+                    value: () => GM_getValue('ns_quick_reply_enable_auto_reply', true)
+                },
+                {
                     id: 'manage_presets',
                     type: 'button',
                     label: '管理快捷回复',
@@ -53,6 +61,8 @@
                     settingsManager.cacheValue('ns_quick_reply_enable_fill', value);
                 } else if (settingId === 'enable_send') {
                     settingsManager.cacheValue('ns_quick_reply_enable_send', value);
+                } else if (settingId === 'enable_auto_reply') {
+                    settingsManager.cacheValue('ns_quick_reply_enable_auto_reply', value);
                 }
             }
         },
@@ -284,17 +294,23 @@
                     button.innerHTML = `<span class="ns-quick-reply-icon">${preset.icon}</span>${preset.label}`;
                     button.title = preset.text;
                     button.onclick = async (e) => {
-                        
                         const contentItem = e.target.closest('.content-item');
                         if (!contentItem) return;
 
                         
-                        const replyBtn = contentItem.querySelector('.comment-menu .menu-item:last-child');
-                        if (!replyBtn) return;
-                        replyBtn.click();
+                        const lastMenuItem = contentItem.querySelector('.comment-menu .menu-item:last-child');
+                        if (!lastMenuItem) return;
 
                         
-                        await new Promise(resolve => setTimeout(resolve, 100));
+                        const isEditButton = lastMenuItem.querySelector('svg use[href="#edit"]') !== null;
+                        const enableAutoReply = GM_getValue('ns_quick_reply_enable_auto_reply', true);
+
+                        
+                        if (!isEditButton && enableAutoReply) {
+                            lastMenuItem.click();
+                            
+                            await new Promise(resolve => setTimeout(resolve, 100));
+                        }
 
                         
                         const codeMirror = document.querySelector('.CodeMirror');
@@ -420,5 +436,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] quickReply 模块加载完成 v0.0.8');
+    console.log('[NS助手] quickReply 模块加载完成 v0.0.9');
 })(); 
