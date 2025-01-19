@@ -92,6 +92,52 @@
                 GM_setValue(NSQuickReply.config.storage.CUSTOM_PRESETS, JSON.stringify(presets));
             },
 
+            showConfirmDialog(options) {
+                const { title, content, onConfirm, onCancel, confirmText = '确定', cancelText = '取消', type = 'info' } = options;
+                
+                const dialog = document.createElement('div');
+                dialog.className = 'ns-quick-reply-dialog';
+                
+                dialog.innerHTML = `
+                    <div class="ns-quick-reply-dialog-content ${type}">
+                        <div class="ns-quick-reply-dialog-icon">
+                            ${type === 'warning' ? '⚠️' : type === 'error' ? '❌' : 'ℹ️'}
+                        </div>
+                        <div class="ns-quick-reply-dialog-header">${title}</div>
+                        <div class="ns-quick-reply-dialog-body">${content}</div>
+                        <div class="ns-quick-reply-dialog-footer">
+                            <button class="ns-quick-reply-dialog-btn cancel">${cancelText}</button>
+                            <button class="ns-quick-reply-dialog-btn confirm ${type}">${confirmText}</button>
+                        </div>
+                    </div>
+                `;
+                
+                const confirmBtn = dialog.querySelector('.confirm');
+                const cancelBtn = dialog.querySelector('.cancel');
+                
+                confirmBtn.onclick = () => {
+                    onConfirm?.();
+                    dialog.remove();
+                };
+                
+                cancelBtn.onclick = () => {
+                    onCancel?.();
+                    dialog.remove();
+                };
+                
+                dialog.onclick = (e) => {
+                    if (e.target === dialog) {
+                        dialog.remove();
+                        onCancel?.();
+                    }
+                };
+                
+                document.body.appendChild(dialog);
+                
+                // 聚焦到取消按钮，这样用户可以直接按 ESC 或 Enter 关闭弹窗
+                cancelBtn.focus();
+            },
+
             showPresetsManager() {
                 const modal = document.createElement('div');
                 modal.className = 'ns-quick-reply-modal';
@@ -139,9 +185,16 @@
                     deleteBtn.className = 'ns-quick-reply-delete-btn';
                     deleteBtn.textContent = '删除';
                     deleteBtn.onclick = () => {
-                        presets.splice(index, 1);
-                        this.savePresets(presets);
-                        item.remove();
+                        this.showConfirmDialog({
+                            title: '删除确认',
+                            content: `确定要删除"${preset.label}"这个快捷回复吗？`,
+                            type: 'warning',
+                            onConfirm: () => {
+                                presets.splice(index, 1);
+                                this.savePresets(presets);
+                                item.remove();
+                            }
+                        });
                     };
                     
                     [iconInput, labelInput, textInput].forEach(input => {
@@ -181,13 +234,18 @@
                 resetBtn.className = 'ns-quick-reply-reset-btn';
                 resetBtn.textContent = '恢复默认';
                 resetBtn.onclick = () => {
-                    if (confirm('确定要恢复默认快捷回复吗？当前的自定义内容将被清除。')) {
-                        this.savePresets(NSQuickReply.config.defaultPresets);
-                        presetsList.innerHTML = '';
-                        NSQuickReply.config.defaultPresets.forEach((preset, index) => {
-                            presetsList.appendChild(renderPreset(preset, index));
-                        });
-                    }
+                    this.showConfirmDialog({
+                        title: '恢复默认确认',
+                        content: '确定要恢复默认快捷回复吗？当前的自定义内容将被清除。',
+                        type: 'warning',
+                        onConfirm: () => {
+                            this.savePresets(NSQuickReply.config.defaultPresets);
+                            presetsList.innerHTML = '';
+                            NSQuickReply.config.defaultPresets.forEach((preset, index) => {
+                                presetsList.appendChild(renderPreset(preset, index));
+                            });
+                        }
+                    });
                 };
                 
                 content.appendChild(title);
@@ -323,5 +381,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] quickReply 模块加载完成 v0.0.4');
+    console.log('[NS助手] quickReply 模块加载完成 v0.0.5');
 })(); 
