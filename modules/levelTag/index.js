@@ -78,11 +78,10 @@
         utils: {
             userDataCache: new Map(),
             maxCacheSize: 100,
+            processingUsers: new Set(),
 
             clearOldCache() {
-                console.log('[NS助手] 检查缓存大小:', this.userDataCache.size);
                 if (this.userDataCache.size > this.maxCacheSize) {
-                    console.log('[NS助手] 清理过期缓存');
                     const entries = Array.from(this.userDataCache.entries());
                     const halfSize = Math.floor(this.maxCacheSize / 2);
                     entries.slice(0, entries.length - halfSize).forEach(([key]) => {
@@ -118,12 +117,17 @@
 
             async getUserInfo(userId) {
                 try {
+                    if (this.processingUsers.has(userId)) {
+                        return this.userDataCache.get(userId) || null;
+                    }
+
                     if (this.userDataCache.has(userId)) {
-                        console.log(`[NS助手] 使用缓存的用户数据: ${userId}`);
                         return this.userDataCache.get(userId);
                     }
 
+                    this.processingUsers.add(userId);
                     console.log(`[NS助手] 获取用户数据: ${userId}`);
+                    
                     const response = await fetch(`https://www.nodeseek.com/api/account/getInfo/${userId}`, {
                         method: 'GET',
                         credentials: 'include',
@@ -143,9 +147,11 @@
                     
                     this.clearOldCache();
                     this.userDataCache.set(userId, data.detail);
+                    this.processingUsers.delete(userId);
                     return data.detail;
                 } catch (error) {
                     console.error('[NS助手] 获取用户信息失败:', error);
+                    this.processingUsers.delete(userId);
                     return null;
                 }
             }
@@ -157,23 +163,23 @@
                     return;
                 }
 
-                const authorInfoElements = document.querySelectorAll('.author-info');
+                const authorInfoElements = document.querySelectorAll('.author-info:not([data-ns-level-processed])');
                 const position = GM_getValue('ns_leveltag_level_tag_position', 'before_name');
                 
                 for (const authorInfo of authorInfoElements) {
-                    if (authorInfo.hasAttribute('data-ns-level-processed')) {
-                        continue;
-                    }
-
                     const authorLink = authorInfo.querySelector('a.author-name');
                     if (!authorLink) continue;
-
-                    authorInfo.querySelectorAll('.ns-level-tag').forEach(tag => tag.remove());
 
                     const userId = authorLink.getAttribute('href').split('/').pop();
                     const userInfo = await this.utils.getUserInfo(userId);
                     
                     if (!userInfo) continue;
+
+                    if (authorInfo.hasAttribute('data-ns-level-processed')) {
+                        continue;
+                    }
+
+                    authorInfo.querySelectorAll('.ns-level-tag').forEach(tag => tag.remove());
 
                     const levelTag = document.createElement('span');
                     levelTag.className = 'nsk-badge role-tag ns-level-tag';
@@ -258,23 +264,23 @@
                     return;
                 }
 
-                const postListContents = document.querySelectorAll('.post-list-content');
+                const postListContents = document.querySelectorAll('.post-list-content:not([data-ns-level-processed])');
                 const position = GM_getValue('ns_leveltag_post_level_tag_position', 'after_name');
                 
                 for (const postContent of postListContents) {
-                    if (postContent.hasAttribute('data-ns-level-processed')) {
-                        continue;
-                    }
-
                     const authorLink = postContent.querySelector('.info-author a');
                     if (!authorLink) continue;
-
-                    postContent.querySelectorAll('.ns-post-level-tag').forEach(tag => tag.remove());
 
                     const userId = authorLink.getAttribute('href').split('/').pop();
                     const userInfo = await this.utils.getUserInfo(userId);
                     
                     if (!userInfo) continue;
+
+                    if (postContent.hasAttribute('data-ns-level-processed')) {
+                        continue;
+                    }
+
+                    postContent.querySelectorAll('.ns-post-level-tag').forEach(tag => tag.remove());
 
                     const levelTag = document.createElement('span');
                     levelTag.className = 'nsk-badge role-tag ns-level-tag ns-post-level-tag';
