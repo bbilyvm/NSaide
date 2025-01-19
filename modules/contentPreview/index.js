@@ -22,40 +22,41 @@
                     type: 'switch',
                     label: '启用内容预览',
                     default: true,
-                    value: () => GM_getValue('ns_content_preview_enabled', true),
-                    onChange: (value) => {
-                        GM_setValue('ns_content_preview_enabled', value);
-                        if (!value) {
-                            document.querySelectorAll('.ns-preview-content').forEach(container => {
-                                container.style.display = 'none';
-                            });
-                            document.querySelectorAll('.ns-preview-toggle').forEach(btn => {
-                                btn.textContent = '显示预览';
-                            });
-                        }
-                    }
+                    value: () => GM_getValue('ns_content_preview_enabled', true)
                 },
                 {
                     id: 'showComments',
                     type: 'switch',
                     label: '显示评论区',
                     default: true,
-                    value: () => GM_getValue('ns_content_preview_show_comments', true),
-                    onChange: (value) => {
-                        GM_setValue('ns_content_preview_show_comments', value);
+                    value: () => GM_getValue('ns_content_preview_show_comments', true)
+                }
+            ],
+            handleChange(settingId, value, settingsManager) {
+                if (settingId === 'enabled') {
+                    GM_setValue('ns_content_preview_enabled', value);
+                    if (!value) {
                         document.querySelectorAll('.ns-preview-content').forEach(container => {
-                            if (container.hasContent) {
-                                container.style.display = 'none';
-                                const toggleBtn = container.previousElementSibling?.previousElementSibling;
-                                if (toggleBtn) {
-                                    toggleBtn.textContent = '显示预览';
-                                }
-                                container.hasContent = false;
-                            }
+                            container.style.display = 'none';
+                        });
+                        document.querySelectorAll('.ns-preview-toggle').forEach(btn => {
+                            btn.textContent = '显示预览';
                         });
                     }
+                } else if (settingId === 'showComments') {
+                    GM_setValue('ns_content_preview_show_comments', value);
+                    document.querySelectorAll('.ns-preview-content').forEach(container => {
+                        if (container.hasContent) {
+                            container.style.display = 'none';
+                            const toggleBtn = container.previousElementSibling?.previousElementSibling;
+                            if (toggleBtn) {
+                                toggleBtn.textContent = '显示预览';
+                            }
+                            container.hasContent = false;
+                        }
+                    });
                 }
-            ]
+            }
         },
 
         utils: {
