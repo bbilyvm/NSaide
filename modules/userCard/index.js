@@ -16,6 +16,13 @@
                     label: '启用卡片拖拽',
                     default: true,
                     value: () => GM_getValue('ns_usercard_enable_dragging', true)
+                },
+                {
+                    id: 'enable_block',
+                    type: 'switch',
+                    label: '启用用户屏蔽',
+                    default: true,
+                    value: () => GM_getValue('ns_usercard_enable_block', true)
                 }
             ],
             
@@ -23,12 +30,45 @@
                 if (settingId === 'enable_dragging') {
                     settingsManager.cacheValue('ns_usercard_enable_dragging', value);
                 }
+                if (settingId === 'enable_block') {
+                    settingsManager.cacheValue('ns_usercard_enable_block', value);
+                }
             }
         },
 
         utils: {
             userDataCache: new Map(),
             maxCacheSize: 100,
+
+            async blockUser(userName) {
+                console.log('[NS助手] 尝试屏蔽用户:', userName);
+                try {
+                    const response = await fetch('https://www.nodeseek.com/api/block-list/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            block_member_name: userName
+                        }),
+                        credentials: 'include'
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        console.log('[NS助手] 用户屏蔽成功:', userName);
+                        unsafeWindow.mscAlert('用户 ' + userName + ' 已被屏蔽');
+                    } else {
+                        console.error('[NS助手] 用户屏蔽失败:', data.message);
+                        unsafeWindow.mscAlert('屏蔽失败: ' + data.message);
+                    }
+                    return data.success;
+                } catch (error) {
+                    console.error('[NS助手] 屏蔽请求失败:', error);
+                    unsafeWindow.mscAlert('屏蔽请求失败');
+                    return false;
+                }
+            },
 
             clearOldCache() {
                 console.log('[NS助手] 检查缓存大小:', this.userDataCache.size);
@@ -380,6 +420,25 @@
                 const isDarkMode = document.body.classList.contains('dark-layout');
                 console.log('[NS助手] 当前主题模式:', isDarkMode ? 'dark' : 'light');
 
+                if (GM_getValue('ns_usercard_enable_block', true)) {
+                    console.log('[NS助手] 添加屏蔽按钮');
+                    const actionArea = cardElement.querySelector('.user-card-action');
+                    if (actionArea) {
+                        const blockBtn = document.createElement('a');
+                        blockBtn.className = 'btn';
+                        blockBtn.style.cssText = 'float:left; background-color:rgba(0,0,0,.3); margin-right: 5px;';
+                        blockBtn.textContent = '屏蔽';
+                        blockBtn.href = '#';
+                        blockBtn.onclick = async (e) => {
+                            e.preventDefault();
+                            if (confirm(`确定要屏蔽用户 "${userInfo.username}" 吗？\n你可以在设置=>屏蔽用户中解除屏蔽`)) {
+                                await this.utils.blockUser(userInfo.username);
+                            }
+                        };
+                        actionArea.insertBefore(blockBtn, actionArea.firstChild);
+                    }
+                }
+
                 const userData = {
                     level: userInfo.rank,
                     chickenLegs: userInfo.coin,
@@ -499,5 +558,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] userCard 模块加载完成 v0.1.2');
+    console.log('[NS助手] userCard 模块加载完成 v0.1.3');
 })();
