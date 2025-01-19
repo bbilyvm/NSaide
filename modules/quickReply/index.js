@@ -182,5 +182,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] quickReply 模块加载完成');
+    console.log('[NS助手] quickReply 模块加载完成 v0.0.2');
 })(); 
