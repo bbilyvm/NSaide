@@ -436,12 +436,21 @@
             
             document.body.appendChild(mdEditor);
             
-            const clientHeight = document.documentElement.clientHeight;
-            const clientWidth = document.documentElement.clientWidth;
-            const mdHeight = mdEditor.clientHeight;
-            const mdWidth = mdEditor.clientWidth;
+            const clientHeight = window.innerHeight;
+            const clientWidth = window.innerWidth;
+            const mdWidth = 724;
             
-            const top = Math.max(0, clientHeight * 0.33 - (mdHeight / 2));
+            mdEditor.style.cssText = `
+                position: fixed;
+                width: 100%;
+                max-width: ${mdWidth}px;
+                margin: 0;
+                visibility: hidden;
+            `;
+            
+            const mdHeight = mdEditor.offsetHeight;
+            
+            const top = Math.max(20, (clientHeight * 0.33) - (mdHeight / 2));
             const left = Math.max(0, (clientWidth - mdWidth) / 2);
             
             mdEditor.style.cssText = `
@@ -450,10 +459,11 @@
                 left: ${left}px;
                 margin: 0;
                 width: 100%;
-                max-width: 724px;
+                max-width: ${mdWidth}px;
                 z-index: 999999;
                 background: var(--nsk-bg-normal);
                 box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                visibility: visible;
             `;
             
             const moveEl = mdEditor.querySelector('.tab-select.window_header');
@@ -468,6 +478,13 @@
             const mdEditor = document.querySelector('.md-editor');
             if (!mdEditor) return;
 
+            
+            const closeBtn = mdEditor.querySelector('.window_header .editor-top-button:last-child');
+            if (closeBtn) {
+                closeBtn.remove();
+            }
+
+            
             mdEditor.style = "";
             const moveEl = mdEditor.querySelector('.tab-select.window_header');
             if (moveEl) {
@@ -475,15 +492,10 @@
                 moveEl.removeEventListener('mousedown', startDrag);
             }
 
-            const container = document.querySelector('.topic-select');
-            if (container) {
-                container.before(mdEditor);
-            }
-
             
-            const closeBtn = mdEditor.querySelector('.window_header .editor-top-button:last-child');
-            if (closeBtn) {
-                closeBtn.remove();
+            const container = document.querySelector('.topic-select');
+            if (container && container.parentNode && mdEditor.parentNode !== container.parentNode) {
+                container.parentNode.insertBefore(mdEditor, container);
             }
 
             this.is_show_quick_comment = false;
@@ -513,5 +525,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] editorEnhance 模块加载完成 v0.1.0');
+    console.log('[NS助手] editorEnhance 模块加载完成 v0.1.1');
 })(); 
