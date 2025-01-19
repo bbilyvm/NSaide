@@ -24,6 +24,27 @@
         };
     }
 
+    function addEditorCloseButton() {
+        const fullScreenToolbar = document.querySelector('#editor-body .window_header > :last-child');
+        const cloneToolbar = fullScreenToolbar.cloneNode(true);
+        cloneToolbar.setAttribute('title', '关闭');
+        cloneToolbar.querySelector('span').classList.replace('i-icon-full-screen-one', 'i-icon-close');
+        cloneToolbar.querySelector('span').innerHTML = '<svg width="16" height="16" viewBox="0 0 48 48" fill="none"><path d="M8 8L40 40" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 40L40 8" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+        
+        cloneToolbar.addEventListener("click", function (e) {
+            const mdEditor = document.querySelector('.md-editor');
+            mdEditor.style = "";
+            const moveEl = mdEditor.querySelector('.tab-select.window_header');
+            moveEl.style.cursor = "";
+            moveEl.removeEventListener('mousedown', startDrag);
+
+            this.remove();
+            NSEditorEnhance.is_show_quick_comment = false;
+        });
+        
+        fullScreenToolbar.after(cloneToolbar);
+    }
+
     const NSEditorEnhance = {
         id: 'editorEnhance',
         name: '编辑器增强',
@@ -413,55 +434,27 @@
         },
 
         handleQuickComment(e) {
-            if (this.is_show_quick_comment) return;
+            if (this.is_show_quick_comment) {
+                return;
+            }
             e.preventDefault();
 
             const mdEditor = document.querySelector('.md-editor');
-            if (!mdEditor) return;
-
-            const clientHeight = document.documentElement.clientHeight;
-            const clientWidth = document.documentElement.clientWidth;
-            const mdHeight = mdEditor.clientHeight;
-            const mdWidth = mdEditor.clientWidth;
-            const top = (clientHeight / 2) - (mdHeight / 2);
-            const left = (clientWidth / 2) - (mdWidth / 2);
-
+            const clientHeight = document.documentElement.clientHeight, 
+                  clientWidth = document.documentElement.clientWidth;
+            const mdHeight = mdEditor.clientHeight, 
+                  mdWidth = mdEditor.clientWidth;
+            const top = (clientHeight / 2) - (mdHeight / 2), 
+                  left = (clientWidth / 2) - (mdWidth / 2);
+                  
             mdEditor.style.cssText = `position: fixed; top: ${top}px; left: ${left}px; margin: 30px 0px; width: 100%; max-width: ${mdWidth}px; z-index: 999;`;
-
+            
             const moveEl = mdEditor.querySelector('.tab-select.window_header');
-            if (moveEl) {
-                moveEl.style.cursor = "move";
-                moveEl.addEventListener('mousedown', startDrag);
-            }
-
-            this.addEditorCloseButton();
+            moveEl.style.cursor = "move";
+            moveEl.addEventListener('mousedown', startDrag);
+            
+            addEditorCloseButton();
             this.is_show_quick_comment = true;
-        },
-
-        addEditorCloseButton() {
-            const fullScreenToolbar = document.querySelector('#editor-body .window_header > :last-child');
-            if (!fullScreenToolbar) return;
-
-            const cloneToolbar = fullScreenToolbar.cloneNode(true);
-            cloneToolbar.setAttribute('title', '关闭');
-            cloneToolbar.querySelector('span').classList.replace('i-icon-full-screen-one', 'i-icon-close');
-            cloneToolbar.querySelector('span').innerHTML = '<svg width="16" height="16" viewBox="0 0 48 48" fill="none"><path d="M8 8L40 40" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 40L40 8" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
-            
-            const _this = this;
-            cloneToolbar.addEventListener("click", function (e) {
-                const mdEditor = document.querySelector('.md-editor');
-                mdEditor.style = "";
-                const moveEl = mdEditor.querySelector('.tab-select.window_header');
-                if (moveEl) {
-                    moveEl.style.cursor = "";
-                    moveEl.removeEventListener('mousedown', startDrag);
-                }
-
-                this.remove();
-                _this.is_show_quick_comment = false;
-            });
-            
-            fullScreenToolbar.after(cloneToolbar);
         },
     };
 
@@ -488,5 +481,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] editorEnhance 模块加载完成 v0.0.6');
+    console.log('[NS助手] editorEnhance 模块加载完成 v0.0.7');
 })(); 
