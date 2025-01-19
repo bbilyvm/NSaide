@@ -6,13 +6,11 @@
     const NSContentPreview = {
         id: 'contentPreview',
         name: '内容预览',
-        description: '自动获取帖子内容并显示在标题下方，支持延迟加载',
+        description: '自动获取帖子内容并显示在标题下方',
 
         config: {
             storage: {
-                ENABLED: 'ns_content_preview_enabled',
-                AUTO_LOAD: 'ns_content_preview_auto_load',
-                FETCH_DELAY: 'ns_content_preview_fetch_delay'
+                ENABLED: 'ns_content_preview_enabled'
             }
         },
 
@@ -24,62 +22,10 @@
                     label: '启用内容预览',
                     default: true,
                     value: () => GM_getValue('ns_content_preview_enabled', true)
-                },
-                {
-                    id: 'autoLoad',
-                    type: 'switch',
-                    label: '自动加载可见内容',
-                    default: false,
-                    value: () => GM_getValue('ns_content_preview_auto_load', false)
-                },
-                {
-                    id: 'fetchDelay',
-                    type: 'select',
-                    label: '加载延迟',
-                    default: 2000,
-                    value: () => GM_getValue('ns_content_preview_fetch_delay', 2000),
-                    options: [
-                        { value: 1000, label: '1秒' },
-                        { value: 2000, label: '2秒' },
-                        { value: 3000, label: '3秒' },
-                        { value: 5000, label: '5秒' }
-                    ]
                 }
             ],
             handleChange(settingId, value, settingsManager) {
                 settingsManager.cacheValue(`ns_content_preview_${settingId}`, value);
-            }
-        },
-
-        requestQueue: {
-            queue: [],
-            isProcessing: false,
-
-            add(task) {
-                this.queue.push(task);
-                if (!this.isProcessing) {
-                    this.process();
-                }
-            },
-
-            async process() {
-                if (this.queue.length === 0) {
-                    this.isProcessing = false;
-                    return;
-                }
-
-                this.isProcessing = true;
-                const task = this.queue.shift();
-
-                try {
-                    await task();
-                } catch (error) {
-                    console.error('[NS助手] 预览任务执行失败:', error);
-                }
-
-                setTimeout(() => {
-                    this.process();
-                }, GM_getValue('ns_content_preview_fetch_delay', 2000));
             }
         },
 
@@ -261,21 +207,19 @@
                             toggleBtn.classList.add('loading');
                             toggleBtn.textContent = '加载中...';
 
-                            NSContentPreview.requestQueue.add(async () => {
-                                try {
-                                    await NSContentPreview.utils.fetchPostContent(postId, previewContainer, toggleBtn, statusSpan);
-                                } catch (error) {
-                                    if (retryCount < maxRetries) {
-                                        retryCount++;
-                                        statusSpan.textContent = `加载失败，将在${GM_getValue('ns_content_preview_fetch_delay', 2000)/1000}秒后重试(${retryCount}/${maxRetries})`;
-                                        NSContentPreview.requestQueue.add(() => NSContentPreview.utils.fetchPostContent(postId, previewContainer, toggleBtn, statusSpan));
-                                    } else {
-                                        toggleBtn.classList.add('error');
-                                        toggleBtn.textContent = '加载失败';
-                                        statusSpan.textContent = '已达到最大重试次数';
-                                    }
+                            try {
+                                NSContentPreview.utils.fetchPostContent(postId, previewContainer, toggleBtn, statusSpan);
+                            } catch (error) {
+                                if (retryCount < maxRetries) {
+                                    retryCount++;
+                                    statusSpan.textContent = `加载失败，正在重试(${retryCount}/${maxRetries})`;
+                                    NSContentPreview.utils.fetchPostContent(postId, previewContainer, toggleBtn, statusSpan);
+                                } else {
+                                    toggleBtn.classList.add('error');
+                                    toggleBtn.textContent = '加载失败';
+                                    statusSpan.textContent = '已达到最大重试次数';
                                 }
-                            });
+                            }
                         }
                     } else {
                         previewContainer.style.display = 'none';
@@ -286,18 +230,6 @@
                 titleLink.parentNode.appendChild(toggleBtn);
                 titleLink.parentNode.appendChild(statusSpan);
                 titleLink.parentNode.appendChild(previewContainer);
-
-                if (GM_getValue('ns_content_preview_auto_load', false)) {
-                    const observer = new IntersectionObserver((entries) => {
-                        entries.forEach(entry => {
-                            if (entry.isIntersecting && !previewContainer.hasContent) {
-                                toggleBtn.click();
-                                observer.disconnect();
-                            }
-                        });
-                    });
-                    observer.observe(item);
-                }
             }
         },
 
@@ -372,5 +304,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] contentPreview 模块加载完成 v0.1.0');
+    console.log('[NS助手] contentPreview 模块加载完成 v0.0.2');
 })(); 
