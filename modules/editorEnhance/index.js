@@ -378,13 +378,9 @@
             const commentDiv = document.querySelector('#fast-nav-button-group #back-to-parent').cloneNode(true);
             commentDiv.id = 'back-to-comment';
             commentDiv.innerHTML = '<svg class="iconpark-icon" style="width: 24px; height: 24px;"><use href="#comments"></use></svg>';
-            commentDiv.setAttribute('title', '快捷回复');
-            
             commentDiv.addEventListener("click", this.handleQuickComment.bind(this));
             
-            
             document.querySelector('#back-to-parent').before(commentDiv);
-
 
             document.querySelectorAll('.nsk-post .comment-menu,.comment-container .comments')
                 .forEach(x => x.addEventListener("click", 
@@ -400,98 +396,24 @@
             if (this.is_show_quick_comment) return;
             e.preventDefault();
 
+            console.log('[NS助手] 准备显示快捷回复窗口');
+
             const mdEditor = document.querySelector('.md-editor');
             if (!mdEditor) return;
 
-            console.log('[NS助手] 准备显示快捷回复窗口');
-            
             const clientHeight = document.documentElement.clientHeight;
             const clientWidth = document.documentElement.clientWidth;
-            const mdWidth = Math.min(800, clientWidth * 0.8);
-            const mdHeight = Math.min(500, clientHeight * 0.6);
-            const top = (clientHeight * 0.6) - (mdHeight / 2);
+            const mdHeight = mdEditor.clientHeight;
+            const mdWidth = mdEditor.clientWidth;
+            const top = (clientHeight / 2) - (mdHeight / 2);
             const left = (clientWidth / 2) - (mdWidth / 2);
 
-            const editorWrapper = document.createElement('div');
-            editorWrapper.className = 'ns-quick-comment-wrapper';
-            editorWrapper.style.cssText = `
-                position: fixed;
-                top: ${top}px;
-                left: ${left}px;
-                width: ${mdWidth}px;
-                z-index: 9999;
-                background: #fff;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                display: flex;
-                flex-direction: column;
-            `;
-
-            const originalParent = mdEditor.parentElement;
-            this._originalEditorParent = originalParent;
-            this._originalEditorNextSibling = mdEditor.nextSibling;
-
-            editorWrapper.appendChild(mdEditor);
-            document.body.appendChild(editorWrapper);
-
-            const editorBody = mdEditor.querySelector('#editor-body');
-            const contentArea = mdEditor.querySelector('.content-area');
-            const cmEditor = mdEditor.querySelector('#cm-editor-wrapper');
-            const expContainer = mdEditor.querySelector('.exp-container');
-            const topicSelect = mdEditor.querySelector('.topic-select');
-
-            mdEditor.style.cssText = `
-                width: 100%;
-                display: flex;
-                flex-direction: column;
-                border-radius: 8px;
-            `;
-
-            editorBody.style.cssText = `
-                display: flex;
-                flex-direction: column;
-                min-height: 300px;
-                max-height: ${mdHeight}px;
-            `;
-
-            contentArea.style.cssText = `
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                overflow: hidden;
-            `;
-
-            if (cmEditor) {
-                cmEditor.style.cssText = `
-                    flex: 1;
-                    overflow: hidden;
-                `;
-            }
-
-            if (expContainer) {
-                expContainer.style.cssText = `
-                    position: relative;
-                    max-height: 200px;
-                    overflow-y: auto;
-                    border-top: 1px solid #eee;
-                `;
-            }
-
-            if (topicSelect) {
-                topicSelect.style.cssText = `
-                    padding: 8px;
-                    background: #fff;
-                    border-top: 1px solid #eee;
-                    display: flex;
-                    justify-content: flex-end;
-                    border-radius: 0 0 8px 8px;
-                `;
-            }
+            mdEditor.style.cssText = `position: fixed; top: ${top}px; left: ${left}px; margin: 30px 0px; width: 100%; max-width: ${mdWidth}px; z-index: 999;`;
 
             const moveEl = mdEditor.querySelector('.tab-select.window_header');
             if (moveEl) {
                 moveEl.style.cursor = "move";
-                moveEl.addEventListener('mousedown', this.startDrag.bind(this));
+                moveEl.addEventListener('mousedown', this.startDrag);
             }
 
             this.addEditorCloseButton();
@@ -509,22 +431,8 @@
             
             const _this = this;
             cloneToolbar.addEventListener("click", function (e) {
-                console.log('[NS助手] 关闭快捷回复窗口');
                 const mdEditor = document.querySelector('.md-editor');
-                const wrapper = document.querySelector('.ns-quick-comment-wrapper');
-                
-                if (mdEditor && wrapper) {
-                    mdEditor.style = "";
-                    if (_this._originalEditorParent) {
-                        if (_this._originalEditorNextSibling) {
-                            _this._originalEditorParent.insertBefore(mdEditor, _this._originalEditorNextSibling);
-                        } else {
-                            _this._originalEditorParent.appendChild(mdEditor);
-                        }
-                    }
-                    wrapper.remove();
-                }
-
+                mdEditor.style = "";
                 const moveEl = mdEditor.querySelector('.tab-select.window_header');
                 if (moveEl) {
                     moveEl.style.cursor = "";
@@ -540,34 +448,23 @@
 
         startDrag(event) {
             if (event.button !== 0) return;
-            console.log('[NS助手] 开始拖拽快捷回复窗口');
 
-            const wrapper = document.querySelector('.ns-quick-comment-wrapper');
-            if (!wrapper) return;
-
-            const rect = wrapper.getBoundingClientRect();
-            const initialX = event.clientX - rect.left;
-            const initialY = event.clientY - rect.top;
+            const draggableElement = document.querySelector('.md-editor');
+            const parentMarginTop = parseInt(window.getComputedStyle(draggableElement).marginTop);
+            const initialX = event.clientX - draggableElement.offsetLeft;
+            const initialY = event.clientY - draggableElement.offsetTop + parentMarginTop;
             
-            const onMouseMove = (event) => {
+            document.onmousemove = function (event) {
                 const newX = event.clientX - initialX;
                 const newY = event.clientY - initialY;
-                
-                const maxX = window.innerWidth - wrapper.offsetWidth;
-                const maxY = window.innerHeight - wrapper.offsetHeight;
-                
-                wrapper.style.left = `${Math.max(0, Math.min(maxX, newX))}px`;
-                wrapper.style.top = `${Math.max(0, Math.min(maxY, newY))}px`;
+                draggableElement.style.left = newX + 'px';
+                draggableElement.style.top = newY + 'px';
             };
             
-            const onMouseUp = () => {
-                console.log('[NS助手] 结束拖拽快捷回复窗口');
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
+            document.onmouseup = function () {
+                document.onmousemove = null;
+                document.onmouseup = null;
             };
-            
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
         },
     };
 
@@ -594,5 +491,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] editorEnhance 模块加载完成 v0.0.4');
+    console.log('[NS助手] editorEnhance 模块加载完成 v0.0.5');
 })(); 
