@@ -397,9 +397,7 @@
         },
 
         handleQuickComment(e) {
-            if (this.is_show_quick_comment) {
-                return;
-            }
+            if (this.is_show_quick_comment) return;
             e.preventDefault();
 
             const mdEditor = document.querySelector('.md-editor');
@@ -410,7 +408,7 @@
             const clientHeight = document.documentElement.clientHeight;
             const clientWidth = document.documentElement.clientWidth;
             const mdWidth = Math.min(800, clientWidth * 0.8);
-            const mdHeight = Math.min(600, clientHeight * 0.7);
+            const mdHeight = Math.min(500, clientHeight * 0.6);
             const top = (clientHeight * 0.6) - (mdHeight / 2);
             const left = (clientWidth / 2) - (mdWidth / 2);
 
@@ -421,8 +419,6 @@
                 top: ${top}px;
                 left: ${left}px;
                 width: ${mdWidth}px;
-                height: auto;
-                min-height: ${mdHeight}px;
                 z-index: 9999;
                 background: #fff;
                 border-radius: 8px;
@@ -440,47 +436,55 @@
 
             const editorBody = mdEditor.querySelector('#editor-body');
             const contentArea = mdEditor.querySelector('.content-area');
+            const cmEditor = mdEditor.querySelector('#cm-editor-wrapper');
             const expContainer = mdEditor.querySelector('.exp-container');
             const topicSelect = mdEditor.querySelector('.topic-select');
 
             mdEditor.style.cssText = `
                 width: 100%;
-                height: 100%;
-                margin: 0;
-                border-radius: 8px;
                 display: flex;
                 flex-direction: column;
+                border-radius: 8px;
             `;
 
             editorBody.style.cssText = `
-                flex: 1;
                 display: flex;
                 flex-direction: column;
-                min-height: 0;
+                min-height: 300px;
+                max-height: ${mdHeight}px;
             `;
 
             contentArea.style.cssText = `
                 flex: 1;
-                min-height: 0;
-                position: relative;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
             `;
+
+            if (cmEditor) {
+                cmEditor.style.cssText = `
+                    flex: 1;
+                    overflow: hidden;
+                `;
+            }
 
             if (expContainer) {
                 expContainer.style.cssText = `
                     position: relative;
                     max-height: 200px;
                     overflow-y: auto;
+                    border-top: 1px solid #eee;
                 `;
             }
 
             if (topicSelect) {
                 topicSelect.style.cssText = `
-                    position: relative;
                     padding: 8px;
                     background: #fff;
                     border-top: 1px solid #eee;
                     display: flex;
                     justify-content: flex-end;
+                    border-radius: 0 0 8px 8px;
                 `;
             }
 
