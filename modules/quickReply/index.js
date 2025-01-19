@@ -14,10 +14,10 @@
                 ENABLE_QUICK_SEND: 'ns_quick_reply_enable_send'
             },
             presets: [
-                { text: '感谢分享', label: '感谢' },
-                { text: '顶一下', label: '顶' },
-                { text: '收藏了，谢谢', label: '收藏' },
-                { text: '学习了，感谢分享', label: '学习' }
+                { text: '感谢分享', label: '感谢', icon: '👍' },
+                { text: '顶一下', label: '顶', icon: '⬆️' },
+                { text: '收藏了，谢谢', label: '收藏', icon: '⭐' },
+                { text: '学习了，感谢分享', label: '学习', icon: '📚' }
             ]
         },
 
@@ -81,12 +81,20 @@
                 NSQuickReply.config.presets.forEach(preset => {
                     const button = document.createElement('button');
                     button.className = 'ns-quick-reply-btn';
-                    button.textContent = preset.label;
+                    button.innerHTML = `<span class="ns-quick-reply-icon">${preset.icon}</span>${preset.label}`;
+                    button.title = preset.text;
                     button.onclick = async () => {
                         const codeMirror = document.querySelector('.CodeMirror');
                         if (!codeMirror || !codeMirror.CodeMirror) return;
                         
-                        codeMirror.CodeMirror.setValue(preset.text);
+                        const cm = codeMirror.CodeMirror;
+                        const currentContent = cm.getValue();
+                        const newContent = currentContent 
+                            ? currentContent.trim() + '\n' + preset.text
+                            : preset.text;
+                        
+                        cm.setValue(newContent);
+                        cm.setCursor(cm.lineCount(), 0);
                         
                         if (GM_getValue('ns_quick_reply_enable_send', false)) {
                             const submitBtn = document.querySelector('.topic-select button.submit.btn');
@@ -182,5 +190,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] quickReply 模块加载完成 v0.0.2');
+    console.log('[NS助手] quickReply 模块加载完成 v0.0.3');
 })(); 

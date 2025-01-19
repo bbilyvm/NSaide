@@ -7,24 +7,39 @@
 }
 
 .ns-quick-reply-btn {
-    padding: 4px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: 6px;
     background: var(--bg-normal);
     color: var(--text-normal);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 13px;
     line-height: 1.5;
     white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .ns-quick-reply-btn:hover {
     background: var(--bg-hover);
     border-color: var(--primary-color);
     color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .ns-quick-reply-btn:active {
     transform: translateY(1px);
+    box-shadow: none;
+}
+
+.ns-quick-reply-icon {
+    font-size: 14px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 } 
