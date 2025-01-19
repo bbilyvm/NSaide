@@ -402,27 +402,53 @@
             }
             e.preventDefault();
 
-
             const mdEditor = document.querySelector('.md-editor');
             if (!mdEditor) return;
 
-            const clientHeight = document.documentElement.clientHeight, 
-                  clientWidth = document.documentElement.clientWidth;
-            const mdHeight = mdEditor.clientHeight, 
-                  mdWidth = mdEditor.clientWidth;
-            const top = (clientHeight / 2) - (mdHeight / 2), 
-                  left = (clientWidth / 2) - (mdWidth / 2);
-                  
-                  
-            mdEditor.style.cssText = `position: fixed; top: ${top}px; left: ${left}px; margin: 30px 0px; width: 100%; max-width: ${mdWidth}px; z-index: 999;`;
+            console.log('[NS助手] 准备显示快捷回复窗口');
             
-            
+            const clientHeight = document.documentElement.clientHeight;
+            const clientWidth = document.documentElement.clientWidth;
+            const mdWidth = Math.min(800, clientWidth * 0.8);
+            const mdHeight = Math.min(500, clientHeight * 0.6);
+            const top = (clientHeight * 0.6) - (mdHeight / 2);
+            const left = (clientWidth / 2) - (mdWidth / 2);
+
+            const editorWrapper = document.createElement('div');
+            editorWrapper.className = 'ns-quick-comment-wrapper';
+            editorWrapper.style.cssText = `
+                position: fixed;
+                top: ${top}px;
+                left: ${left}px;
+                width: ${mdWidth}px;
+                height: ${mdHeight}px;
+                z-index: 9999;
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                overflow: hidden;
+            `;
+
+            const originalParent = mdEditor.parentElement;
+            this._originalEditorParent = originalParent;
+            this._originalEditorNextSibling = mdEditor.nextSibling;
+
+            editorWrapper.appendChild(mdEditor);
+            document.body.appendChild(editorWrapper);
+
+            mdEditor.style.cssText = `
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                border-radius: 8px;
+            `;
+
             const moveEl = mdEditor.querySelector('.tab-select.window_header');
             if (moveEl) {
                 moveEl.style.cursor = "move";
-                moveEl.addEventListener('mousedown', this.startDrag);
+                moveEl.addEventListener('mousedown', this.startDrag.bind(this));
             }
-            
+
             this.addEditorCloseButton();
             this.is_show_quick_comment = true;
         },
@@ -438,8 +464,22 @@
             
             const _this = this;
             cloneToolbar.addEventListener("click", function (e) {
+                console.log('[NS助手] 关闭快捷回复窗口');
                 const mdEditor = document.querySelector('.md-editor');
-                mdEditor.style = "";
+                const wrapper = document.querySelector('.ns-quick-comment-wrapper');
+                
+                if (mdEditor && wrapper) {
+                    mdEditor.style = "";
+                    if (_this._originalEditorParent) {
+                        if (_this._originalEditorNextSibling) {
+                            _this._originalEditorParent.insertBefore(mdEditor, _this._originalEditorNextSibling);
+                        } else {
+                            _this._originalEditorParent.appendChild(mdEditor);
+                        }
+                    }
+                    wrapper.remove();
+                }
+
                 const moveEl = mdEditor.querySelector('.tab-select.window_header');
                 if (moveEl) {
                     moveEl.style.cursor = "";
@@ -455,25 +495,31 @@
 
         startDrag(event) {
             if (event.button !== 0) return;
+            console.log('[NS助手] 开始拖拽快捷回复窗口');
 
-            const draggableElement = document.querySelector('.md-editor');
-            if (!draggableElement) return;
+            const wrapper = document.querySelector('.ns-quick-comment-wrapper');
+            if (!wrapper) return;
 
-            const parentMarginTop = parseInt(window.getComputedStyle(draggableElement).marginTop);
-            const initialX = event.clientX - draggableElement.offsetLeft;
-            const initialY = event.clientY - draggableElement.offsetTop + parentMarginTop;
+            const rect = wrapper.getBoundingClientRect();
+            const initialX = event.clientX - rect.left;
+            const initialY = event.clientY - rect.top;
             
-            function onMouseMove(event) {
+            const onMouseMove = (event) => {
                 const newX = event.clientX - initialX;
                 const newY = event.clientY - initialY;
-                draggableElement.style.left = newX + 'px';
-                draggableElement.style.top = newY + 'px';
-            }
+                
+                const maxX = window.innerWidth - wrapper.offsetWidth;
+                const maxY = window.innerHeight - wrapper.offsetHeight;
+                
+                wrapper.style.left = `${Math.max(0, Math.min(maxX, newX))}px`;
+                wrapper.style.top = `${Math.max(0, Math.min(maxY, newY))}px`;
+            };
             
-            function onMouseUp() {
+            const onMouseUp = () => {
+                console.log('[NS助手] 结束拖拽快捷回复窗口');
                 document.removeEventListener('mousemove', onMouseMove);
                 document.removeEventListener('mouseup', onMouseUp);
-            }
+            };
             
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
