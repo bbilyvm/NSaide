@@ -10,7 +10,8 @@
 
         config: {
             storage: {
-                ENABLED: 'ns_content_preview_enabled'
+                ENABLED: 'ns_content_preview_enabled',
+                SHOW_COMMENTS: 'ns_content_preview_show_comments'
             }
         },
 
@@ -22,6 +23,13 @@
                     label: '启用内容预览',
                     default: true,
                     value: () => GM_getValue('ns_content_preview_enabled', true)
+                },
+                {
+                    id: 'showComments',
+                    type: 'switch',
+                    label: '显示评论区',
+                    default: true,
+                    value: () => GM_getValue('ns_content_preview_show_comments', true)
                 }
             ],
             handleChange(settingId, value, settingsManager) {
@@ -33,6 +41,7 @@
             async fetchPostContent(postId, container, toggleBtn, statusSpan, page = 1) {
                 return new Promise((resolve, reject) => {
                     const fullUrl = `https://www.nodeseek.com/post-${postId}-${page}`;
+                    const showComments = GM_getValue('ns_content_preview_show_comments', true);
 
                     GM_xmlhttpRequest({
                         method: 'GET',
@@ -42,7 +51,6 @@
                                 const parser = new DOMParser();
                                 const doc = parser.parseFromString(response.responseText, 'text/html');
                                 const content = doc.querySelector('.post-content');
-                                const comments = doc.querySelectorAll('ul.comments > li.content-item');
 
                                 if (content) {
                                     let newContent = '';
@@ -51,82 +59,89 @@
                                         newContent = `<div class="ns-preview-post">${content.innerHTML}</div>`;
                                     }
 
-                                    let commentsHtml = `
-                                        <div class="ns-preview-comments">
-                                            <div class="ns-preview-comments-header">
-                                                <span>评论区</span>
-                                                <span class="ns-preview-comments-count">第 ${page} 页</span>
-                                            </div>
-                                    `;
-
-                                    comments.forEach(comment => {
-                                        const avatar = comment.querySelector('.avatar-wrapper img');
-                                        const avatarSrc = avatar ? avatar.src : '';
-                                        const defaultAvatar = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Cpath fill="%23ddd" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/%3E%3C/svg%3E';
-
-                                        const author = comment.querySelector('.author-name');
-                                        const authorName = author?.textContent || '匿名用户';
-                                        const authorLink = author?.href || '#';
-                                        const commentContent = comment.querySelector('.post-content')?.innerHTML || '';
-
-                                        commentsHtml += `
-                                            <div class="ns-preview-comment">
-                                                <div class="ns-preview-comment-avatar"
-                                                     style="background-image: url('${avatarSrc || defaultAvatar}')"
-                                                     role="img"
-                                                     aria-label="${authorName}的头像"></div>
-                                                <div class="ns-preview-comment-content">
-                                                    <div class="ns-preview-comment-header">
-                                                        <a href="${authorLink}" class="ns-preview-comment-author">${authorName}</a>
-                                                    </div>
-                                                    <div class="ns-preview-comment-text">${commentContent}</div>
+                                    if (showComments) {
+                                        const comments = doc.querySelectorAll('ul.comments > li.content-item');
+                                        let commentsHtml = `
+                                            <div class="ns-preview-comments">
+                                                <div class="ns-preview-comments-header">
+                                                    <span>评论区</span>
+                                                    <span class="ns-preview-comments-count">第 ${page} 页</span>
                                                 </div>
-                                            </div>
                                         `;
-                                    });
 
-                                    const paginationLinks = doc.querySelectorAll('.pager-pos');
-                                    let totalPages = 1;
-                                    paginationLinks.forEach(link => {
-                                        const pageNum = parseInt(link.textContent);
-                                        if (!isNaN(pageNum) && pageNum > totalPages) {
-                                            totalPages = pageNum;
-                                        }
-                                    });
+                                        comments.forEach(comment => {
+                                            const avatar = comment.querySelector('.avatar-wrapper img');
+                                            const avatarSrc = avatar ? avatar.src : '';
+                                            const defaultAvatar = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Cpath fill="%23ddd" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/%3E%3C/svg%3E';
 
-                                    if (totalPages > 1) {
-                                        commentsHtml += `<div class="ns-preview-pagination">`;
-                                        if (page > 1) {
-                                            commentsHtml += `<span class="ns-preview-page-btn" data-page="${page-1}">←</span>`;
-                                        }
+                                            const author = comment.querySelector('.author-name');
+                                            const authorName = author?.textContent || '匿名用户';
+                                            const authorLink = author?.href || '#';
+                                            const commentContent = comment.querySelector('.post-content')?.innerHTML || '';
 
-                                        for (let i = 1; i <= totalPages; i++) {
-                                            if (i === page) {
-                                                commentsHtml += `<span class="ns-preview-page-btn active">${i}</span>`;
-                                            } else {
-                                                commentsHtml += `<span class="ns-preview-page-btn" data-page="${i}">${i}</span>`;
+                                            commentsHtml += `
+                                                <div class="ns-preview-comment">
+                                                    <div class="ns-preview-comment-avatar"
+                                                         style="background-image: url('${avatarSrc || defaultAvatar}')"
+                                                         role="img"
+                                                         aria-label="${authorName}的头像"></div>
+                                                    <div class="ns-preview-comment-content">
+                                                        <div class="ns-preview-comment-header">
+                                                            <a href="${authorLink}" class="ns-preview-comment-author">${authorName}</a>
+                                                        </div>
+                                                        <div class="ns-preview-comment-text">${commentContent}</div>
+                                                    </div>
+                                                </div>
+                                            `;
+                                        });
+
+                                        const paginationLinks = doc.querySelectorAll('.pager-pos');
+                                        let totalPages = 1;
+                                        paginationLinks.forEach(link => {
+                                            const pageNum = parseInt(link.textContent);
+                                            if (!isNaN(pageNum) && pageNum > totalPages) {
+                                                totalPages = pageNum;
                                             }
+                                        });
+
+                                        if (totalPages > 1) {
+                                            commentsHtml += `<div class="ns-preview-pagination">`;
+                                            if (page > 1) {
+                                                commentsHtml += `<span class="ns-preview-page-btn" data-page="${page-1}">←</span>`;
+                                            }
+
+                                            for (let i = 1; i <= totalPages; i++) {
+                                                if (i === page) {
+                                                    commentsHtml += `<span class="ns-preview-page-btn active">${i}</span>`;
+                                                } else {
+                                                    commentsHtml += `<span class="ns-preview-page-btn" data-page="${i}">${i}</span>`;
+                                                }
+                                            }
+
+                                            if (page < totalPages) {
+                                                commentsHtml += `<span class="ns-preview-page-btn" data-page="${page+1}">→</span>`;
+                                            }
+                                            commentsHtml += `</div>`;
                                         }
 
-                                        if (page < totalPages) {
-                                            commentsHtml += `<span class="ns-preview-page-btn" data-page="${page+1}">→</span>`;
-                                        }
-                                        commentsHtml += `</div>`;
+                                        commentsHtml += '</div>';
+                                        newContent += commentsHtml;
                                     }
 
-                                    commentsHtml += '</div>';
-                                    container.innerHTML = newContent + commentsHtml;
+                                    container.innerHTML = newContent;
 
-                                    container.querySelectorAll('.ns-preview-page-btn').forEach(btn => {
-                                        if (btn.dataset.page) {
-                                            btn.onclick = () => {
-                                                const targetPage = parseInt(btn.dataset.page);
-                                                if (!isNaN(targetPage) && targetPage !== page) {
-                                                    NSContentPreview.utils.fetchPostContent(postId, container, toggleBtn, statusSpan, targetPage);
-                                                }
-                                            };
-                                        }
-                                    });
+                                    if (showComments) {
+                                        container.querySelectorAll('.ns-preview-page-btn').forEach(btn => {
+                                            if (btn.dataset.page) {
+                                                btn.onclick = () => {
+                                                    const targetPage = parseInt(btn.dataset.page);
+                                                    if (!isNaN(targetPage) && targetPage !== page) {
+                                                        NSContentPreview.utils.fetchPostContent(postId, container, toggleBtn, statusSpan, targetPage);
+                                                    }
+                                                };
+                                            }
+                                        });
+                                    }
 
                                     container.hasContent = true;
                                     toggleBtn.classList.remove('loading');
@@ -304,5 +319,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] contentPreview 模块加载完成 v0.0.2');
+    console.log('[NS助手] contentPreview 模块加载完成 v0.0.3');
 })(); 
