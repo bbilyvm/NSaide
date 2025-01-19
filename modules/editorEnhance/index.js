@@ -440,15 +440,29 @@
             e.preventDefault();
 
             const mdEditor = document.querySelector('.md-editor');
+            
+            // 将编辑器移到body下，避免被容器限制
+            document.body.appendChild(mdEditor);
+            
             const clientHeight = document.documentElement.clientHeight;
             const clientWidth = document.documentElement.clientWidth;
             const mdHeight = mdEditor.clientHeight;
             const mdWidth = mdEditor.clientWidth;
             
-            const top = (clientHeight / 2) - (mdHeight / 2);
-            const left = (clientWidth / 2) - (mdWidth / 2);
+            const top = Math.max(0, (clientHeight - mdHeight) / 2);
+            const left = Math.max(0, (clientWidth - mdWidth) / 2);
             
-            mdEditor.style.cssText = `position: fixed; top: ${top}px; left: ${left}px; margin: 30px 0px; width: 100%; max-width: ${mdWidth}px; z-index: 999;`;
+            mdEditor.style.cssText = `
+                position: fixed;
+                top: ${top}px;
+                left: ${left}px;
+                margin: 0;
+                width: 100%;
+                max-width: 724px;
+                z-index: 999999;
+                background: var(--nsk-bg-normal);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            `;
             
             const moveEl = mdEditor.querySelector('.tab-select.window_header');
             moveEl.style.cursor = 'move';
@@ -482,5 +496,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] editorEnhance 模块加载完成 v0.0.8');
+    console.log('[NS助手] editorEnhance 模块加载完成 v0.0.9');
 })(); 
