@@ -14,6 +14,7 @@
 // @grant        GM_registerMenuCommand
 // @grant        GM_unregisterMenuCommand
 // @grant        GM_info
+// @grant        unsafeWindow
 // @run-at       document-start
 // ==/UserScript==
 

@@ -88,34 +88,14 @@
             checkLoginStatus() {
                 console.log('[NS助手] 开始检查登录状态');
                 
-                const userCard = document.querySelector('.user-card');
-                if (!userCard) {
-                    console.log('[NS助手] 未找到用户卡片元素');
-                    return false;
+                if (unsafeWindow.__config__ && unsafeWindow.__config__.user) {
+                    const user = unsafeWindow.__config__.user;
+                    console.log(`[NS助手] 当前登录用户 ${user.member_name} (ID ${user.member_id})`);
+                    return true;
                 }
 
-                const username = userCard.querySelector('.Username');
-                if (!username) {
-                    console.log('[NS助手] 未找到用户名元素');
-                    return false;
-                }
-                console.log('[NS助手] 当前用户:', username.textContent);
-
-                const statBlock = userCard.querySelector('.stat-block');
-                if (!statBlock) {
-                    console.log('[NS助手] 未找到用户状态栏');
-                    return false;
-                }
-
-                const levelInfo = statBlock.querySelector('span[data-v-0f04b1f4]');
-                if (!levelInfo || !levelInfo.textContent.includes('等级')) {
-                    console.log('[NS助手] 未找到等级信息');
-                    return false;
-                }
-                console.log('[NS助手] 用户等级:', levelInfo.textContent);
-
-                console.log('[NS助手] 登录状态检查通过');
-                return true;
+                console.log('[NS助手] 未检测到用户登录信息');
+                return false;
             },
 
             showToast(message, type = 'info') {
