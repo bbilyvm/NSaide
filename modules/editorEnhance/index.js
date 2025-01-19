@@ -397,25 +397,27 @@
         },
 
         handleQuickComment(e) {
-            if (this.is_show_quick_comment) {
-                return;
-            }
+            if (this.is_show_quick_comment) return;
             e.preventDefault();
 
             const mdEditor = document.querySelector('.md-editor');
             if (!mdEditor) return;
 
-            
+            const originalCM = document.querySelector('.CodeMirror');
+            if (!originalCM || !originalCM.CodeMirror) {
+                console.log('[NS助手] 编辑器未就绪，请稍后再试');
+                return;
+            }
+
             const overlay = document.createElement('div');
             overlay.className = 'ns-editor-overlay';
             document.body.appendChild(overlay);
 
-            
             const editorClone = mdEditor.cloneNode(true);
             editorClone.classList.add('ns-editor-floating');
             document.body.appendChild(editorClone);
+            console.log('[NS助手] 创建浮动编辑器');
 
-            
             mdEditor.style.display = 'none';
 
             const clientHeight = document.documentElement.clientHeight, 
@@ -427,27 +429,38 @@
                   
             editorClone.style.cssText = `position: fixed; top: ${top}px; left: ${left}px; margin: 30px 0px; width: 100%; max-width: ${mdWidth}px; z-index: 1000;`;
             
-            
             const moveEl = editorClone.querySelector('.tab-select.window_header');
             if (moveEl) {
                 moveEl.style.cursor = "move";
                 moveEl.addEventListener('mousedown', this.startDrag);
             }
 
-            
             const textArea = editorClone.querySelector('textarea');
             if (textArea) {
-                const originalCM = document.querySelector('.CodeMirror').CodeMirror;
-                const options = originalCM.options;
-                const content = originalCM.getValue();
-                
-                const newCM = CodeMirror.fromTextArea(textArea, options);
-                newCM.setValue(content);
-                newCM.setOption('extraKeys', originalCM.getOption('extraKeys'));
+                const cmInstance = originalCM.CodeMirror;
+                const options = { ...cmInstance.options };
+                const content = cmInstance.getValue();
+
+                setTimeout(() => {
+                    if (typeof window.CodeMirror !== 'undefined') {
+                        console.log('[NS助手] 初始化编辑器实例');
+                        const newCM = window.CodeMirror.fromTextArea(textArea, options);
+                        newCM.setValue(content);
+                        newCM.setOption('extraKeys', cmInstance.getOption('extraKeys'));
+
+                        newCM.on('change', (cm) => {
+                            cmInstance.setValue(cm.getValue());
+                            console.log('[NS助手] 同步编辑器内容');
+                        });
+                    } else {
+                        console.log('[NS助手] CodeMirror加载失败');
+                    }
+                }, 100);
             }
             
             this.addEditorCloseButton(editorClone, overlay, mdEditor);
             this.is_show_quick_comment = true;
+            console.log('[NS助手] 浮动编辑器初始化完成');
         },
 
         addEditorCloseButton(editorClone, overlay, originalEditor) {
@@ -461,14 +474,11 @@
             
             const _this = this;
             cloneToolbar.addEventListener("click", function (e) {
-                
                 originalEditor.style.display = '';
-                
-                
                 editorClone.remove();
                 overlay.remove();
-
                 _this.is_show_quick_comment = false;
+                console.log('[NS助手] 关闭浮动编辑器');
             });
             
             fullScreenToolbar.after(cloneToolbar);
@@ -497,6 +507,7 @@
             
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
+            console.log('[NS助手] 开始拖拽编辑器');
         },
     };
 
@@ -523,5 +534,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] editorEnhance 模块加载完成 v0.0.2');
+    console.log('[NS助手] editorEnhance 模块加载完成 v0.1.8');
 })(); 
