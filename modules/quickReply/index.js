@@ -78,7 +78,7 @@
                 const buttonsContainer = document.createElement('div');
                 buttonsContainer.className = 'ns-quick-reply-buttons';
                 
-                this.config.presets.forEach(preset => {
+                NSQuickReply.config.presets.forEach(preset => {
                     const button = document.createElement('button');
                     button.className = 'ns-quick-reply-btn';
                     button.textContent = preset.label;
@@ -124,28 +124,22 @@
                     return;
                 }
 
-                const styles = `
-                    .ns-quick-reply-buttons {
-                        display: flex;
-                        gap: 8px;
-                        margin: 8px 0;
-                        flex-wrap: wrap;
+                console.log('[NS助手] 加载快捷回复样式');
+                GM_xmlhttpRequest({
+                    method: 'GET',
+                    url: 'https://raw.githubusercontent.com/stardeep925/NSaide/main/modules/quickReply/style.css',
+                    onload: (response) => {
+                        if (response.status === 200) {
+                            console.log('[NS助手] 快捷回复样式加载成功');
+                            GM_addStyle(response.responseText);
+                        } else {
+                            console.error('[NS助手] 加载快捷回复样式失败:', response.status);
+                        }
+                    },
+                    onerror: (error) => {
+                        console.error('[NS助手] 加载快捷回复样式出错:', error);
                     }
-                    .ns-quick-reply-btn {
-                        padding: 4px 12px;
-                        border: 1px solid #e0e0e0;
-                        border-radius: 4px;
-                        background: #f5f5f5;
-                        color: #333;
-                        cursor: pointer;
-                        transition: all 0.2s;
-                    }
-                    .ns-quick-reply-btn:hover {
-                        background: #e0e0e0;
-                    }
-                `;
-                
-                GM_addStyle(styles);
+                });
                 
                 const observer = new MutationObserver(() => {
                     this.utils.addQuickReplyButtons();
