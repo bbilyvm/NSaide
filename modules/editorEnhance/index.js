@@ -11,7 +11,8 @@
         config: {
             storage: {
                 SHOW_TOAST: 'ns_editor_show_toast',
-                SHOW_SHORTCUT_BTN: 'ns_editor_show_shortcut_btn'
+                SHOW_SHORTCUT_BTN: 'ns_editor_show_shortcut_btn',
+                QUICK_COMMENT_ENABLED: 'ns_editor_quick_comment_enabled'
             },
             shortcuts: {
                 submit: {
@@ -142,6 +143,13 @@
                     value: () => GM_getValue('ns_editor_show_shortcut_btn', true)
                 },
                 {
+                    id: 'quick_comment_enabled',
+                    type: 'switch',
+                    label: '启用快捷回复',
+                    default: true,
+                    value: () => GM_getValue('ns_editor_quick_comment_enabled', true)
+                },
+                {
                     id: 'view_shortcuts',
                     type: 'button',
                     label: '查看快捷键列表',
@@ -157,6 +165,8 @@
                     settingsManager.cacheValue('ns_editor_show_toast', value);
                 } else if (settingId === 'show_shortcut_btn') {
                     settingsManager.cacheValue('ns_editor_show_shortcut_btn', value);
+                } else if (settingId === 'quick_comment_enabled') {
+                    settingsManager.cacheValue('ns_editor_quick_comment_enabled', value);
                 }
             }
         },
@@ -197,10 +207,8 @@
                 toast.textContent = message;
                 document.body.appendChild(toast);
                 
-                // Force reflow
                 toast.offsetHeight;
                 
-                // Show toast
                 requestAnimationFrame(() => {
                     toast.classList.add('ns-editor-toast-show');
                     
@@ -306,6 +314,10 @@
                 return false;
             }
 
+            if (GM_getValue('ns_editor_quick_comment_enabled', true)) {
+                this.setupQuickComment();
+            }
+
             const codeMirrorInstance = codeMirrorElement.CodeMirror;
             if (!codeMirrorInstance) {
                 console.log('[NS助手] 未找到CodeMirror实例，跳过增强');
@@ -355,7 +367,117 @@
 
             codeMirrorInstance.setOption('extraKeys', keyMap);
             return true;
-        }
+        },
+
+        async setupQuickComment() {
+            if (!document.querySelector('#fast-nav-button-group #back-to-parent')) {
+                console.log('[NS助手] 未找到快捷回复按钮位置，跳过');
+                return;
+            }
+
+            const commentDiv = document.querySelector('#fast-nav-button-group #back-to-parent').cloneNode(true);
+            commentDiv.id = 'back-to-comment';
+            commentDiv.innerHTML = '<svg class="iconpark-icon" style="width: 24px; height: 24px;"><use href="#comments"></use></svg>';
+            commentDiv.setAttribute('title', '快捷回复');
+            
+            commentDiv.addEventListener("click", this.handleQuickComment.bind(this));
+            
+            
+            document.querySelector('#back-to-parent').before(commentDiv);
+
+
+            document.querySelectorAll('.nsk-post .comment-menu,.comment-container .comments')
+                .forEach(x => x.addEventListener("click", 
+                    (event) => {
+                        if(!["引用", "回复", "编辑"].includes(event.target.textContent)) return;
+                        this.handleQuickComment(event);
+                    }, 
+                    true
+                ));
+        },
+
+        handleQuickComment(e) {
+            if (this.is_show_quick_comment) {
+                return;
+            }
+            e.preventDefault();
+
+
+            const mdEditor = document.querySelector('.md-editor');
+            if (!mdEditor) return;
+
+            const clientHeight = document.documentElement.clientHeight, 
+                  clientWidth = document.documentElement.clientWidth;
+            const mdHeight = mdEditor.clientHeight, 
+                  mdWidth = mdEditor.clientWidth;
+            const top = (clientHeight / 2) - (mdHeight / 2), 
+                  left = (clientWidth / 2) - (mdWidth / 2);
+                  
+                  
+            mdEditor.style.cssText = `position: fixed; top: ${top}px; left: ${left}px; margin: 30px 0px; width: 100%; max-width: ${mdWidth}px; z-index: 999;`;
+            
+            
+            const moveEl = mdEditor.querySelector('.tab-select.window_header');
+            if (moveEl) {
+                moveEl.style.cursor = "move";
+                moveEl.addEventListener('mousedown', this.startDrag);
+            }
+            
+            this.addEditorCloseButton();
+            this.is_show_quick_comment = true;
+        },
+
+        addEditorCloseButton() {
+            const fullScreenToolbar = document.querySelector('#editor-body .window_header > :last-child');
+            if (!fullScreenToolbar) return;
+
+            const cloneToolbar = fullScreenToolbar.cloneNode(true);
+            cloneToolbar.setAttribute('title', '关闭');
+            cloneToolbar.querySelector('span').classList.replace('i-icon-full-screen-one', 'i-icon-close');
+            cloneToolbar.querySelector('span').innerHTML = '<svg width="16" height="16" viewBox="0 0 48 48" fill="none"><path d="M8 8L40 40" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 40L40 8" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+            
+            const _this = this;
+            cloneToolbar.addEventListener("click", function (e) {
+                const mdEditor = document.querySelector('.md-editor');
+                mdEditor.style = "";
+                const moveEl = mdEditor.querySelector('.tab-select.window_header');
+                if (moveEl) {
+                    moveEl.style.cursor = "";
+                    moveEl.removeEventListener('mousedown', _this.startDrag);
+                }
+
+                this.remove();
+                _this.is_show_quick_comment = false;
+            });
+            
+            fullScreenToolbar.after(cloneToolbar);
+        },
+
+        startDrag(event) {
+            if (event.button !== 0) return;
+
+            const draggableElement = document.querySelector('.md-editor');
+            if (!draggableElement) return;
+
+            const parentMarginTop = parseInt(window.getComputedStyle(draggableElement).marginTop);
+            const initialX = event.clientX - draggableElement.offsetLeft;
+            const initialY = event.clientY - draggableElement.offsetTop + parentMarginTop;
+            
+            function onMouseMove(event) {
+                const newX = event.clientX - initialX;
+                const newY = event.clientY - initialY;
+                draggableElement.style.left = newX + 'px';
+                draggableElement.style.top = newY + 'px';
+            }
+            
+            function onMouseUp() {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        },
     };
 
     console.log('[NS助手] 等待模块系统就绪');
@@ -381,5 +503,5 @@
     };
 
     waitForNS();
-    console.log('[NS助手] editorEnhance 模块加载完成');
+    console.log('[NS助手] editorEnhance 模块加载完成 v0.0.2');
 })(); 
